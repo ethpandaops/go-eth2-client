@@ -9,6 +9,7 @@ types:
     output: beaconblock_ssz.go
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true
   - name: Builder
     output: builder_ssz.go
   - name: BuilderPendingPayment

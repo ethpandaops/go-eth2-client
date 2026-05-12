@@ -3,6 +3,7 @@ package: .
 types:
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true
     view-only: true
     views:
       - ../phase0.BeaconState

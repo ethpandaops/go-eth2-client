@@ -444,3 +444,37 @@ func parseAddress(address string) (*url.URL, *url.URL, error) {
 
 	return base, &baseAddress, nil
 }
+
+// dynSSZForRequest returns the cached dynssz instance for the current spec
+// snapshot, fetching the spec lazily on the first call (and rebuilding the
+// instance when clearStaticValues invalidates the cache). The instance's
+// internal type cache is reused across calls, which is the whole point of
+// caching it here rather than newing one up per request.
+func (s *Service) dynSSZForRequest(ctx context.Context) (*dynssz.DynSsz, error) {
+	if !s.customSpecSupport {
+		return dynssz.GetGlobalDynSsz(), nil
+	}
+
+	s.specMutex.RLock()
+	cached := s.dynSSZ
+	s.specMutex.RUnlock()
+
+	if cached != nil {
+		return cached, nil
+	}
+
+	// Trigger Spec() which fetches+caches both the spec map and the dynssz
+	// instance built from it.
+	if _, err := s.Spec(ctx, &api.SpecOpts{}); err != nil {
+		return nil, errors.Join(errors.New("failed to request specs"), err)
+	}
+
+	s.specMutex.RLock()
+	defer s.specMutex.RUnlock()
+
+	if s.dynSSZ != nil {
+		return s.dynSSZ, nil
+	}
+
+	return dynssz.GetGlobalDynSsz(), nil
+}

@@ -32,12 +32,12 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
-	dynssz "github.com/pk910/dynamic-ssz"
 )
 
 // BeaconState fetches a beacon state given a state ID and decodes it directly
-// into the per-fork view stored on a *spec.VersionedBeaconState. No
-// intermediate copy.
+// into the per-fork view stored on a *spec.VersionedBeaconState. SSZ
+// responses are streamed straight from the wire into the SSZ decoder so the
+// (potentially multi-GB) payload is never held in memory in full.
 func (s *Service) BeaconState(ctx context.Context,
 	opts *api.BeaconStateOpts,
 ) (
@@ -48,6 +48,7 @@ func (s *Service) BeaconState(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	defer httpResponse.Close()
 
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -62,7 +63,8 @@ func (s *Service) BeaconState(ctx context.Context,
 // AgnosticBeaconState fetches a beacon state and decodes it directly into a
 // fork-agnostic *all.BeaconState. The Version is set from the consensus
 // version header before unmarshaling so the union type's view-aware codec
-// dispatches into the correct fork's schema. No intermediate copy.
+// dispatches into the correct fork's schema. SSZ responses are streamed
+// from the wire into the SSZ decoder; no intermediate copy.
 func (s *Service) AgnosticBeaconState(ctx context.Context,
 	opts *api.BeaconStateOpts,
 ) (
@@ -73,8 +75,10 @@ func (s *Service) AgnosticBeaconState(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	defer httpResponse.Close()
 
 	state := &all.BeaconState{Version: httpResponse.consensusVersion}
+	metadata := metadataFromHeaders(httpResponse.headers)
 
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -83,25 +87,30 @@ func (s *Service) AgnosticBeaconState(ctx context.Context,
 			return nil, err
 		}
 
-		if err := state.UnmarshalSSZDyn(ds, httpResponse.body); err != nil {
+		if err := ds.UnmarshalSSZReader(state, httpResponse.bodyReader, int(httpResponse.bodySize)); err != nil {
 			return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		if err := state.UnmarshalJSON(httpResponse.body); err != nil {
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), state)
+		if err != nil {
 			return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
 		}
+		state = decoded
+		metadata = jsonMetadata
 	default:
 		return nil, fmt.Errorf("unhandled content type %v", httpResponse.contentType)
 	}
 
 	return &api.Response[*all.BeaconState]{
 		Data:     state,
-		Metadata: metadataFromHeaders(httpResponse.headers),
+		Metadata: metadata,
 	}, nil
 }
 
 // fetchBeaconState performs the GET request shared by BeaconState and
-// AgnosticBeaconState: validates opts and hits the endpoint.
+// AgnosticBeaconState: validates opts and hits the endpoint. The response is
+// fetched via getStream so SSZ payloads are not buffered into memory; the
+// caller is responsible for invoking httpResponse.Close.
 func (s *Service) fetchBeaconState(ctx context.Context,
 	opts *api.BeaconStateOpts,
 ) (*httpResponse, error) {
@@ -119,7 +128,7 @@ func (s *Service) fetchBeaconState(ctx context.Context,
 
 	endpoint := fmt.Sprintf("/eth/v2/debug/beacon/states/%s", opts.State)
 
-	return s.get(ctx, endpoint, "", &opts.Common, true)
+	return s.getStream(ctx, endpoint, "", &opts.Common, true)
 }
 
 func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*api.Response[*spec.VersionedBeaconState], error) {
@@ -135,77 +144,47 @@ func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*a
 		return nil, err
 	}
 
+	size := int(res.bodySize)
+
+	var target any
 	switch res.consensusVersion {
 	case spec.DataVersionPhase0:
 		response.Data.Phase0 = &phase0.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Phase0, res.body)
+		target = response.Data.Phase0
 	case spec.DataVersionAltair:
 		response.Data.Altair = &altair.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Altair, res.body)
+		target = response.Data.Altair
 	case spec.DataVersionBellatrix:
 		response.Data.Bellatrix = &bellatrix.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Bellatrix, res.body)
+		target = response.Data.Bellatrix
 	case spec.DataVersionCapella:
 		response.Data.Capella = &capella.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Capella, res.body)
+		target = response.Data.Capella
 	case spec.DataVersionDeneb:
 		response.Data.Deneb = &deneb.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Deneb, res.body)
+		target = response.Data.Deneb
 	case spec.DataVersionElectra:
 		response.Data.Electra = &electra.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Electra, res.body)
+		target = response.Data.Electra
 	case spec.DataVersionFulu:
 		response.Data.Fulu = &fulu.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Fulu, res.body)
+		target = response.Data.Fulu
 	case spec.DataVersionGloas:
 		response.Data.Gloas = &gloas.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Gloas, res.body)
+		target = response.Data.Gloas
 	case spec.DataVersionHeze:
 		response.Data.Heze = &heze.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
+		target = response.Data.Heze
 	default:
 		return nil, fmt.Errorf("unhandled state version %s", res.consensusVersion)
 	}
 
+	err = dynSSZ.UnmarshalSSZReader(target, res.bodyReader, size)
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", res.consensusVersion), err)
 	}
 
 	return response, nil
-}
-
-// dynSSZForRequest returns the cached dynssz instance for the current spec
-// snapshot, fetching the spec lazily on the first call (and rebuilding the
-// instance when clearStaticValues invalidates the cache). The instance's
-// internal type cache is reused across calls, which is the whole point of
-// caching it here rather than newing one up per request.
-func (s *Service) dynSSZForRequest(ctx context.Context) (*dynssz.DynSsz, error) {
-	if !s.customSpecSupport {
-		return dynssz.GetGlobalDynSsz(), nil
-	}
-
-	s.specMutex.RLock()
-	cached := s.dynSSZ
-	s.specMutex.RUnlock()
-
-	if cached != nil {
-		return cached, nil
-	}
-
-	// Trigger Spec() which fetches+caches both the spec map and the dynssz
-	// instance built from it.
-	if _, err := s.Spec(ctx, &api.SpecOpts{}); err != nil {
-		return nil, errors.Join(errors.New("failed to request specs"), err)
-	}
-
-	s.specMutex.RLock()
-	defer s.specMutex.RUnlock()
-
-	if s.dynSSZ != nil {
-		return s.dynSSZ, nil
-	}
-
-	return dynssz.GetGlobalDynSsz(), nil
 }
 
 func (*Service) beaconStateFromJSON(res *httpResponse) (*api.Response[*spec.VersionedBeaconState], error) {

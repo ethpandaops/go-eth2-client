@@ -133,6 +133,26 @@ func (b *BeaconState) MarshalSSZDyn(ds sszutils.DynamicSpecs, buf []byte) ([]byt
 	return fn(ds, buf)
 }
 
+// MarshalSSZEncoder is the streaming counterpart of MarshalSSZDyn: it lets
+// dynssz dispatch through the DynamicEncoder interface and route writes to
+// the per-fork view's generated encoder without buffering the full payload.
+func (b *BeaconState) MarshalSSZEncoder(ds sszutils.DynamicSpecs, enc sszutils.Encoder) error {
+	view, err := b.viewType()
+	if err != nil {
+		return err
+	}
+	m, ok := any(b).(sszutils.DynamicViewEncoder)
+	if !ok {
+		return errors.New("BeaconState: generated SSZ code missing")
+	}
+	fn := m.MarshalSSZEncoderView(view)
+	if fn == nil {
+		return fmt.Errorf("BeaconState: no view encoder for version %d", b.Version)
+	}
+
+	return fn(ds, enc)
+}
+
 // SizeSSZDyn returns the SSZ size of the state for the active Version.
 func (b *BeaconState) SizeSSZDyn(ds sszutils.DynamicSpecs) int {
 	view, err := b.viewType()
@@ -167,6 +187,35 @@ func (b *BeaconState) UnmarshalSSZDyn(ds sszutils.DynamicSpecs, buf []byte) erro
 	}
 
 	if err := fn(ds, buf); err != nil {
+		return err
+	}
+
+	b.populateVersion(b.Version)
+
+	return nil
+}
+
+// UnmarshalSSZDecoder is the streaming counterpart of UnmarshalSSZDyn: it
+// lets dynssz dispatch through the DynamicDecoder interface so the
+// (potentially multi-GB) state payload can be read directly off the wire,
+// while the view-aware decoder picks the correct fork's schema from
+// b.Version. populateVersion runs at the end so children allocated during
+// decode have Version seeded, matching the buffered path.
+func (b *BeaconState) UnmarshalSSZDecoder(ds sszutils.DynamicSpecs, dec sszutils.Decoder) error {
+	view, err := b.viewType()
+	if err != nil {
+		return err
+	}
+	d, ok := any(b).(sszutils.DynamicViewDecoder)
+	if !ok {
+		return errors.New("BeaconState: generated SSZ code missing")
+	}
+	fn := d.UnmarshalSSZDecoderView(view)
+	if fn == nil {
+		return fmt.Errorf("BeaconState: no view decoder for version %d", b.Version)
+	}
+
+	if err := fn(ds, dec); err != nil {
 		return err
 	}
 

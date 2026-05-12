@@ -9,6 +9,7 @@ types:
     output: beaconblockbody_ssz.go
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true
   - name: ExecutionPayload
     output: executionpayload_ssz.go
   - name: ExecutionPayloadHeader

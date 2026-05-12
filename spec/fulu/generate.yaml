@@ -5,3 +5,4 @@ without-dynamic-expressions: true
 types:
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true

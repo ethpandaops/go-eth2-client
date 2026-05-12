@@ -15,6 +15,7 @@ types:
     output: beaconblock_ssz.go
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true
   - name: Consolidation
     output: consolidation_ssz.go
   - name: ConsolidationRequest

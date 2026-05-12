@@ -9,6 +9,7 @@ types:
     output: beaconblock_ssz.go
   - name: BeaconState
     output: beaconstate_ssz.go
+    with-streaming: true
   - name: BlobIdentifier
     output: blobidentifier_ssz.go
   - name: BlobSidecar

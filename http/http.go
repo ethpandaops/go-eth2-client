@@ -225,9 +225,31 @@ type httpResponse struct {
 	headers          map[string]string
 	consensusVersion spec.DataVersion
 	body             []byte
+
+	// bodyReader is set by getStream for 2xx SSZ responses so the caller can
+	// decode directly from the wire without a full in-memory copy. When set,
+	// body is empty and the caller MUST call Close() to release the
+	// underlying connection.
+	bodyReader io.ReadCloser
+	// bodySize is the Content-Length of the streaming body, or -1 when the
+	// server did not advertise one (e.g. chunked transfer).
+	bodySize int64
 }
 
-// get sends an HTTP get request and returns the response.
+// Close releases the streaming body if one is held. Safe to call when no
+// stream is held (no-op).
+func (r *httpResponse) Close() error {
+	if r == nil || r.bodyReader == nil {
+		return nil
+	}
+	err := r.bodyReader.Close()
+	r.bodyReader = nil
+
+	return err
+}
+
+// get sends an HTTP get request and returns the response with the body fully
+// buffered into memory.
 //
 //nolint:revive
 func (s *Service) get(ctx context.Context,
@@ -235,6 +257,41 @@ func (s *Service) get(ctx context.Context,
 	query string,
 	opts *api.CommonOpts,
 	supportsSSZ bool,
+) (
+	*httpResponse,
+	error,
+) {
+	return s.getInternal(ctx, endpoint, query, opts, supportsSSZ, false)
+}
+
+// getStream is like get, but for 2xx SSZ responses it leaves the body open
+// as res.bodyReader so the caller can decode straight from the wire. The
+// caller MUST call res.Close() to release the connection. For non-SSZ or
+// non-2xx responses the body is fully buffered into res.body, exactly like
+// get; res.bodyReader is then nil and Close() is a no-op.
+func (s *Service) getStream(ctx context.Context,
+	endpoint string,
+	query string,
+	opts *api.CommonOpts,
+	supportsSSZ bool,
+) (
+	*httpResponse,
+	error,
+) {
+	return s.getInternal(ctx, endpoint, query, opts, supportsSSZ, true)
+}
+
+// getInternal implements get and getStream. When stream is true and the
+// response is a 2xx SSZ payload, the response body is handed back via
+// res.bodyReader without being read into memory.
+//
+//nolint:revive
+func (s *Service) getInternal(ctx context.Context,
+	endpoint string,
+	query string,
+	opts *api.CommonOpts,
+	supportsSSZ bool,
+	stream bool,
 ) (
 	*httpResponse,
 	error,
@@ -295,7 +352,6 @@ func (s *Service) get(ctx context.Context,
 
 		return nil, errors.Join(errors.New("failed to call GET endpoint"), err)
 	}
-	defer resp.Body.Close()
 
 	log = log.With().Int("status_code", resp.StatusCode).Logger()
 
@@ -303,6 +359,51 @@ func (s *Service) get(ctx context.Context,
 		statusCode: resp.StatusCode,
 	}
 	populateHeaders(res, resp)
+
+	if resp.StatusCode == http.StatusNoContent {
+		// Nothing returned.  This is not considered an error.
+		_ = resp.Body.Close()
+		span.AddEvent("Received empty response")
+		log.Trace().Msg("Endpoint returned no content")
+		s.monitorGetComplete(ctx, callURL.Path, "succeeded")
+
+		return res, nil
+	}
+
+	if err := populateContentType(res, resp); err != nil {
+		// For now, assume that unknown type is JSON.
+		log.Debug().Err(err).Msg("Failed to obtain content type; assuming JSON")
+
+		res.contentType = ContentTypeJSON
+	}
+
+	statusFamily := statusCodeFamily(resp.StatusCode)
+
+	// Streaming path: 2xx SSZ responses are handed to the caller as an open
+	// reader so the SSZ decoder can read directly off the wire. Everything
+	// else (non-2xx, JSON, etc.) is buffered below, matching the original
+	// behavior so callers that don't care about streaming see no change.
+	if stream && statusFamily == 2 && res.contentType == ContentTypeSSZ {
+		if err := populateConsensusVersion(res, resp); err != nil {
+			_ = resp.Body.Close()
+
+			return nil, errors.Join(errors.New("failed to parse consensus version"), err)
+		}
+
+		res.bodyReader = resp.Body
+		res.bodySize = resp.ContentLength
+
+		span.AddEvent("Received response", trace.WithAttributes(
+			attribute.Int64("size", resp.ContentLength),
+			attribute.String("content-type", res.contentType.String()),
+		))
+
+		s.monitorGetComplete(ctx, callURL.Path, "succeeded")
+
+		return res, nil
+	}
+
+	defer resp.Body.Close()
 
 	// Although it would be more efficient to keep the body as a Reader, that would
 	// require the calling function to be aware that it needs to close the body
@@ -325,28 +426,11 @@ func (s *Service) get(ctx context.Context,
 		return nil, errors.Join(errors.New("failed to read GET response"), err)
 	}
 
-	if resp.StatusCode == http.StatusNoContent {
-		// Nothing returned.  This is not considered an error.
-		span.AddEvent("Received empty response")
-		log.Trace().Msg("Endpoint returned no content")
-		s.monitorGetComplete(ctx, callURL.Path, "succeeded")
-
-		return res, nil
-	}
-
-	if err := populateContentType(res, resp); err != nil {
-		// For now, assume that unknown type is JSON.
-		log.Debug().Err(err).Msg("Failed to obtain content type; assuming JSON")
-
-		res.contentType = ContentTypeJSON
-	}
-
 	span.AddEvent("Received response", trace.WithAttributes(
 		attribute.Int("size", len(res.body)),
 		attribute.String("content-type", res.contentType.String()),
 	))
 
-	statusFamily := statusCodeFamily(resp.StatusCode)
 	if statusFamily != 2 {
 		s.logBadStatus(ctx, "GET", res, log)
 
