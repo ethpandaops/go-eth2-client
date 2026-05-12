@@ -234,16 +234,29 @@ type httpResponse struct {
 	// bodySize is the Content-Length of the streaming body, or -1 when the
 	// server did not advertise one (e.g. chunked transfer).
 	bodySize int64
+	// cancel is the request context's cancel function, transferred to the
+	// response when the body is handed back for streaming. It must be
+	// invoked when the caller is done with the body so the request context
+	// is released; firing it sooner would cancel the in-flight body reads.
+	cancel context.CancelFunc
 }
 
 // Close releases the streaming body if one is held. Safe to call when no
 // stream is held (no-op).
 func (r *httpResponse) Close() error {
-	if r == nil || r.bodyReader == nil {
+	if r == nil {
 		return nil
 	}
-	err := r.bodyReader.Close()
-	r.bodyReader = nil
+
+	var err error
+	if r.bodyReader != nil {
+		err = r.bodyReader.Close()
+		r.bodyReader = nil
+	}
+	if r.cancel != nil {
+		r.cancel()
+		r.cancel = nil
+	}
 
 	return err
 }
@@ -313,7 +326,16 @@ func (s *Service) getInternal(ctx context.Context,
 	}
 
 	opCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	// cancel must not fire until the response body has been fully consumed
+	// in streaming mode, since the request context controls the lifetime of
+	// resp.Body reads. The streaming success path transfers ownership of
+	// cancel to the returned httpResponse and clears this local copy so the
+	// defer below becomes a no-op.
+	defer func() {
+		if cancel != nil {
+			cancel()
+		}
+	}()
 
 	req, err := http.NewRequestWithContext(opCtx, http.MethodGet, callURL.String(), nil)
 	if err != nil {
@@ -383,7 +405,12 @@ func (s *Service) getInternal(ctx context.Context,
 	// reader so the SSZ decoder can read directly off the wire. Everything
 	// else (non-2xx, JSON, etc.) is buffered below, matching the original
 	// behavior so callers that don't care about streaming see no change.
-	if stream && statusFamily == 2 && res.contentType == ContentTypeSSZ {
+	//
+	// A known Content-Length is required: the streaming SSZ decoder is sized
+	// from this value, and chunked-encoded responses (Teku) report
+	// ContentLength = -1. For those, fall through to the buffered path so
+	// the decoder sees the full payload size up front.
+	if stream && statusFamily == 2 && res.contentType == ContentTypeSSZ && resp.ContentLength > 0 {
 		if err := populateConsensusVersion(res, resp); err != nil {
 			_ = resp.Body.Close()
 
@@ -392,6 +419,11 @@ func (s *Service) getInternal(ctx context.Context,
 
 		res.bodyReader = resp.Body
 		res.bodySize = resp.ContentLength
+		// Transfer ownership of the request context cancel to the caller;
+		// the deferred cancel above becomes a no-op so resp.Body reads are
+		// not interrupted. The caller releases the context via res.Close().
+		res.cancel = cancel
+		cancel = nil
 
 		span.AddEvent("Received response", trace.WithAttributes(
 			attribute.Int64("size", resp.ContentLength),
