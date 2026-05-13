@@ -16,6 +16,7 @@ package api
 // BeaconStateOpts are the options for obtaining the beacon state.
 type BeaconStateOpts struct {
 	Common CommonOpts
+	Stream bool
 
 	// State is the state at which the data is obtained.
 	// It can be a slot number or state root, or one of the special values "genesis", "head", "justified" or "finalized".

@@ -87,16 +87,31 @@ func (s *Service) AgnosticBeaconState(ctx context.Context,
 			return nil, err
 		}
 
-		if err := ds.UnmarshalSSZReader(state, httpResponse.bodyReader, int(httpResponse.bodySize)); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+		if httpResponse.bodyReader != nil {
+			if err := ds.UnmarshalSSZReader(state, httpResponse.bodyReader, int(httpResponse.bodySize)); err != nil {
+				return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+			}
+		} else {
+			if err := ds.UnmarshalSSZ(state, httpResponse.body); err != nil {
+				return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+			}
 		}
 	case ContentTypeJSON:
-		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), state)
-		if err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+		if httpResponse.bodyReader != nil {
+			decoded, jsonMetadata, err := decodeJSONResponse(httpResponse.bodyReader, state)
+			if err != nil {
+				return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+			}
+			state = decoded
+			metadata = jsonMetadata
+		} else {
+			decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), state)
+			if err != nil {
+				return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", httpResponse.consensusVersion), err)
+			}
+			state = decoded
+			metadata = jsonMetadata
 		}
-		state = decoded
-		metadata = jsonMetadata
 	default:
 		return nil, fmt.Errorf("unhandled content type %v", httpResponse.contentType)
 	}
@@ -128,7 +143,11 @@ func (s *Service) fetchBeaconState(ctx context.Context,
 
 	endpoint := fmt.Sprintf("/eth/v2/debug/beacon/states/%s", opts.State)
 
-	return s.getStream(ctx, endpoint, "", &opts.Common, true)
+	if opts.Stream {
+		return s.getStream(ctx, endpoint, "", &opts.Common, true)
+	}
+
+	return s.get(ctx, endpoint, "", &opts.Common, true)
 }
 
 func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*api.Response[*spec.VersionedBeaconState], error) {
@@ -179,7 +198,11 @@ func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*a
 		return nil, fmt.Errorf("unhandled state version %s", res.consensusVersion)
 	}
 
-	err = dynSSZ.UnmarshalSSZReader(target, res.bodyReader, size)
+	if res.bodyReader != nil {
+		err = dynSSZ.UnmarshalSSZReader(target, res.bodyReader, size)
+	} else {
+		err = dynSSZ.UnmarshalSSZ(target, res.body)
+	}
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("failed to decode %s beacon state", res.consensusVersion), err)
 	}
@@ -198,23 +221,59 @@ func (*Service) beaconStateFromJSON(res *httpResponse) (*api.Response[*spec.Vers
 
 	switch res.consensusVersion {
 	case spec.DataVersionPhase0:
-		response.Data.Phase0, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &phase0.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Phase0, response.Metadata, err = decodeJSONResponse(res.bodyReader, &phase0.BeaconState{})
+		} else {
+			response.Data.Phase0, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &phase0.BeaconState{})
+		}
 	case spec.DataVersionAltair:
-		response.Data.Altair, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &altair.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Altair, response.Metadata, err = decodeJSONResponse(res.bodyReader, &altair.BeaconState{})
+		} else {
+			response.Data.Altair, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &altair.BeaconState{})
+		}
 	case spec.DataVersionBellatrix:
-		response.Data.Bellatrix, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &bellatrix.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Bellatrix, response.Metadata, err = decodeJSONResponse(res.bodyReader, &bellatrix.BeaconState{})
+		} else {
+			response.Data.Bellatrix, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &bellatrix.BeaconState{})
+		}
 	case spec.DataVersionCapella:
-		response.Data.Capella, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &capella.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Capella, response.Metadata, err = decodeJSONResponse(res.bodyReader, &capella.BeaconState{})
+		} else {
+			response.Data.Capella, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &capella.BeaconState{})
+		}
 	case spec.DataVersionDeneb:
-		response.Data.Deneb, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &deneb.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Deneb, response.Metadata, err = decodeJSONResponse(res.bodyReader, &deneb.BeaconState{})
+		} else {
+			response.Data.Deneb, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &deneb.BeaconState{})
+		}
 	case spec.DataVersionElectra:
-		response.Data.Electra, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &electra.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Electra, response.Metadata, err = decodeJSONResponse(res.bodyReader, &electra.BeaconState{})
+		} else {
+			response.Data.Electra, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &electra.BeaconState{})
+		}
 	case spec.DataVersionFulu:
-		response.Data.Fulu, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &fulu.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Fulu, response.Metadata, err = decodeJSONResponse(res.bodyReader, &fulu.BeaconState{})
+		} else {
+			response.Data.Fulu, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &fulu.BeaconState{})
+		}
 	case spec.DataVersionGloas:
-		response.Data.Gloas, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &gloas.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Gloas, response.Metadata, err = decodeJSONResponse(res.bodyReader, &gloas.BeaconState{})
+		} else {
+			response.Data.Gloas, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &gloas.BeaconState{})
+		}
 	case spec.DataVersionHeze:
-		response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &heze.BeaconState{})
+		if res.bodyReader != nil {
+			response.Data.Heze, response.Metadata, err = decodeJSONResponse(res.bodyReader, &heze.BeaconState{})
+		} else {
+			response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &heze.BeaconState{})
+		}
 	default:
 		err = fmt.Errorf("unsupported version %s", res.consensusVersion)
 	}
