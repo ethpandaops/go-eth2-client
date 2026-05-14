@@ -248,7 +248,7 @@ func (s *Service) handleEvent(ctx context.Context,
 	}
 }
 
-func (*Service) handleAttestationEvent(ctx context.Context,
+func (s *Service) handleAttestationEvent(ctx context.Context,
 	msg *sse.Event,
 	opts *api.EventsOpts,
 ) {
@@ -257,6 +257,16 @@ func (*Service) handleAttestationEvent(ctx context.Context,
 
 	err := json.Unmarshal(msg.Data, data)
 	if err != nil {
+		if isSingleAttestationPayload(msg.Data) {
+			log.Debug().RawJSON("data", msg.Data).
+				Msg("Received single attestation payload on attestation topic; rerouting")
+			rerouted := *msg
+			rerouted.Event = []byte("single_attestation")
+			s.handleSingleAttestationEvent(ctx, &rerouted, opts)
+
+			return
+		}
+
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse attestation")
 
 		return
@@ -273,6 +283,22 @@ func (*Service) handleAttestationEvent(ctx context.Context,
 	default:
 		log.Debug().Msg("No specific or generic handler supplied; ignoring")
 	}
+}
+
+// isSingleAttestationPayload reports whether the JSON payload is a
+// SingleAttestation rather than an aggregated Attestation. Some consensus
+// clients (e.g. Grandine post-Electra) emit SingleAttestation objects on the
+// "attestation" SSE topic instead of "single_attestation", so we detect the
+// shape and reroute to keep the event stream functional.
+func isSingleAttestationPayload(data []byte) bool {
+	var probe struct {
+		AttesterIndex *string `json:"attester_index"`
+	}
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return false
+	}
+
+	return probe.AttesterIndex != nil
 }
 
 func (*Service) handleAttesterSlashingEvent(ctx context.Context,
