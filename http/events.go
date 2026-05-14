@@ -290,6 +290,10 @@ func (s *Service) handleAttestationEvent(ctx context.Context,
 // clients (e.g. Grandine post-Electra) emit SingleAttestation objects on the
 // "attestation" SSE topic instead of "single_attestation", so we detect the
 // shape and reroute to keep the event stream functional.
+//
+// SingleAttestation is an Electra (EIP-7549) construct, so the probe never
+// matches on pre-Electra forks — pre-Electra payloads always carry
+// aggregation_bits and parse through the normal VersionedAttestation path.
 func isSingleAttestationPayload(data []byte) bool {
 	var probe struct {
 		AttesterIndex *string `json:"attester_index"`
