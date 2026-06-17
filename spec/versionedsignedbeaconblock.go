@@ -1436,7 +1436,7 @@ func (v *VersionedSignedBeaconBlock) BlobKZGCommitments() ([]deneb.KZGCommitment
 }
 
 // ExecutionRequests returs the execution requests for the block.
-func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*electra.ExecutionRequests, error) {
+func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*VersionedExecutionRequests, error) {
 	switch v.Version {
 	case DataVersionPhase0:
 		return nil, errors.New("phase0 block does not have execution requests")
@@ -1455,13 +1455,19 @@ func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*electra.ExecutionRequ
 			return nil, errors.New("no electra block")
 		}
 
-		return v.Electra.Message.Body.ExecutionRequests, nil
+		return &VersionedExecutionRequests{
+			Version: DataVersionElectra,
+			Electra: v.Electra.Message.Body.ExecutionRequests,
+		}, nil
 	case DataVersionFulu:
 		if v.Fulu == nil || v.Fulu.Message == nil || v.Fulu.Message.Body == nil {
 			return nil, errors.New("no fulu block")
 		}
 
-		return v.Fulu.Message.Body.ExecutionRequests, nil
+		return &VersionedExecutionRequests{
+			Version: DataVersionFulu,
+			Fulu:    v.Fulu.Message.Body.ExecutionRequests,
+		}, nil
 	case DataVersionGloas:
 		return nil, errors.New("no execution requests for gloas block")
 	case DataVersionHeze:

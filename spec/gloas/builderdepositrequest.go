@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -20,18 +20,17 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-// ExecutionPayloadEnvelope represents an execution payload envelope.
-type ExecutionPayloadEnvelope struct {
-	Payload               *ExecutionPayload
-	ExecutionRequests     *ExecutionRequests
-	BuilderIndex          BuilderIndex
-	BeaconBlockRoot       phase0.Root `ssz-size:"32"`
-	ParentBeaconBlockRoot phase0.Root `ssz-size:"32"`
+// BuilderDepositRequest represents a builder deposit request (EIP-8282).
+type BuilderDepositRequest struct {
+	Pubkey                phase0.BLSPubKey `ssz-size:"48"`
+	WithdrawalCredentials []byte           `ssz-size:"32"`
+	Amount                phase0.Gwei
+	Signature             phase0.BLSSignature `ssz-size:"96"`
 }
 
 // String returns a string version of the structure.
-func (e *ExecutionPayloadEnvelope) String() string {
-	data, err := yaml.Marshal(e)
+func (b *BuilderDepositRequest) String() string {
+	data, err := yaml.Marshal(b)
 	if err != nil {
 		return fmt.Sprintf("ERR: %v", err)
 	}

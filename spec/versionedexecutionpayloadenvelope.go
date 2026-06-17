@@ -16,7 +16,6 @@ package spec
 import (
 	"errors"
 
-	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
@@ -80,7 +79,7 @@ func (v *VersionedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPayload, 
 }
 
 // ExecutionRequests returns the execution requests of the envelope.
-func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*electra.ExecutionRequests, error) {
+func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*VersionedExecutionRequests, error) {
 	switch v.Version {
 	case DataVersionPhase0:
 		return nil, errors.New("no execution payload envelope in phase0")
@@ -101,7 +100,10 @@ func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*electra.Execut
 			return nil, errors.New("no gloas execution payload envelope")
 		}
 
-		return v.Gloas.ExecutionRequests, nil
+		return &VersionedExecutionRequests{
+			Version: DataVersionGloas,
+			Gloas:   v.Gloas.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}

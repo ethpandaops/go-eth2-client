@@ -48,10 +48,10 @@ type BeaconBlockBody struct {
 	ExecutionPayload          *ExecutionPayload
 	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange
 	BlobKZGCommitments        []deneb.KZGCommitment
-	ExecutionRequests         *electra.ExecutionRequests
+	ExecutionRequests         *ExecutionRequests
 	SignedExecutionPayloadBid *SignedExecutionPayloadBid
 	PayloadAttestations       []*gloas.PayloadAttestation
-	ParentExecutionRequests   *electra.ExecutionRequests
+	ParentExecutionRequests   *ExecutionRequests
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -168,8 +168,16 @@ func (b *BeaconBlockBody) populateVersion(v version.DataVersion) {
 		b.ExecutionPayload.populateVersion(v)
 	}
 
+	if b.ExecutionRequests != nil {
+		b.ExecutionRequests.populateVersion(v)
+	}
+
 	if b.SignedExecutionPayloadBid != nil {
 		b.SignedExecutionPayloadBid.populateVersion(v)
+	}
+
+	if b.ParentExecutionRequests != nil {
+		b.ParentExecutionRequests.populateVersion(v)
 	}
 }
 

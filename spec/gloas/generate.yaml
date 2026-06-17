@@ -15,8 +15,14 @@ types:
     output: builderpendingpayment_ssz.go
   - name: BuilderPendingWithdrawal
     output: builderpendingwithdrawal_ssz.go
+  - name: BuilderDepositRequest
+    output: builderdepositrequest_ssz.go
+  - name: BuilderExitRequest
+    output: builderexitrequest_ssz.go
   - name: ExecutionPayload
     output: executionpayload_ssz.go
+  - name: ExecutionRequests
+    output: executionrequests_ssz.go
   - name: ExecutionPayloadBid
     output: executionpayloadbid_ssz.go
   - name: ExecutionPayloadEnvelope

@@ -131,3 +131,10 @@ types:
     view-only: true
     views:
       - ../gloas.SignedExecutionPayloadEnvelope
+
+  - name: ExecutionRequests
+    output: executionrequests_ssz.go
+    view-only: true
+    views:
+      - ../electra.ExecutionRequests
+      - ../gloas.ExecutionRequests
