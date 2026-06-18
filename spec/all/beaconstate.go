@@ -26,7 +26,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -106,10 +105,8 @@ func (b *BeaconState) viewType() (any, error) {
 		return (*electra.BeaconState)(nil), nil
 	case version.DataVersionFulu:
 		return (*fulu.BeaconState)(nil), nil
-	case version.DataVersionGloas:
+	case version.DataVersionGloas, version.DataVersionHeze:
 		return (*gloas.BeaconState)(nil), nil
-	case version.DataVersionHeze:
-		return (*heze.BeaconState)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconState: unsupported version %d", b.Version)
 	}
@@ -239,8 +236,6 @@ func beaconStateVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionFulu, nil
 	case *gloas.BeaconState:
 		return version.DataVersionGloas, nil
-	case *heze.BeaconState:
-		return version.DataVersionHeze, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconState: unsupported view type %T", view)
 	}

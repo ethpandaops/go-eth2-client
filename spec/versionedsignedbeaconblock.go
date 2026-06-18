@@ -22,7 +22,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -37,7 +36,7 @@ type VersionedSignedBeaconBlock struct {
 	Electra   *electra.SignedBeaconBlock
 	Fulu      *electra.SignedBeaconBlock
 	Gloas     *gloas.SignedBeaconBlock
-	Heze      *heze.SignedBeaconBlock
+	Heze      *gloas.SignedBeaconBlock
 }
 
 // Slot returns the slot of the signed beacon block.

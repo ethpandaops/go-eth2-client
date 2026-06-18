@@ -12,7 +12,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	dynssz "github.com/pk910/dynamic-ssz"
 )
@@ -42,8 +41,5 @@ func TestBeaconStateViews(t *testing.T) {
 	}
 	if err := ds.ValidateType(reflect.TypeOf((*all.BeaconState)(nil)), dynssz.WithViewDescriptor((*gloas.BeaconState)(nil))); err != nil {
 		t.Fatalf("Failed to validate BeaconState with gloas view: %v", err)
-	}
-	if err := ds.ValidateType(reflect.TypeOf((*all.BeaconState)(nil)), dynssz.WithViewDescriptor((*heze.BeaconState)(nil))); err != nil {
-		t.Fatalf("Failed to validate BeaconState with heze view: %v", err)
 	}
 }
