@@ -22,8 +22,9 @@ import (
 
 // BuilderPendingPayment represents a builder pending payment.
 type BuilderPendingPayment struct {
-	Weight     phase0.Gwei
-	Withdrawal *BuilderPendingWithdrawal
+	Weight        phase0.Gwei
+	Withdrawal    *BuilderPendingWithdrawal
+	ProposerIndex phase0.ValidatorIndex
 }
 
 // String returns a string version of the structure.
