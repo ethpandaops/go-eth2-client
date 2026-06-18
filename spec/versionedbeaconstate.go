@@ -23,7 +23,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	proofutil "github.com/ethpandaops/go-eth2-client/util/proof"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -41,7 +40,7 @@ type VersionedBeaconState struct {
 	Electra   *electra.BeaconState
 	Fulu      *fulu.BeaconState
 	Gloas     *gloas.BeaconState
-	Heze      *heze.BeaconState
+	Heze      *gloas.BeaconState
 }
 
 // IsEmpty returns true if there is no block.

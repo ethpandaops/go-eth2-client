@@ -20,7 +20,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -35,7 +34,7 @@ type VersionedBeaconBlockBody struct {
 	Electra   *electra.BeaconBlockBody
 	Fulu      *electra.BeaconBlockBody
 	Gloas     *gloas.BeaconBlockBody
-	Heze      *heze.BeaconBlockBody
+	Heze      *gloas.BeaconBlockBody
 }
 
 // String returns a string version of the structure.

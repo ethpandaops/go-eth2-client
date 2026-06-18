@@ -20,7 +20,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -51,10 +50,8 @@ type ExecutionPayloadBid struct {
 // descriptor for the active Version.
 func (e *ExecutionPayloadBid) viewType() (any, error) {
 	switch e.Version {
-	case version.DataVersionGloas:
+	case version.DataVersionGloas, version.DataVersionHeze:
 		return (*gloas.ExecutionPayloadBid)(nil), nil
-	case version.DataVersionHeze:
-		return (*heze.ExecutionPayloadBid)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadBid: unsupported version %d", e.Version)
 	}
@@ -165,8 +162,6 @@ func executionPayloadBidVersion(view any) (version.DataVersion, error) {
 	switch view.(type) {
 	case *gloas.ExecutionPayloadBid:
 		return version.DataVersionGloas, nil
-	case *heze.ExecutionPayloadBid:
-		return version.DataVersionHeze, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionPayloadBid: unsupported view type %T", view)
 	}

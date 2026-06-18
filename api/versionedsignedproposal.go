@@ -27,7 +27,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -55,7 +54,7 @@ type VersionedSignedProposal struct {
 	Fulu             *apiv1fulu.SignedBlockContents
 	FuluBlinded      *apiv1electra.SignedBlindedBeaconBlock
 	Gloas            *gloas.SignedBeaconBlock
-	Heze             *heze.SignedBeaconBlock
+	Heze             *gloas.SignedBeaconBlock
 }
 
 // AssertPresent throws an error if the expected proposal
