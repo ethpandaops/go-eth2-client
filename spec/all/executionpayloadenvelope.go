@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/ethpandaops/go-eth2-client/spec"
-	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
@@ -32,7 +31,7 @@ import (
 type ExecutionPayloadEnvelope struct {
 	Version               version.DataVersion
 	Payload               *ExecutionPayload
-	ExecutionRequests     *electra.ExecutionRequests
+	ExecutionRequests     *ExecutionRequests
 	BuilderIndex          gloas.BuilderIndex
 	BeaconBlockRoot       phase0.Root
 	ParentBeaconBlockRoot phase0.Root
@@ -122,6 +121,10 @@ func (e *ExecutionPayloadEnvelope) populateVersion(v version.DataVersion) {
 
 	if e.Payload != nil {
 		e.Payload.populateVersion(v)
+	}
+
+	if e.ExecutionRequests != nil {
+		e.ExecutionRequests.populateVersion(v)
 	}
 }
 

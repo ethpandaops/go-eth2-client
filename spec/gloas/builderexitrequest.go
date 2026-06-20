@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,22 +16,20 @@ package gloas
 import (
 	"fmt"
 
+	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/goccy/go-yaml"
 )
 
-// ExecutionPayloadEnvelope represents an execution payload envelope.
-type ExecutionPayloadEnvelope struct {
-	Payload               *ExecutionPayload
-	ExecutionRequests     *ExecutionRequests
-	BuilderIndex          BuilderIndex
-	BeaconBlockRoot       phase0.Root `ssz-size:"32"`
-	ParentBeaconBlockRoot phase0.Root `ssz-size:"32"`
+// BuilderExitRequest represents a builder exit request (EIP-8282).
+type BuilderExitRequest struct {
+	SourceAddress bellatrix.ExecutionAddress `ssz-size:"20"`
+	Pubkey        phase0.BLSPubKey           `ssz-size:"48"`
 }
 
 // String returns a string version of the structure.
-func (e *ExecutionPayloadEnvelope) String() string {
-	data, err := yaml.Marshal(e)
+func (b *BuilderExitRequest) String() string {
+	data, err := yaml.Marshal(b)
 	if err != nil {
 		return fmt.Sprintf("ERR: %v", err)
 	}

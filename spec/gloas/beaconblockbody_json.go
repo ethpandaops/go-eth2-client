@@ -40,7 +40,7 @@ type beaconBlockBodyJSON struct {
 	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange `json:"bls_to_execution_changes"`
 	SignedExecutionPayloadBid *SignedExecutionPayloadBid            `json:"signed_execution_payload_bid"`
 	PayloadAttestations       []*PayloadAttestation                 `json:"payload_attestations"`
-	ParentExecutionRequests   *electra.ExecutionRequests            `json:"parent_execution_requests"`
+	ParentExecutionRequests   *ExecutionRequests                    `json:"parent_execution_requests"`
 }
 
 // MarshalJSON implements json.Marshaler.

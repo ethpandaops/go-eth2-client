@@ -20,17 +20,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/pkg/errors"
 )
 
 // executionPayloadEnvelopeJSON is the spec representation of the struct.
 type executionPayloadEnvelopeJSON struct {
-	Payload               *ExecutionPayload          `json:"payload"`
-	ExecutionRequests     *electra.ExecutionRequests `json:"execution_requests"`
-	BuilderIndex          string                     `json:"builder_index"`
-	BeaconBlockRoot       string                     `json:"beacon_block_root"`
-	ParentBeaconBlockRoot string                     `json:"parent_beacon_block_root"`
+	Payload               *ExecutionPayload  `json:"payload"`
+	ExecutionRequests     *ExecutionRequests `json:"execution_requests"`
+	BuilderIndex          string             `json:"builder_index"`
+	BeaconBlockRoot       string             `json:"beacon_block_root"`
+	ParentBeaconBlockRoot string             `json:"parent_beacon_block_root"`
 }
 
 // MarshalJSON implements json.Marshaler.

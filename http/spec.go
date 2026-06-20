@@ -97,6 +97,10 @@ func (s *Service) Spec(ctx context.Context,
 	if _, exists := config["DOMAIN_PROPOSER_PREFERENCES"]; !exists {
 		config["DOMAIN_PROPOSER_PREFERENCES"] = phase0.DomainType{0x0d, 0x00, 0x00, 0x00}
 	}
+	// The builder deposit domain type is not provided by all nodes, so add it here if not present.
+	if _, exists := config["DOMAIN_BUILDER_DEPOSIT"]; !exists {
+		config["DOMAIN_BUILDER_DEPOSIT"] = phase0.DomainType{0x0e, 0x00, 0x00, 0x00}
+	}
 
 	s.spec = config
 
