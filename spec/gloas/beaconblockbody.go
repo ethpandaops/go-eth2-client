@@ -18,26 +18,25 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
-	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/goccy/go-yaml"
 )
 
 // BeaconBlockBody represents the body of a beacon block for EIP-7732.
 type BeaconBlockBody struct {
-	RANDAOReveal              phase0.BLSSignature `ssz-size:"96"`
-	ETH1Data                  *phase0.ETH1Data
-	Graffiti                  [32]byte                      `ssz-size:"32"`
-	ProposerSlashings         []*phase0.ProposerSlashing    `dynssz-max:"MAX_PROPOSER_SLASHINGS"         ssz-max:"16"`
-	AttesterSlashings         []*electra.AttesterSlashing   `dynssz-max:"MAX_ATTESTER_SLASHINGS_ELECTRA" ssz-max:"1"`
-	Attestations              []*electra.Attestation        `dynssz-max:"MAX_ATTESTATIONS_ELECTRA"       ssz-max:"8"`
-	Deposits                  []*phase0.Deposit             `dynssz-max:"MAX_DEPOSITS"                   ssz-max:"16"`
-	VoluntaryExits            []*phase0.SignedVoluntaryExit `dynssz-max:"MAX_VOLUNTARY_EXITS"            ssz-max:"16"`
-	SyncAggregate             *altair.SyncAggregate
-	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange `dynssz-max:"MAX_BLS_TO_EXECUTION_CHANGES" ssz-max:"16"`
-	SignedExecutionPayloadBid *SignedExecutionPayloadBid
-	PayloadAttestations       []*PayloadAttestation `dynssz-max:"MAX_PAYLOAD_ATTESTATIONS" ssz-max:"4"`
-	ParentExecutionRequests   *ExecutionRequests
+	RANDAOReveal              phase0.BLSSignature                   `ssz-index:"0"`
+	ETH1Data                  *phase0.ETH1Data                      `ssz-index:"1"`
+	Graffiti                  [32]byte                              `ssz-index:"2"`
+	ProposerSlashings         []*phase0.ProposerSlashing            `ssz-index:"3"  ssz-type:"progressive-list"`
+	AttesterSlashings         []*AttesterSlashing                   `ssz-index:"4"  ssz-type:"progressive-list"`
+	Attestations              []*Attestation                        `ssz-index:"5"  ssz-type:"progressive-list"`
+	Deposits                  []*phase0.Deposit                     `ssz-index:"6"  ssz-type:"progressive-list"`
+	VoluntaryExits            []*phase0.SignedVoluntaryExit         `ssz-index:"7"  ssz-type:"progressive-list"`
+	SyncAggregate             *altair.SyncAggregate                 `ssz-index:"8"`
+	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange `ssz-index:"9"  ssz-type:"progressive-list"`
+	SignedExecutionPayloadBid *SignedExecutionPayloadBid            `ssz-index:"10"`
+	PayloadAttestations       []*PayloadAttestation                 `ssz-index:"11" ssz-type:"progressive-list"`
+	ParentExecutionRequests   *ExecutionRequests                    `ssz-index:"12"`
 }
 
 // String returns a string version of the structure.

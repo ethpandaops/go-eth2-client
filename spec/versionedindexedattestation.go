@@ -17,6 +17,7 @@ import (
 	"errors"
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -30,8 +31,8 @@ type VersionedIndexedAttestation struct {
 	Deneb     *phase0.IndexedAttestation
 	Electra   *electra.IndexedAttestation
 	Fulu      *electra.IndexedAttestation
-	Gloas     *electra.IndexedAttestation
-	Heze      *electra.IndexedAttestation
+	Gloas     *gloas.IndexedAttestation
+	Heze      *gloas.IndexedAttestation
 }
 
 // IsEmpty returns true if there is no block.

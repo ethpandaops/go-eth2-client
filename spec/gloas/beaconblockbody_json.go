@@ -21,7 +21,6 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
-	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
 )
@@ -32,8 +31,8 @@ type beaconBlockBodyJSON struct {
 	ETH1Data                  *phase0.ETH1Data                      `json:"eth1_data"`
 	Graffiti                  string                                `json:"graffiti"`
 	ProposerSlashings         []*phase0.ProposerSlashing            `json:"proposer_slashings"`
-	AttesterSlashings         []*electra.AttesterSlashing           `json:"attester_slashings"`
-	Attestations              []*electra.Attestation                `json:"attestations"`
+	AttesterSlashings         []*AttesterSlashing                   `json:"attester_slashings"`
+	Attestations              []*Attestation                        `json:"attestations"`
 	Deposits                  []*phase0.Deposit                     `json:"deposits"`
 	VoluntaryExits            []*phase0.SignedVoluntaryExit         `json:"voluntary_exits"`
 	SyncAggregate             *altair.SyncAggregate                 `json:"sync_aggregate"`

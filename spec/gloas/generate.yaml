@@ -3,6 +3,10 @@ legacy: true
 without-dynamic-expressions: true
 
 types:
+  - name: Attestation
+    output: attestation_ssz.go
+  - name: AttesterSlashing
+    output: attesterslashing_ssz.go
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
   - name: BeaconBlock
@@ -27,6 +31,10 @@ types:
     output: executionpayloadbid_ssz.go
   - name: ExecutionPayloadEnvelope
     output: executionpayloadenvelope_ssz.go
+  - name: ExecutionPayloadHeader
+    output: executionpayloadheader_ssz.go
+  - name: IndexedAttestation
+    output: indexedattestation_ssz.go
   - name: IndexedPayloadAttestation
     output: indexedpayloadattestation_ssz.go
   - name: PayloadAttestation

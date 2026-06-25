@@ -34,7 +34,7 @@ type ExecutionPayloadHeader struct {
 	GasLimit         uint64
 	GasUsed          uint64
 	Timestamp        uint64
-	ExtraData        []byte        `ssz-max:"32"`
+	ExtraData        []byte        `dynssz-max:"MAX_EXTRA_DATA_BYTES" ssz-max:"32"`
 	BaseFeePerGas    *uint256.Int  `ssz-type:"uint256"`
 	BlockHash        phase0.Hash32 `ssz-size:"32"`
 	TransactionsRoot phase0.Root   `ssz-size:"32"`
