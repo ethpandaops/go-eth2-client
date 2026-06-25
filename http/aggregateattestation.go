@@ -23,6 +23,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -174,7 +175,7 @@ func decodeAggregateAttestation(httpResponse *httpResponse) (*spec.VersionedAtte
 
 		return data, metadata, nil
 	case spec.DataVersionGloas:
-		gloasData, gloasMetadata, decodeErr := decodeJSONResponse(bytes.NewReader(httpResponse.body), &electra.Attestation{})
+		gloasData, gloasMetadata, decodeErr := decodeJSONResponse(bytes.NewReader(httpResponse.body), &gloas.Attestation{})
 		metadata = gloasMetadata
 		data.Gloas = gloasData
 		if decodeErr != nil {
