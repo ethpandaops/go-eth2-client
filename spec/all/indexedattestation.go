@@ -19,6 +19,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -45,10 +46,11 @@ func (i *IndexedAttestation) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.IndexedAttestation)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu,
-		version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionFulu:
 		return (*electra.IndexedAttestation)(nil), nil
+	case version.DataVersionGloas,
+		version.DataVersionHeze:
+		return (*gloas.IndexedAttestation)(nil), nil
 	default:
 		return nil, fmt.Errorf("IndexedAttestation: unsupported version %d", i.Version)
 	}
@@ -160,6 +162,8 @@ func indexedAttestationVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionPhase0, nil
 	case *electra.IndexedAttestation:
 		return version.DataVersionElectra, nil
+	case *gloas.IndexedAttestation:
+		return version.DataVersionGloas, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("IndexedAttestation: unsupported view type %T", view)
 	}
