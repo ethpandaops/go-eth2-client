@@ -31,8 +31,6 @@ types:
     output: executionpayloadbid_ssz.go
   - name: ExecutionPayloadEnvelope
     output: executionpayloadenvelope_ssz.go
-  - name: ExecutionPayloadHeader
-    output: executionpayloadheader_ssz.go
   - name: IndexedAttestation
     output: indexedattestation_ssz.go
   - name: IndexedPayloadAttestation

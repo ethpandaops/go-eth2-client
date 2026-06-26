@@ -20,7 +20,6 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
-	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	"github.com/holiman/uint256"
@@ -63,8 +62,6 @@ func (e *ExecutionPayloadHeader) viewType() (any, error) {
 		return (*capella.ExecutionPayloadHeader)(nil), nil
 	case version.DataVersionDeneb, version.DataVersionElectra, version.DataVersionFulu:
 		return (*deneb.ExecutionPayloadHeader)(nil), nil
-	case version.DataVersionGloas:
-		return (*gloas.ExecutionPayloadHeader)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadHeader: unsupported version %d", e.Version)
 	}
@@ -179,8 +176,6 @@ func executionPayloadHeaderVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionCapella, nil
 	case *deneb.ExecutionPayloadHeader:
 		return version.DataVersionDeneb, nil
-	case *gloas.ExecutionPayloadHeader:
-		return version.DataVersionGloas, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionPayloadHeader: unsupported view type %T", view)
 	}
