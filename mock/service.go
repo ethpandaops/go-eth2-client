@@ -30,8 +30,6 @@ import (
 )
 
 // Service is a mock Ethereum 2 client service, providing data locally.
-//
-//nolint:revive
 type Service struct {
 	name    string
 	timeout time.Duration
