@@ -34,7 +34,7 @@ type ExecutionPayloadBid struct {
 	Slot                  phase0.Slot
 	Value                 phase0.Gwei
 	ExecutionPayment      phase0.Gwei
-	BlobKZGCommitments    []deneb.KZGCommitment `dynssz-max:"MAX_BLOB_COMMITMENTS_PER_BLOCK" ssz-max:"4096" ssz-size:"?,48"`
+	BlobKZGCommitments    []deneb.KZGCommitment `ssz-type:"progressive-list"`
 	ExecutionRequestsRoot phase0.Root           `ssz-size:"32"`
 }
 
