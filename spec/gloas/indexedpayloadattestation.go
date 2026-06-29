@@ -22,9 +22,9 @@ import (
 
 // IndexedPayloadAttestation represents an indexed payload attestation.
 type IndexedPayloadAttestation struct {
-	AttestingIndices []phase0.ValidatorIndex `dynssz-max:"PTC_SIZE" ssz-max:"512"`
-	Data             *PayloadAttestationData
-	Signature        phase0.BLSSignature `ssz-size:"96"`
+	AttestingIndices []phase0.ValidatorIndex `ssz-index:"0" dynssz-max:"PTC_SIZE" ssz-max:"512"`
+	Data             *PayloadAttestationData `ssz-index:"1"`
+	Signature        phase0.BLSSignature     `ssz-index:"2"`
 }
 
 // String returns a string version of the structure.
