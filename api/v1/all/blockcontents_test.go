@@ -163,7 +163,9 @@ func TestBlockContentsViewRoundtrip(t *testing.T) {
 }
 
 // TestBlockContentsToVersioned verifies conversion to and from
-// api.VersionedProposal.
+// api.VersionedProposal: exactly the plain (unblinded) per-fork field is
+// populated with the exact view, and the Blinded flag and blinded fields
+// stay untouched.
 func TestBlockContentsToVersioned(t *testing.T) {
 	for _, test := range blockContentsTests() {
 		t.Run(test.name, func(t *testing.T) {
@@ -173,6 +175,26 @@ func TestBlockContentsToVersioned(t *testing.T) {
 			versioned, err := agnostic.ToVersioned()
 			require.NoError(t, err)
 			require.Equal(t, test.version, versioned.Version)
+			require.False(t, versioned.Blinded, "unblinded contents must not set the Blinded flag")
+
+			var fieldView any
+
+			switch test.version {
+			case version.DataVersionDeneb:
+				fieldView = versioned.Deneb
+				require.Nil(t, versioned.DenebBlinded)
+			case version.DataVersionElectra:
+				fieldView = versioned.Electra
+				require.Nil(t, versioned.ElectraBlinded)
+			case version.DataVersionFulu:
+				fieldView = versioned.Fulu
+				require.Nil(t, versioned.FuluBlinded)
+			default:
+				t.Fatalf("unexpected version %v", test.version)
+			}
+
+			require.IsType(t, test.view, fieldView)
+			require.Equal(t, test.view, fieldView)
 
 			rt := &apiv1all.BlockContents{}
 			require.NoError(t, rt.FromVersioned(versioned))

@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	bitfield "github.com/OffchainLabs/go-bitfield"
+	"github.com/ethpandaops/go-eth2-client/api"
 	apiv1all "github.com/ethpandaops/go-eth2-client/api/v1/all"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
@@ -287,7 +288,10 @@ func TestSignedBlockContentsViewRoundtrip(t *testing.T) {
 }
 
 // TestSignedBlockContentsToVersioned verifies conversion to and from
-// api.VersionedSignedProposal.
+// api.VersionedSignedProposal: exactly the plain (unblinded) per-fork field
+// is populated, the Blinded flag stays false, and the per-fork field carries
+// the exact wire bytes the http client submits (it marshals that field for
+// both JSON and SSZ after AssertPresent).
 func TestSignedBlockContentsToVersioned(t *testing.T) {
 	for _, test := range signedBlockContentsTests() {
 		t.Run(test.name, func(t *testing.T) {
@@ -297,7 +301,47 @@ func TestSignedBlockContentsToVersioned(t *testing.T) {
 			versioned, err := agnostic.ToVersioned()
 			require.NoError(t, err)
 			require.Equal(t, test.version, versioned.Version)
+			require.False(t, versioned.Blinded, "unblinded contents must not set the Blinded flag")
 			require.NoError(t, versioned.AssertPresent())
+
+			// The per-fork field must be the exact view type; the blinded
+			// fields must stay untouched.
+			var fieldView any
+
+			switch test.version {
+			case version.DataVersionDeneb:
+				fieldView = versioned.Deneb
+				require.Nil(t, versioned.DenebBlinded)
+			case version.DataVersionElectra:
+				fieldView = versioned.Electra
+				require.Nil(t, versioned.ElectraBlinded)
+			case version.DataVersionFulu:
+				fieldView = versioned.Fulu
+				require.Nil(t, versioned.FuluBlinded)
+			default:
+				t.Fatalf("unexpected version %v", test.version)
+			}
+
+			require.IsType(t, test.view, fieldView)
+			require.Equal(t, test.view, fieldView)
+
+			// Byte-compare the body the http client would submit
+			// (json.Marshal / MarshalSSZ of the per-fork field).
+			expectedJSON, err := json.Marshal(test.view)
+			require.NoError(t, err)
+
+			gotJSON, err := json.Marshal(fieldView)
+			require.NoError(t, err)
+			require.Equal(t, string(expectedJSON), string(gotJSON),
+				"submitted proposal JSON body differs from per-fork JSON")
+
+			expectedSSZ, err := test.view.(sszCodec).MarshalSSZ()
+			require.NoError(t, err)
+
+			gotSSZ, err := fieldView.(sszCodec).MarshalSSZ()
+			require.NoError(t, err)
+			require.Equal(t, expectedSSZ, gotSSZ,
+				"submitted proposal SSZ body differs from per-fork SSZ")
 
 			rt := &apiv1all.SignedBlockContents{}
 			require.NoError(t, rt.FromVersioned(versioned))
@@ -305,6 +349,21 @@ func TestSignedBlockContentsToVersioned(t *testing.T) {
 			require.Equal(t, agnostic, rt)
 		})
 	}
+}
+
+// TestSignedBlockContentsFromVersionedBlinded verifies that a blinded
+// proposal (Blinded flag set, only the *Blinded field populated) is rejected
+// rather than silently mis-read.
+func TestSignedBlockContentsFromVersionedBlinded(t *testing.T) {
+	versioned := &api.VersionedSignedProposal{
+		Version:     version.DataVersionFulu,
+		Blinded:     true,
+		FuluBlinded: &apiv1electra.SignedBlindedBeaconBlock{},
+	}
+
+	rt := &apiv1all.SignedBlockContents{}
+	require.Error(t, rt.FromVersioned(versioned),
+		"blinded proposals must not convert into unblinded block contents")
 }
 
 // TestSignedBlockContentsUnsupportedVersion verifies unsupported versions are
