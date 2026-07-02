@@ -343,6 +343,11 @@ func TestSignedBlindedBeaconBlockJSONWireCompat(t *testing.T) {
 			require.Equal(t, test.version, rt.Message.Body.Version)
 			require.NotNil(t, rt.Message.Body.ExecutionPayloadHeader)
 			require.Equal(t, test.version, rt.Message.Body.ExecutionPayloadHeader.Version)
+
+			// The nested agnostic header must marshal standalone at every
+			// supported version (Electra/Fulu map to the Deneb schema).
+			_, err = json.Marshal(rt.Message.Body.ExecutionPayloadHeader)
+			require.NoError(t, err, "nested header must marshal standalone")
 		})
 	}
 }
