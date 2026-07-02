@@ -14,9 +14,11 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	client "github.com/ethpandaops/go-eth2-client"
 	"github.com/ethpandaops/go-eth2-client/api"
@@ -42,6 +44,7 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	// All current envelope-bearing forks (Gloas, Heze) reuse the gloas
 	// schema, so the wire bytes always parse into *gloas.SignedExecutionPayloadEnvelope.
 	envelope := &gloas.SignedExecutionPayloadEnvelope{}
+	metadata := metadataFromHeaders(httpResponse.headers)
 
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -54,9 +57,14 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		if err := envelope.UnmarshalJSON(httpResponse.body); err != nil {
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		if err != nil {
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
+
+		envelope = decoded
+
+		maps.Copy(metadata, jsonMetadata)
 	default:
 		return nil, fmt.Errorf("unhandled content type %v", httpResponse.contentType)
 	}
@@ -66,7 +74,7 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 			Version: httpResponse.consensusVersion,
 			Gloas:   envelope,
 		},
-		Metadata: metadataFromHeaders(httpResponse.headers),
+		Metadata: metadata,
 	}, nil
 }
 
@@ -87,6 +95,7 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 	}
 
 	envelope := &all.SignedExecutionPayloadEnvelope{Version: httpResponse.consensusVersion}
+	metadata := metadataFromHeaders(httpResponse.headers)
 
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -99,16 +108,21 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		if err := envelope.UnmarshalJSON(httpResponse.body); err != nil {
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		if err != nil {
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
+
+		envelope = decoded
+
+		maps.Copy(metadata, jsonMetadata)
 	default:
 		return nil, fmt.Errorf("unhandled content type %v", httpResponse.contentType)
 	}
 
 	return &api.Response[*all.SignedExecutionPayloadEnvelope]{
 		Data:     envelope,
-		Metadata: metadataFromHeaders(httpResponse.headers),
+		Metadata: metadata,
 	}, nil
 }
 
