@@ -521,6 +521,17 @@ type GenesisProvider interface {
 	)
 }
 
+// NodeIdentityProvider is the interface for providing the node's network identity.
+type NodeIdentityProvider interface {
+	// NodeIdentity provides the node's network identity.
+	NodeIdentity(ctx context.Context,
+		opts *api.NodeIdentityOpts,
+	) (
+		*api.Response[*apiv1.NodeIdentity],
+		error,
+	)
+}
+
 // NodePeersProvider is the interface for providing peer information.
 type NodePeersProvider interface {
 	// NodePeers provides the peers of the node.
@@ -679,6 +690,23 @@ type ExecutionPayloadEnvelopeSubmitter interface {
 	// for broadcast.
 	SubmitAgnosticExecutionPayloadEnvelope(ctx context.Context,
 		opts *api.SubmitAgnosticExecutionPayloadEnvelopeOpts,
+	) error
+}
+
+// ExecutionPayloadBidSubmitter is the interface for submitting execution
+// payload bids.
+type ExecutionPayloadBidSubmitter interface {
+	// SubmitExecutionPayloadBid submits a signed execution payload bid for
+	// gossip broadcast.
+	SubmitExecutionPayloadBid(ctx context.Context,
+		opts *api.SubmitExecutionPayloadBidOpts,
+	) error
+
+	// SubmitAgnosticExecutionPayloadBid submits a signed execution payload
+	// bid supplied as a fork-agnostic *all.SignedExecutionPayloadBid for
+	// gossip broadcast.
+	SubmitAgnosticExecutionPayloadBid(ctx context.Context,
+		opts *api.SubmitAgnosticExecutionPayloadBidOpts,
 	) error
 }
 
