@@ -771,7 +771,7 @@ func (*Service) handleExecutionPayloadBidEvent(ctx context.Context,
 	log := zerolog.Ctx(ctx)
 	data := &gloas.SignedExecutionPayloadBid{}
 
-	err := json.Unmarshal(msg.Data, data)
+	err := unmarshalVersionedEventData(msg.Data, data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse execution payload bid event")
 
@@ -818,6 +818,23 @@ func (*Service) handleExecutionPayloadGossipEvent(ctx context.Context,
 	}
 }
 
+
+// unmarshalVersionedEventData decodes an SSE event payload that the beacon-API
+// spec wraps as {"version": "...", "data": {...}}. Some clients (Prysm) still
+// send the bare unwrapped object, so that shape is accepted as a fallback.
+func unmarshalVersionedEventData(raw []byte, v any) error {
+	var wrapper struct {
+		Version string          `json:"version"`
+		Data    json.RawMessage `json:"data"`
+	}
+
+	if err := json.Unmarshal(raw, &wrapper); err == nil && len(wrapper.Data) > 0 && wrapper.Version != "" {
+		return json.Unmarshal(wrapper.Data, v)
+	}
+
+	return json.Unmarshal(raw, v)
+}
+
 func (*Service) handlePayloadAttestationMessageEvent(ctx context.Context,
 	msg *sse.Event,
 	opts *api.EventsOpts,
@@ -825,7 +842,7 @@ func (*Service) handlePayloadAttestationMessageEvent(ctx context.Context,
 	log := zerolog.Ctx(ctx)
 	data := &gloas.PayloadAttestationMessage{}
 
-	err := json.Unmarshal(msg.Data, data)
+	err := unmarshalVersionedEventData(msg.Data, data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse payload attestation message event")
 
@@ -852,7 +869,7 @@ func (*Service) handleProposerPreferencesEvent(ctx context.Context,
 	log := zerolog.Ctx(ctx)
 	data := &gloas.SignedProposerPreferences{}
 
-	err := json.Unmarshal(msg.Data, data)
+	err := unmarshalVersionedEventData(msg.Data, data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse proposer preferences event")
 
