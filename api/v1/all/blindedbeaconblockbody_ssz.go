@@ -1713,7 +1713,7 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody(ds sszu
 	size4 := 32 * int(expr6)
 	size3 := size4 + 184 // size expression for '*Deposit'
 	exproffset := 0
-	totalSize := size1+224
+	totalSize := size1 + 224
 	buflen := len(buf)
 	if buflen < totalSize {
 		return sszutils.ErrFixedFieldsEOFFn(buflen, totalSize)
@@ -1768,13 +1768,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody(ds sszu
 			val1 = new(altair.SyncAggregate)
 		}
 		exproffset := 0
-		totalSize := size2+96
+		totalSize := size2 + 96
 		buflen := len(buf)
 		if buflen < totalSize {
 			return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SyncAggregate")
 		}
 		if buflen > totalSize {
-			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SyncAggregate")
+			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SyncAggregate")
 		}
 		{ // Field #0 'SyncCommitteeBits' (static)
 			buf := buf[0 : size2+0]
@@ -2044,13 +2044,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody(ds sszu
 			}
 			buf := buf[size3*idx1 : size3*(idx1+1)]
 			exproffset := 0
-			totalSize := size4+184
+			totalSize := size4 + 184
 			buflen := len(buf)
 			if buflen < totalSize {
 				return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "Deposits[%d]", idx1)
 			}
 			if buflen > totalSize {
-				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "Deposits[%d]", idx1)
+				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "Deposits[%d]", idx1)
 			}
 			{ // Field #0 'Proof' (static)
 				buf := buf[0 : size4+0]
@@ -2219,7 +2219,7 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_0(ds ss
 	size4 := 32 * int(expr6)
 	size3 := size4 + 184 // size expression for '*Deposit'
 	exproffset := 0
-	totalSize := size1+228
+	totalSize := size1 + 228
 	buflen := len(buf)
 	if buflen < totalSize {
 		return sszutils.ErrFixedFieldsEOFFn(buflen, totalSize)
@@ -2274,13 +2274,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_0(ds ss
 			val1 = new(altair.SyncAggregate)
 		}
 		exproffset := 0
-		totalSize := size2+96
+		totalSize := size2 + 96
 		buflen := len(buf)
 		if buflen < totalSize {
 			return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SyncAggregate")
 		}
 		if buflen > totalSize {
-			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SyncAggregate")
+			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SyncAggregate")
 		}
 		{ // Field #0 'SyncCommitteeBits' (static)
 			buf := buf[0 : size2+0]
@@ -2555,13 +2555,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_0(ds ss
 			}
 			buf := buf[size3*idx1 : size3*(idx1+1)]
 			exproffset := 0
-			totalSize := size4+184
+			totalSize := size4 + 184
 			buflen := len(buf)
 			if buflen < totalSize {
 				return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "Deposits[%d]", idx1)
 			}
 			if buflen > totalSize {
-				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "Deposits[%d]", idx1)
+				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "Deposits[%d]", idx1)
 			}
 			{ // Field #0 'Proof' (static)
 				buf := buf[0 : size4+0]
@@ -2760,7 +2760,7 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_1(ds ss
 	size4 := 32 * int(expr6)
 	size3 := size4 + 184 // size expression for '*Deposit'
 	exproffset := 0
-	totalSize := size1+232
+	totalSize := size1 + 232
 	buflen := len(buf)
 	if buflen < totalSize {
 		return sszutils.ErrFixedFieldsEOFFn(buflen, totalSize)
@@ -2815,13 +2815,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_1(ds ss
 			val1 = new(altair.SyncAggregate)
 		}
 		exproffset := 0
-		totalSize := size2+96
+		totalSize := size2 + 96
 		buflen := len(buf)
 		if buflen < totalSize {
 			return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SyncAggregate")
 		}
 		if buflen > totalSize {
-			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SyncAggregate")
+			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SyncAggregate")
 		}
 		{ // Field #0 'SyncCommitteeBits' (static)
 			buf := buf[0 : size2+0]
@@ -3101,13 +3101,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_1(ds ss
 			}
 			buf := buf[size3*idx1 : size3*(idx1+1)]
 			exproffset := 0
-			totalSize := size4+184
+			totalSize := size4 + 184
 			buflen := len(buf)
 			if buflen < totalSize {
 				return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "Deposits[%d]", idx1)
 			}
 			if buflen > totalSize {
-				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "Deposits[%d]", idx1)
+				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "Deposits[%d]", idx1)
 			}
 			{ // Field #0 'Proof' (static)
 				buf := buf[0 : size4+0]
@@ -3350,7 +3350,7 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_2(ds ss
 	size5 := 32 * int(expr7)
 	size4 := size5 + 184 // size expression for '*Deposit'
 	exproffset := 0
-	totalSize := size1+236
+	totalSize := size1 + 236
 	buflen := len(buf)
 	if buflen < totalSize {
 		return sszutils.ErrFixedFieldsEOFFn(buflen, totalSize)
@@ -3405,13 +3405,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_2(ds ss
 			val1 = new(altair.SyncAggregate)
 		}
 		exproffset := 0
-		totalSize := size2+96
+		totalSize := size2 + 96
 		buflen := len(buf)
 		if buflen < totalSize {
 			return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SyncAggregate")
 		}
 		if buflen > totalSize {
-			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SyncAggregate")
+			return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SyncAggregate")
 		}
 		{ // Field #0 'SyncCommitteeBits' (static)
 			buf := buf[0 : size2+0]
@@ -3638,7 +3638,7 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_2(ds ss
 				val8 = new(all.Attestation)
 			}
 			exproffset := 0
-			totalSize := size3+228
+			totalSize := size3 + 228
 			buflen := len(buf)
 			if buflen < totalSize {
 				return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "Attestations[%d]", idx1)
@@ -3704,13 +3704,13 @@ func (t *BlindedBeaconBlockBody) unmarshalSSZView_BlindedBeaconBlockBody_2(ds ss
 			}
 			buf := buf[size4*idx1 : size4*(idx1+1)]
 			exproffset := 0
-			totalSize := size5+184
+			totalSize := size5 + 184
 			buflen := len(buf)
 			if buflen < totalSize {
 				return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "Deposits[%d]", idx1)
 			}
 			if buflen > totalSize {
-				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "Deposits[%d]", idx1)
+				return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "Deposits[%d]", idx1)
 			}
 			{ // Field #0 'Proof' (static)
 				buf := buf[0 : size5+0]

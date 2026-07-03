@@ -18,6 +18,8 @@ import (
 
 	apiv1all "github.com/ethpandaops/go-eth2-client/api/v1/all"
 	"github.com/ethpandaops/go-eth2-client/spec/all"
+	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
+	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
@@ -41,9 +43,9 @@ func testGloasSignedBeaconBlock() *gloas.SignedBeaconBlock {
 	}
 }
 
-// TestProposalFromSignedBlock verifies the post-Gloas block-to-proposal
-// mapping: the bare block lands in the field matching its version, with no
-// blinded flag and no other fields set.
+// TestProposalFromSignedBlock verifies the bare-block-to-proposal mapping for
+// post-Gloas forks: the block lands in the field matching its version, with
+// no blinded flag and no other fields set.
 func TestProposalFromSignedBlock(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -82,13 +84,81 @@ func TestProposalFromSignedBlock(t *testing.T) {
 	}
 }
 
-// TestProposalFromSignedBlockUnsupportedVersion verifies pre-Gloas versions
-// are rejected: those forks submit SignedBlockContents, not bare blocks.
-func TestProposalFromSignedBlockUnsupportedVersion(t *testing.T) {
-	block := &all.SignedBeaconBlock{Version: version.DataVersionElectra}
-	_, err := apiv1all.ProposalFromSignedBlock(block)
-	require.ErrorContains(t, err, "unsupported version")
+// TestProposalFromSignedBlockPreDeneb verifies the bare-block-to-proposal
+// mapping for the pre-blobs forks: bellatrix and capella proposals are plain
+// signed beacon blocks.
+func TestProposalFromSignedBlockPreDeneb(t *testing.T) {
+	t.Run("bellatrix", func(t *testing.T) {
+		view := &bellatrix.SignedBeaconBlock{
+			Message: &bellatrix.BeaconBlock{
+				Slot:          123,
+				ProposerIndex: 7,
+				ParentRoot:    phase0.Root{0x01},
+				StateRoot:     phase0.Root{0x02},
+				Body: &bellatrix.BeaconBlockBody{
+					RANDAOReveal:     phase0.BLSSignature{0x03},
+					Graffiti:         [32]byte{0x04},
+					ExecutionPayload: &bellatrix.ExecutionPayload{BlockNumber: 9},
+				},
+			},
+			Signature: phase0.BLSSignature{0x05},
+		}
 
-	_, err = apiv1all.ProposalFromSignedBlock(nil)
+		block := &all.SignedBeaconBlock{Version: version.DataVersionBellatrix}
+		require.NoError(t, block.FromView(view))
+
+		proposal, err := apiv1all.ProposalFromSignedBlock(block)
+		require.NoError(t, err)
+		require.Equal(t, version.DataVersionBellatrix, proposal.Version)
+		require.False(t, proposal.Blinded)
+		require.NotNil(t, proposal.Bellatrix)
+		require.Nil(t, proposal.Capella)
+		require.Equal(t, view, proposal.Bellatrix)
+	})
+
+	t.Run("capella", func(t *testing.T) {
+		view := &capella.SignedBeaconBlock{
+			Message: &capella.BeaconBlock{
+				Slot:          456,
+				ProposerIndex: 8,
+				ParentRoot:    phase0.Root{0x11},
+				StateRoot:     phase0.Root{0x12},
+				Body: &capella.BeaconBlockBody{
+					RANDAOReveal:     phase0.BLSSignature{0x13},
+					Graffiti:         [32]byte{0x14},
+					ExecutionPayload: &capella.ExecutionPayload{BlockNumber: 10},
+				},
+			},
+			Signature: phase0.BLSSignature{0x15},
+		}
+
+		block := &all.SignedBeaconBlock{Version: version.DataVersionCapella}
+		require.NoError(t, block.FromView(view))
+
+		proposal, err := apiv1all.ProposalFromSignedBlock(block)
+		require.NoError(t, err)
+		require.Equal(t, version.DataVersionCapella, proposal.Version)
+		require.False(t, proposal.Blinded)
+		require.NotNil(t, proposal.Capella)
+		require.Nil(t, proposal.Bellatrix)
+		require.Equal(t, view, proposal.Capella)
+	})
+}
+
+// TestProposalFromSignedBlockUnsupportedVersion verifies blob-carrying
+// versions (Deneb through Fulu) are rejected: those forks submit
+// SignedBlockContents, not bare blocks.
+func TestProposalFromSignedBlockUnsupportedVersion(t *testing.T) {
+	for _, v := range []version.DataVersion{
+		version.DataVersionDeneb,
+		version.DataVersionElectra,
+		version.DataVersionFulu,
+	} {
+		block := &all.SignedBeaconBlock{Version: v}
+		_, err := apiv1all.ProposalFromSignedBlock(block)
+		require.ErrorContains(t, err, "unsupported version", "version %s", v)
+	}
+
+	_, err := apiv1all.ProposalFromSignedBlock(nil)
 	require.ErrorContains(t, err, "nil block")
 }
