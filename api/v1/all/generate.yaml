@@ -43,3 +43,9 @@ types:
       - ../deneb.SignedBlockContents
       - ../electra.SignedBlockContents
       - ../fulu.SignedBlockContents
+
+  - name: SignedExecutionPayloadEnvelopeContents
+    output: signedexecutionpayloadenvelopecontents_ssz.go
+    view-only: true
+    views:
+      - ../gloas.SignedExecutionPayloadEnvelopeContents

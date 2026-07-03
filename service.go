@@ -664,6 +664,24 @@ type ExecutionPayloadProvider interface {
 	)
 }
 
+// ExecutionPayloadEnvelopeSubmitter is the interface for submitting execution
+// payload envelopes.
+type ExecutionPayloadEnvelopeSubmitter interface {
+	// SubmitExecutionPayloadEnvelope submits a signed execution payload
+	// envelope (with its blobs and KZG proofs) for broadcast.
+	SubmitExecutionPayloadEnvelope(ctx context.Context,
+		opts *api.SubmitExecutionPayloadEnvelopeOpts,
+	) error
+
+	// SubmitAgnosticExecutionPayloadEnvelope submits a signed execution
+	// payload envelope supplied as a fork-agnostic
+	// *all.SignedExecutionPayloadEnvelope (with its blobs and KZG proofs)
+	// for broadcast.
+	SubmitAgnosticExecutionPayloadEnvelope(ctx context.Context,
+		opts *api.SubmitAgnosticExecutionPayloadEnvelopeOpts,
+	) error
+}
+
 // PendingDepositProvider is the interface for providing pending deposit information.
 type PendingDepositProvider interface {
 	// PendingDeposits provides the pending deposits for a given state.
