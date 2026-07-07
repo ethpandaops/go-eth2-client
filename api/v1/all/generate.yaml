@@ -1,0 +1,51 @@
+package: .
+
+types:
+  - name: BlindedBeaconBlockBody
+    output: blindedbeaconblockbody_ssz.go
+    view-only: true
+    views:
+      - ../bellatrix.BlindedBeaconBlockBody
+      - ../capella.BlindedBeaconBlockBody
+      - ../deneb.BlindedBeaconBlockBody
+      - ../electra.BlindedBeaconBlockBody
+
+  - name: BlindedBeaconBlock
+    output: blindedbeaconblock_ssz.go
+    view-only: true
+    views:
+      - ../bellatrix.BlindedBeaconBlock
+      - ../capella.BlindedBeaconBlock
+      - ../deneb.BlindedBeaconBlock
+      - ../electra.BlindedBeaconBlock
+
+  - name: SignedBlindedBeaconBlock
+    output: signedblindedbeaconblock_ssz.go
+    view-only: true
+    views:
+      - ../bellatrix.SignedBlindedBeaconBlock
+      - ../capella.SignedBlindedBeaconBlock
+      - ../deneb.SignedBlindedBeaconBlock
+      - ../electra.SignedBlindedBeaconBlock
+
+  - name: BlockContents
+    output: blockcontents_ssz.go
+    view-only: true
+    views:
+      - ../deneb.BlockContents
+      - ../electra.BlockContents
+      - ../fulu.BlockContents
+
+  - name: SignedBlockContents
+    output: signedblockcontents_ssz.go
+    view-only: true
+    views:
+      - ../deneb.SignedBlockContents
+      - ../electra.SignedBlockContents
+      - ../fulu.SignedBlockContents
+
+  - name: SignedExecutionPayloadEnvelopeContents
+    output: signedexecutionpayloadenvelopecontents_ssz.go
+    view-only: true
+    views:
+      - ../gloas.SignedExecutionPayloadEnvelopeContents
