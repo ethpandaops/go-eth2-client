@@ -24,6 +24,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -120,7 +121,7 @@ func verifyAttestationPool(opts *api.AttestationPoolOpts, data []*spec.Versioned
 				return err
 			}
 		case spec.DataVersionGloas:
-			if err := verifyElectraAttestation(opts, datum.Gloas); err != nil {
+			if err := verifyGloasAttestation(opts, datum.Gloas); err != nil {
 				return err
 			}
 		default:
@@ -144,6 +145,27 @@ func verifyPhase0Attestation(opts *api.AttestationPoolOpts, data *phase0.Attesta
 }
 
 func verifyElectraAttestation(opts *api.AttestationPoolOpts, data *electra.Attestation) error {
+	if opts.Slot != nil && data.Data.Slot != *opts.Slot {
+		return errors.New("attestation data not for requested slot")
+	}
+
+	if opts.CommitteeIndex == nil {
+		// No committee index specified in opts so skipping check.
+		// This means we won't filter by committee indices and will attempt to match all committee indices.
+		return nil
+	}
+
+	for _, committeeIndex := range data.CommitteeBits.BitIndices() {
+		if phase0.CommitteeIndex(committeeIndex) == *opts.CommitteeIndex {
+			// We have a match.
+			return nil
+		}
+	}
+
+	return errors.New("attestation data not for requested committee index")
+}
+
+func verifyGloasAttestation(opts *api.AttestationPoolOpts, data *gloas.Attestation) error {
 	if opts.Slot != nil && data.Data.Slot != *opts.Slot {
 		return errors.New("attestation data not for requested slot")
 	}

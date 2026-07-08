@@ -24,18 +24,18 @@ import (
 
 // ExecutionPayloadBid represents an execution payload bid for EIP-7732.
 type ExecutionPayloadBid struct {
-	ParentBlockHash       phase0.Hash32              `ssz-size:"32"`
-	ParentBlockRoot       phase0.Root                `ssz-size:"32"`
-	BlockHash             phase0.Hash32              `ssz-size:"32"`
-	PrevRandao            phase0.Root                `ssz-size:"32"`
-	FeeRecipient          bellatrix.ExecutionAddress `ssz-size:"20"`
-	GasLimit              uint64
-	BuilderIndex          BuilderIndex
-	Slot                  phase0.Slot
-	Value                 phase0.Gwei
-	ExecutionPayment      phase0.Gwei
-	BlobKZGCommitments    []deneb.KZGCommitment `dynssz-max:"MAX_BLOB_COMMITMENTS_PER_BLOCK" ssz-max:"4096" ssz-size:"?,48"`
-	ExecutionRequestsRoot phase0.Root           `ssz-size:"32"`
+	ParentBlockHash       phase0.Hash32              `ssz-index:"0"`
+	ParentBlockRoot       phase0.Root                `ssz-index:"1"`
+	BlockHash             phase0.Hash32              `ssz-index:"2"`
+	PrevRandao            phase0.Root                `ssz-index:"3"`
+	FeeRecipient          bellatrix.ExecutionAddress `ssz-index:"4"`
+	GasLimit              uint64                     `ssz-index:"5"`
+	BuilderIndex          BuilderIndex               `ssz-index:"6"`
+	Slot                  phase0.Slot                `ssz-index:"7"`
+	Value                 phase0.Gwei                `ssz-index:"8"`
+	ExecutionPayment      phase0.Gwei                `ssz-index:"9"`
+	BlobKZGCommitments    []deneb.KZGCommitment      `ssz-index:"10" ssz-type:"progressive-list"`
+	ExecutionRequestsRoot phase0.Root                `ssz-index:"11"`
 }
 
 // String returns a string version of the structure.

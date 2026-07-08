@@ -60,7 +60,9 @@ func (e *ExecutionPayloadHeader) viewType() (any, error) {
 		return (*bellatrix.ExecutionPayloadHeader)(nil), nil
 	case version.DataVersionCapella:
 		return (*capella.ExecutionPayloadHeader)(nil), nil
-	case version.DataVersionDeneb:
+	case version.DataVersionDeneb,
+		version.DataVersionElectra,
+		version.DataVersionFulu:
 		return (*deneb.ExecutionPayloadHeader)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadHeader: unsupported version %d", e.Version)

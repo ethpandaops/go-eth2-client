@@ -20,6 +20,7 @@ import (
 	bitfield "github.com/OffchainLabs/go-bitfield"
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -47,10 +48,11 @@ func (a *Attestation) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.Attestation)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu,
-		version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionFulu:
 		return (*electra.Attestation)(nil), nil
+	case version.DataVersionGloas,
+		version.DataVersionHeze:
+		return (*gloas.Attestation)(nil), nil
 	default:
 		return nil, fmt.Errorf("Attestation: unsupported version %d", a.Version)
 	}
@@ -161,6 +163,8 @@ func attestationVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionPhase0, nil
 	case *electra.Attestation:
 		return version.DataVersionElectra, nil
+	case *gloas.Attestation:
+		return version.DataVersionGloas, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("Attestation: unsupported view type %T", view)
 	}

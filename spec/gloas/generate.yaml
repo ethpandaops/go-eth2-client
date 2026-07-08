@@ -3,6 +3,12 @@ legacy: true
 without-dynamic-expressions: true
 
 types:
+  - name: AggregateAndProof
+    output: aggregateandproof_ssz.go
+  - name: Attestation
+    output: attestation_ssz.go
+  - name: AttesterSlashing
+    output: attesterslashing_ssz.go
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
   - name: BeaconBlock
@@ -27,6 +33,8 @@ types:
     output: executionpayloadbid_ssz.go
   - name: ExecutionPayloadEnvelope
     output: executionpayloadenvelope_ssz.go
+  - name: IndexedAttestation
+    output: indexedattestation_ssz.go
   - name: IndexedPayloadAttestation
     output: indexedpayloadattestation_ssz.go
   - name: PayloadAttestation
@@ -37,6 +45,8 @@ types:
     output: payloadattestationmessage_ssz.go
   - name: ProposerPreferences
     output: proposerpreferences_ssz.go
+  - name: SignedAggregateAndProof
+    output: signedaggregateandproof_ssz.go
   - name: SignedBeaconBlock
     output: signedbeaconblock_ssz.go
   - name: SignedExecutionPayloadBid

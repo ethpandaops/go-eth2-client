@@ -121,7 +121,9 @@ linters:
         - name: confusing-results
         - name: line-length-limit
           arguments:
-            - 160
+            # Raised from 160 to accommodate aligned SSZ struct tag definitions
+            # (e.g. spec/gloas progressive-container fields) that cannot be wrapped.
+            - 200
         - name: struct-tag
           arguments:
             - json,allowempty
@@ -135,6 +137,18 @@ linters:
         # Enable all checks except ST1000 (package comment style)
         - all
         - -ST1000
+
+    # tagalign: Struct tag alignment and ordering
+    tagalign:
+      # Don't column-align tags; alignment padding would push the SSZ tag lines
+      # past the revive line-length-limit (160). Single-space separation is used.
+      align: false
+      # Enforce tag key ordering. ssz-index stays first (it defines the field
+      # position for EIP-7688 progressive containers); remaining keys follow
+      # alphabetically.
+      sort: true
+      order:
+        - ssz-index
 
     # tagliatelle: Struct tag naming conventions
     tagliatelle:

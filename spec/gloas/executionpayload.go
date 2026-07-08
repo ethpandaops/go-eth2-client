@@ -28,25 +28,25 @@ type BlockAccessList []byte
 
 // ExecutionPayload represents an execution layer payload.
 type ExecutionPayload struct {
-	ParentHash      phase0.Hash32              `ssz-size:"32"`
-	FeeRecipient    bellatrix.ExecutionAddress `ssz-size:"20"`
-	StateRoot       phase0.Root                `ssz-size:"32"`
-	ReceiptsRoot    phase0.Root                `ssz-size:"32"`
-	LogsBloom       [256]byte                  `ssz-size:"256"`
-	PrevRandao      [32]byte                   `ssz-size:"32"`
-	BlockNumber     uint64
-	GasLimit        uint64
-	GasUsed         uint64
-	Timestamp       uint64
-	ExtraData       []byte                  `dynssz-max:"MAX_EXTRA_DATA_BYTES"                                   ssz-max:"32"`
-	BaseFeePerGas   *uint256.Int            `ssz-type:"uint256"`
-	BlockHash       phase0.Hash32           `ssz-size:"32"`
-	Transactions    []bellatrix.Transaction `dynssz-max:"MAX_TRANSACTIONS_PER_PAYLOAD,MAX_BYTES_PER_TRANSACTION" ssz-max:"1048576,1073741824" ssz-size:"?,?"`
-	Withdrawals     []*capella.Withdrawal   `dynssz-max:"MAX_WITHDRAWALS_PER_PAYLOAD"                            ssz-max:"16"`
-	BlobGasUsed     uint64
-	ExcessBlobGas   uint64
-	BlockAccessList BlockAccessList `dynssz-max:"MAX_BYTES_PER_TRANSACTION" ssz-max:"1073741824"`
-	SlotNumber      uint64
+	ParentHash      phase0.Hash32              `ssz-index:"0"`
+	FeeRecipient    bellatrix.ExecutionAddress `ssz-index:"1"`
+	StateRoot       phase0.Root                `ssz-index:"2"`
+	ReceiptsRoot    phase0.Root                `ssz-index:"3"`
+	LogsBloom       [256]byte                  `ssz-index:"4"`
+	PrevRandao      [32]byte                   `ssz-index:"5"`
+	BlockNumber     uint64                     `ssz-index:"6"`
+	GasLimit        uint64                     `ssz-index:"7"`
+	GasUsed         uint64                     `ssz-index:"8"`
+	Timestamp       uint64                     `ssz-index:"9"`
+	ExtraData       []byte                     `ssz-index:"10" dynssz-max:"MAX_EXTRA_DATA_BYTES" ssz-max:"32"`
+	BaseFeePerGas   *uint256.Int               `ssz-index:"11" ssz-type:"uint256"`
+	BlockHash       phase0.Hash32              `ssz-index:"12"`
+	Transactions    []bellatrix.Transaction    `ssz-index:"13" ssz-type:"progressive-list,progressive-list"`
+	Withdrawals     []*capella.Withdrawal      `ssz-index:"14" ssz-type:"progressive-list"`
+	BlobGasUsed     uint64                     `ssz-index:"15"`
+	ExcessBlobGas   uint64                     `ssz-index:"16"`
+	BlockAccessList BlockAccessList            `ssz-index:"17" ssz-type:"progressive-list"`
+	SlotNumber      uint64                     `ssz-index:"18"`
 }
 
 // String returns a string version of the structure.
