@@ -17,6 +17,7 @@ import (
 	"errors"
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -30,8 +31,8 @@ type VersionedAttesterSlashing struct {
 	Deneb     *phase0.AttesterSlashing
 	Electra   *electra.AttesterSlashing
 	Fulu      *electra.AttesterSlashing
-	Gloas     *electra.AttesterSlashing
-	Heze      *electra.AttesterSlashing
+	Gloas     *gloas.AttesterSlashing
+	Heze      *gloas.AttesterSlashing
 }
 
 // IsEmpty returns true if there is no block.

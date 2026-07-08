@@ -19,6 +19,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -43,10 +44,11 @@ func (s *SignedAggregateAndProof) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.SignedAggregateAndProof)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu,
-		version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionFulu:
 		return (*electra.SignedAggregateAndProof)(nil), nil
+	case version.DataVersionGloas,
+		version.DataVersionHeze:
+		return (*gloas.SignedAggregateAndProof)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedAggregateAndProof: unsupported version %d", s.Version)
 	}
@@ -161,6 +163,8 @@ func signedAggregateAndProofVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionPhase0, nil
 	case *electra.SignedAggregateAndProof:
 		return version.DataVersionElectra, nil
+	case *gloas.SignedAggregateAndProof:
+		return version.DataVersionGloas, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedAggregateAndProof: unsupported view type %T", view)
 	}

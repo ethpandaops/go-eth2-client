@@ -26,52 +26,52 @@ import (
 
 // BeaconState represents a beacon state for EIP-7732.
 type BeaconState struct {
-	GenesisTime                   uint64
-	GenesisValidatorsRoot         phase0.Root `ssz-size:"32"`
-	Slot                          phase0.Slot
-	Fork                          *phase0.Fork
-	LatestBlockHeader             *phase0.BeaconBlockHeader
-	BlockRoots                    []phase0.Root `dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
-	StateRoots                    []phase0.Root `dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
-	HistoricalRoots               []phase0.Root `ssz-max:"16777216"                         ssz-size:"?,32"`
-	ETH1Data                      *phase0.ETH1Data
-	ETH1DataVotes                 []*phase0.ETH1Data `dynssz-max:"EPOCHS_PER_ETH1_VOTING_PERIOD*SLOTS_PER_EPOCH" ssz-max:"2048"`
-	ETH1DepositIndex              uint64
-	Validators                    []*phase0.Validator         `ssz-max:"1099511627776"`
-	Balances                      []phase0.Gwei               `ssz-max:"1099511627776"`
-	RANDAOMixes                   []phase0.Root               `dynssz-size:"EPOCHS_PER_HISTORICAL_VECTOR,32" ssz-size:"65536,32"`
-	Slashings                     []phase0.Gwei               `dynssz-size:"EPOCHS_PER_SLASHINGS_VECTOR"     ssz-size:"8192"`
-	PreviousEpochParticipation    []altair.ParticipationFlags `ssz-max:"1099511627776"`
-	CurrentEpochParticipation     []altair.ParticipationFlags `ssz-max:"1099511627776"`
-	JustificationBits             bitfield.Bitvector4         `ssz-size:"1"`
-	PreviousJustifiedCheckpoint   *phase0.Checkpoint
-	CurrentJustifiedCheckpoint    *phase0.Checkpoint
-	FinalizedCheckpoint           *phase0.Checkpoint
-	InactivityScores              []uint64 `ssz-max:"1099511627776"`
-	CurrentSyncCommittee          *altair.SyncCommittee
-	NextSyncCommittee             *altair.SyncCommittee
-	LatestBlockHash               phase0.Hash32 `ssz-size:"32"`
-	NextWithdrawalIndex           capella.WithdrawalIndex
-	NextWithdrawalValidatorIndex  phase0.ValidatorIndex
-	HistoricalSummaries           []*capella.HistoricalSummary `ssz-max:"16777216"`
-	DepositRequestsStartIndex     uint64
-	DepositBalanceToConsume       phase0.Gwei
-	ExitBalanceToConsume          phase0.Gwei
-	EarliestExitEpoch             phase0.Epoch
-	ConsolidationBalanceToConsume phase0.Gwei
-	EarliestConsolidationEpoch    phase0.Epoch
-	PendingDeposits               []*electra.PendingDeposit           `dynssz-max:"PENDING_DEPOSITS_LIMIT"                  ssz-max:"134217728"`
-	PendingPartialWithdrawals     []*electra.PendingPartialWithdrawal `dynssz-max:"PENDING_PARTIAL_WITHDRAWALS_LIMIT"       ssz-max:"134217728"`
-	PendingConsolidations         []*electra.PendingConsolidation     `dynssz-max:"PENDING_CONSOLIDATIONS_LIMIT"            ssz-max:"262144"`
-	ProposerLookahead             []phase0.ValidatorIndex             `dynssz-size:"(MIN_SEED_LOOKAHEAD+1)*SLOTS_PER_EPOCH" ssz-size:"64"`
-	Builders                      []*Builder                          `dynssz-max:"BUILDER_REGISTRY_LIMIT"                  ssz-max:"1099511627776"`
-	NextWithdrawalBuilderIndex    BuilderIndex
-	ExecutionPayloadAvailability  []uint8                     `dynssz-size:"SLOTS_PER_HISTORICAL_ROOT/8"      ssz-size:"1024"`
-	BuilderPendingPayments        []*BuilderPendingPayment    `dynssz-size:"SLOTS_PER_EPOCH*2"                ssz-size:"64"`
-	BuilderPendingWithdrawals     []*BuilderPendingWithdrawal `dynssz-max:"BUILDER_PENDING_WITHDRAWALS_LIMIT" ssz-max:"1048576"`
-	LatestExecutionPayloadBid     *ExecutionPayloadBid
-	PayloadExpectedWithdrawals    []*capella.Withdrawal     `dynssz-max:"MAX_WITHDRAWALS_PER_PAYLOAD"                      ssz-max:"16"`
-	PTCWindow                     [][]phase0.ValidatorIndex `dynssz-size:"(2+MIN_SEED_LOOKAHEAD)*SLOTS_PER_EPOCH,PTC_SIZE" ssz-size:"96,512"`
+	GenesisTime                   uint64                              `ssz-index:"0"`
+	GenesisValidatorsRoot         phase0.Root                         `ssz-index:"1" ssz-size:"32"`
+	Slot                          phase0.Slot                         `ssz-index:"2"`
+	Fork                          *phase0.Fork                        `ssz-index:"3"`
+	LatestBlockHeader             *phase0.BeaconBlockHeader           `ssz-index:"4"`
+	BlockRoots                    []phase0.Root                       `ssz-index:"5" dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
+	StateRoots                    []phase0.Root                       `ssz-index:"6" dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
+	HistoricalRoots               []phase0.Root                       `ssz-index:"7" ssz-max:"16777216"                         ssz-size:"?,32"`
+	ETH1Data                      *phase0.ETH1Data                    `ssz-index:"8"`
+	ETH1DataVotes                 []*phase0.ETH1Data                  `ssz-index:"9" dynssz-max:"EPOCHS_PER_ETH1_VOTING_PERIOD*SLOTS_PER_EPOCH" ssz-max:"2048"`
+	ETH1DepositIndex              uint64                              `ssz-index:"10"`
+	Validators                    []*phase0.Validator                 `ssz-index:"11" ssz-type:"progressive-list"`
+	Balances                      []phase0.Gwei                       `ssz-index:"12" ssz-type:"progressive-list"`
+	RANDAOMixes                   []phase0.Root                       `ssz-index:"13" dynssz-size:"EPOCHS_PER_HISTORICAL_VECTOR,32" ssz-size:"65536,32"`
+	Slashings                     []phase0.Gwei                       `ssz-index:"14" dynssz-size:"EPOCHS_PER_SLASHINGS_VECTOR"     ssz-size:"8192"`
+	PreviousEpochParticipation    []altair.ParticipationFlags         `ssz-index:"15" ssz-type:"progressive-list"`
+	CurrentEpochParticipation     []altair.ParticipationFlags         `ssz-index:"16" ssz-type:"progressive-list"`
+	JustificationBits             bitfield.Bitvector4                 `ssz-index:"17" ssz-size:"1"`
+	PreviousJustifiedCheckpoint   *phase0.Checkpoint                  `ssz-index:"18"`
+	CurrentJustifiedCheckpoint    *phase0.Checkpoint                  `ssz-index:"19"`
+	FinalizedCheckpoint           *phase0.Checkpoint                  `ssz-index:"20"`
+	InactivityScores              []uint64                            `ssz-index:"21" ssz-type:"progressive-list"`
+	CurrentSyncCommittee          *altair.SyncCommittee               `ssz-index:"22"`
+	NextSyncCommittee             *altair.SyncCommittee               `ssz-index:"23"`
+	LatestBlockHash               phase0.Hash32                       `ssz-index:"24" ssz-size:"32"`
+	NextWithdrawalIndex           capella.WithdrawalIndex             `ssz-index:"25"`
+	NextWithdrawalValidatorIndex  phase0.ValidatorIndex               `ssz-index:"26"`
+	HistoricalSummaries           []*capella.HistoricalSummary        `ssz-index:"27" ssz-max:"16777216"`
+	DepositRequestsStartIndex     uint64                              `ssz-index:"28"`
+	DepositBalanceToConsume       phase0.Gwei                         `ssz-index:"29"`
+	ExitBalanceToConsume          phase0.Gwei                         `ssz-index:"30"`
+	EarliestExitEpoch             phase0.Epoch                        `ssz-index:"31"`
+	ConsolidationBalanceToConsume phase0.Gwei                         `ssz-index:"32"`
+	EarliestConsolidationEpoch    phase0.Epoch                        `ssz-index:"33"`
+	PendingDeposits               []*electra.PendingDeposit           `ssz-index:"34" ssz-type:"progressive-list"`
+	PendingPartialWithdrawals     []*electra.PendingPartialWithdrawal `ssz-index:"35" ssz-type:"progressive-list"`
+	PendingConsolidations         []*electra.PendingConsolidation     `ssz-index:"36" ssz-type:"progressive-list"`
+	ProposerLookahead             []phase0.ValidatorIndex             `ssz-index:"37" dynssz-size:"(MIN_SEED_LOOKAHEAD+1)*SLOTS_PER_EPOCH" ssz-size:"64"`
+	Builders                      []*Builder                          `ssz-index:"38" ssz-type:"progressive-list"`
+	NextWithdrawalBuilderIndex    BuilderIndex                        `ssz-index:"39"`
+	ExecutionPayloadAvailability  []uint8                             `ssz-index:"40" dynssz-size:"SLOTS_PER_HISTORICAL_ROOT/8"      ssz-size:"1024"`
+	BuilderPendingPayments        []*BuilderPendingPayment            `ssz-index:"41" dynssz-size:"SLOTS_PER_EPOCH*2"                ssz-size:"64"`
+	BuilderPendingWithdrawals     []*BuilderPendingWithdrawal         `ssz-index:"42" ssz-type:"progressive-list"`
+	LatestExecutionPayloadBid     *ExecutionPayloadBid                `ssz-index:"43"`
+	PayloadExpectedWithdrawals    []*capella.Withdrawal               `ssz-index:"44" ssz-type:"progressive-list"`
+	PTCWindow                     [][]phase0.ValidatorIndex           `ssz-index:"45" dynssz-size:"(2+MIN_SEED_LOOKAHEAD)*SLOTS_PER_EPOCH,PTC_SIZE" ssz-size:"96,512"`
 }
 
 // String returns a string version of the structure.

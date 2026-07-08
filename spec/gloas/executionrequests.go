@@ -22,11 +22,11 @@ import (
 
 // ExecutionRequests represents the execution layer triggered requests of a payload (EIP-8282).
 type ExecutionRequests struct {
-	Deposits        []*electra.DepositRequest       `dynssz-max:"MAX_DEPOSIT_REQUESTS_PER_PAYLOAD"         ssz-max:"8192"`
-	Withdrawals     []*electra.WithdrawalRequest    `dynssz-max:"MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD"      ssz-max:"16"`
-	Consolidations  []*electra.ConsolidationRequest `dynssz-max:"MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD"   ssz-max:"2"`
-	BuilderDeposits []*BuilderDepositRequest        `dynssz-max:"MAX_BUILDER_DEPOSIT_REQUESTS_PER_PAYLOAD" ssz-max:"256"`
-	BuilderExits    []*BuilderExitRequest           `dynssz-max:"MAX_BUILDER_EXIT_REQUESTS_PER_PAYLOAD"    ssz-max:"16"`
+	Deposits        []*electra.DepositRequest       `ssz-index:"0" ssz-type:"progressive-list"`
+	Withdrawals     []*electra.WithdrawalRequest    `ssz-index:"1" ssz-type:"progressive-list"`
+	Consolidations  []*electra.ConsolidationRequest `ssz-index:"2" ssz-type:"progressive-list"`
+	BuilderDeposits []*BuilderDepositRequest        `ssz-index:"3" ssz-type:"progressive-list"`
+	BuilderExits    []*BuilderExitRequest           `ssz-index:"4" ssz-type:"progressive-list"`
 }
 
 // String returns a string version of the structure.

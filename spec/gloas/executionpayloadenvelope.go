@@ -22,11 +22,11 @@ import (
 
 // ExecutionPayloadEnvelope represents an execution payload envelope.
 type ExecutionPayloadEnvelope struct {
-	Payload               *ExecutionPayload
-	ExecutionRequests     *ExecutionRequests
-	BuilderIndex          BuilderIndex
-	BeaconBlockRoot       phase0.Root `ssz-size:"32"`
-	ParentBeaconBlockRoot phase0.Root `ssz-size:"32"`
+	Payload               *ExecutionPayload  `ssz-index:"0"`
+	ExecutionRequests     *ExecutionRequests `ssz-index:"1"`
+	BuilderIndex          BuilderIndex       `ssz-index:"2"`
+	BeaconBlockRoot       phase0.Root        `ssz-index:"3"`
+	ParentBeaconBlockRoot phase0.Root        `ssz-index:"4"`
 }
 
 // String returns a string version of the structure.

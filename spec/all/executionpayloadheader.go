@@ -63,8 +63,6 @@ func (e *ExecutionPayloadHeader) viewType() (any, error) {
 	case version.DataVersionDeneb,
 		version.DataVersionElectra,
 		version.DataVersionFulu:
-		// Electra and Fulu reuse the Deneb execution-payload-header schema
-		// unchanged (matching the ExecutionPayload multiplexer).
 		return (*deneb.ExecutionPayloadHeader)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadHeader: unsupported version %d", e.Version)

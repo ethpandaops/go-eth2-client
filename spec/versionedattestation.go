@@ -19,6 +19,7 @@ import (
 
 	"github.com/OffchainLabs/go-bitfield"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -33,8 +34,8 @@ type VersionedAttestation struct {
 	Deneb          *phase0.Attestation
 	Electra        *electra.Attestation
 	Fulu           *electra.Attestation
-	Gloas          *electra.Attestation
-	Heze           *electra.Attestation
+	Gloas          *gloas.Attestation
+	Heze           *gloas.Attestation
 }
 
 // IsEmpty returns true if there is no block.

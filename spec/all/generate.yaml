@@ -73,6 +73,7 @@ types:
     views:
       - ../phase0.Attestation
       - ../electra.Attestation
+      - ../gloas.Attestation
 
   - name: AttesterSlashing
     output: attesterslashing_ssz.go
@@ -80,6 +81,7 @@ types:
     views:
       - ../phase0.AttesterSlashing
       - ../electra.AttesterSlashing
+      - ../gloas.AttesterSlashing
 
   - name: IndexedAttestation
     output: indexedattestation_ssz.go
@@ -87,6 +89,7 @@ types:
     views:
       - ../phase0.IndexedAttestation
       - ../electra.IndexedAttestation
+      - ../gloas.IndexedAttestation
 
   - name: AggregateAndProof
     output: aggregateandproof_ssz.go
@@ -94,6 +97,7 @@ types:
     views:
       - ../phase0.AggregateAndProof
       - ../electra.AggregateAndProof
+      - ../gloas.AggregateAndProof
 
   - name: SignedAggregateAndProof
     output: signedaggregateandproof_ssz.go
@@ -101,6 +105,7 @@ types:
     views:
       - ../phase0.SignedAggregateAndProof
       - ../electra.SignedAggregateAndProof
+      - ../gloas.SignedAggregateAndProof
 
   - name: ExecutionPayloadBid
     output: executionpayloadbid_ssz.go
