@@ -133,7 +133,7 @@ type VoluntaryExitEventHandlerFunc func(context.Context, *phase0.SignedVoluntary
 type DataColumnSidecarEventHandlerFunc func(context.Context, *apiv1.DataColumnSidecarEvent)
 
 // ExecutionPayloadEventHandlerFunc is the handler for execution_payload events.
-type ExecutionPayloadEventHandlerFunc func(context.Context, *gloas.SignedExecutionPayloadEnvelope)
+type ExecutionPayloadEventHandlerFunc func(context.Context, *apiv1.ExecutionPayloadEvent)
 
 // ExecutionPayloadAvailableEventHandlerFunc is the handler for execution_payload_available events.
 type ExecutionPayloadAvailableEventHandlerFunc func(context.Context, *apiv1.ExecutionPayloadAvailableEvent)
@@ -142,7 +142,7 @@ type ExecutionPayloadAvailableEventHandlerFunc func(context.Context, *apiv1.Exec
 type ExecutionPayloadBidEventHandlerFunc func(context.Context, *gloas.SignedExecutionPayloadBid)
 
 // ExecutionPayloadGossipEventHandlerFunc is the handler for execution_payload_gossip events.
-type ExecutionPayloadGossipEventHandlerFunc func(context.Context, *gloas.SignedExecutionPayloadEnvelope)
+type ExecutionPayloadGossipEventHandlerFunc func(context.Context, *apiv1.ExecutionPayloadEvent)
 
 // FastConfirmationEventHandlerFunc is the handler for fast_confirmation events.
 type FastConfirmationEventHandlerFunc func(context.Context, *apiv1.FastConfirmationEvent)

@@ -715,9 +715,9 @@ func (*Service) handleExecutionPayloadEvent(ctx context.Context,
 	opts *api.EventsOpts,
 ) {
 	log := zerolog.Ctx(ctx)
-	data := &gloas.SignedExecutionPayloadEnvelope{}
+	data := &apiv1.ExecutionPayloadEvent{}
 
-	err := json.Unmarshal(msg.Data, data)
+	err := unmarshalVersionedEventData(msg.Data, data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse execution payload event")
 
@@ -796,9 +796,9 @@ func (*Service) handleExecutionPayloadGossipEvent(ctx context.Context,
 	opts *api.EventsOpts,
 ) {
 	log := zerolog.Ctx(ctx)
-	data := &gloas.SignedExecutionPayloadEnvelope{}
+	data := &apiv1.ExecutionPayloadEvent{}
 
-	err := json.Unmarshal(msg.Data, data)
+	err := unmarshalVersionedEventData(msg.Data, data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse execution payload gossip event")
 
@@ -817,7 +817,6 @@ func (*Service) handleExecutionPayloadGossipEvent(ctx context.Context,
 		log.Debug().Msg("No specific or generic handler supplied; ignoring")
 	}
 }
-
 
 // unmarshalVersionedEventData decodes an SSE event payload that the beacon-API
 // spec wraps as {"version": "...", "data": {...}}. Some clients (Prysm) still
