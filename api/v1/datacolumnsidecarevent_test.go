@@ -26,7 +26,10 @@ func TestDataColumnSidecarEventJSON(t *testing.T) {
 	tests := []struct {
 		name  string
 		input []byte
-		err   string
+		// expected is the re-marshaled form when it differs from input, e.g. when
+		// the node sends fields the event does not carry.
+		expected []byte
+		err      string
 	}{
 		{
 			name: "Empty",
@@ -68,14 +71,23 @@ func TestDataColumnSidecarEventJSON(t *testing.T) {
 			err:   "invalid value for index: expected integer",
 		},
 		{
-			name:  "KZGCommitmentsMissing",
-			input: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`),
-			err:   "kzg_commitments missing",
+			// A Gloas node omits the field entirely (beacon-APIs #583).
+			name:     "KZGCommitmentsOmitted",
+			input:    []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`),
+			expected: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":[]}`),
 		},
 		{
+			// A Gloas node that still sends the field leaves it empty.
 			name:  "KZGCommitmentsEmpty",
 			input: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":[]}`),
-			err:   "kzg_commitments missing",
+		},
+		{
+			// Verbatim from a glamsterdam-devnet-6 sentry: a block carrying three
+			// blobs, with the commitments emptied and the long-removed
+			// versioned_hashes field still present. Both extra fields are ignored.
+			name:     "GloasEmptyCommitments",
+			input:    []byte(`{"block_root":"0x9715371a695c2d994cfb0fd469aa75ed5d76ee5945ce905fed033c2121a608ab","index":"1","slot":"99028","kzg_commitments":[],"versioned_hashes":[]}`),
+			expected: []byte(`{"block_root":"0x9715371a695c2d994cfb0fd469aa75ed5d76ee5945ce905fed033c2121a608ab","slot":"99028","index":"1","kzg_commitments":[]}`),
 		},
 		{
 			name:  "Good",
@@ -97,7 +109,11 @@ func TestDataColumnSidecarEventJSON(t *testing.T) {
 				require.NoError(t, err)
 				rt, err := json.Marshal(&res)
 				require.NoError(t, err)
-				assert.Equal(t, string(test.input), string(rt))
+				expected := test.expected
+				if expected == nil {
+					expected = test.input
+				}
+				assert.Equal(t, string(expected), string(rt))
 				assert.Equal(t, string(rt), res.String())
 			}
 		})
