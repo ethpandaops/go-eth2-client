@@ -89,10 +89,9 @@ func (e *DataColumnSidecarEvent) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "invalid value for index")
 	}
 
-	if len(dataColumnSidecarEventJSON.KZGCommitments) == 0 {
-		return errors.New("kzg_commitments missing")
-	}
-
+	// kzg_commitments carried the block's commitments until beacon-APIs #583
+	// dropped it from the data_column_sidecar event for Gloas. A Fulu node still
+	// populates it; a Gloas node sends an empty list or omits the field.
 	e.KZGCommitments = make([]deneb.KZGCommitment, len(dataColumnSidecarEventJSON.KZGCommitments))
 	for i, commitment := range dataColumnSidecarEventJSON.KZGCommitments {
 		if commitment == "" {
