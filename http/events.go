@@ -160,6 +160,8 @@ func (*Service) checkEventSpecificHandler(opts *api.EventsOpts, topic string) er
 		hasHandler = opts.FinalizedCheckpointHandler != nil
 	case "head":
 		hasHandler = opts.HeadHandler != nil
+	case "head_v2":
+		hasHandler = opts.HeadV2Handler != nil
 	case "payload_attestation_message":
 		hasHandler = opts.PayloadAttestationMessageHandler != nil
 	case "payload_attributes":
@@ -229,6 +231,8 @@ func (s *Service) handleEvent(ctx context.Context,
 		s.handleFinalizedCheckpointEvent(ctx, msg, opts)
 	case "head":
 		s.handleHeadEvent(ctx, msg, opts)
+	case "head_v2":
+		s.handleHeadV2Event(ctx, msg, opts)
 	case "payload_attestation_message":
 		s.handlePayloadAttestationMessageEvent(ctx, msg, opts)
 	case "payload_attributes":
@@ -538,6 +542,33 @@ func (*Service) handleFinalizedCheckpointEvent(ctx context.Context,
 	switch {
 	case opts.FinalizedCheckpointHandler != nil:
 		opts.FinalizedCheckpointHandler(ctx, data)
+	case opts.Handler != nil:
+		opts.Handler(&apiv1.Event{
+			Topic: string(msg.Event),
+			Data:  data,
+		})
+	default:
+		log.Debug().Msg("No specific or generic handler supplied; ignoring")
+	}
+}
+
+func (*Service) handleHeadV2Event(ctx context.Context,
+	msg *sse.Event,
+	opts *api.EventsOpts,
+) {
+	log := zerolog.Ctx(ctx)
+	data := &apiv1.HeadEventV2{}
+
+	err := unmarshalVersionedEventData(msg.Data, data)
+	if err != nil {
+		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse head_v2 event")
+
+		return
+	}
+
+	switch {
+	case opts.HeadV2Handler != nil:
+		opts.HeadV2Handler(ctx, data)
 	case opts.Handler != nil:
 		opts.Handler(&apiv1.Event{
 			Topic: string(msg.Event),
