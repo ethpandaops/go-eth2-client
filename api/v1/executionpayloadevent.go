@@ -118,6 +118,8 @@ func (e *ExecutionPayloadEvent) String() string {
 
 // decodeFixedBytes hex-decodes a 0x-prefixed value into dst, requiring exactly
 // wantLen bytes.
+//
+//nolint:unparam // every current field is 32 bytes; wantLen keeps the helper usable for 20-byte addresses et al.
 func decodeFixedBytes(dst []byte, value string, wantLen int, name string) error {
 	decoded, err := hex.DecodeString(strings.TrimPrefix(value, "0x"))
 	if err != nil {
