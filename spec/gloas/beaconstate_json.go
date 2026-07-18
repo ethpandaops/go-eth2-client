@@ -72,7 +72,7 @@ type beaconStateJSON struct {
 	ProposerLookahead             []string                            `json:"proposer_lookahead"`
 	Builders                      []*Builder                          `json:"builders"`
 	NextWithdrawalBuilderIndex    string                              `json:"next_withdrawal_builder_index"`
-	ExecutionPayloadAvailability  []string                            `json:"execution_payload_availability"`
+	ExecutionPayloadAvailability  string                              `json:"execution_payload_availability"`
 	BuilderPendingPayments        []*BuilderPendingPayment            `json:"builder_pending_payments"`
 	BuilderPendingWithdrawals     []*BuilderPendingWithdrawal         `json:"builder_pending_withdrawals"`
 	LatestExecutionPayloadBid     *ExecutionPayloadBid                `json:"latest_execution_payload_bid"`
@@ -109,10 +109,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 	proposerLookahead := make([]string, len(b.ProposerLookahead))
 	for i := range b.ProposerLookahead {
 		proposerLookahead[i] = fmt.Sprintf("%d", b.ProposerLookahead[i])
-	}
-	executionPayloadAvailability := make([]string, len(b.ExecutionPayloadAvailability))
-	for i := range b.ExecutionPayloadAvailability {
-		executionPayloadAvailability[i] = fmt.Sprintf("%d", b.ExecutionPayloadAvailability[i])
 	}
 	ptcWindow := make([][]string, len(b.PTCWindow))
 	for i := range b.PTCWindow {
@@ -163,7 +159,7 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		ProposerLookahead:             proposerLookahead,
 		Builders:                      b.Builders,
 		NextWithdrawalBuilderIndex:    fmt.Sprintf("%d", b.NextWithdrawalBuilderIndex),
-		ExecutionPayloadAvailability:  executionPayloadAvailability,
+		ExecutionPayloadAvailability:  fmt.Sprintf("%#x", b.ExecutionPayloadAvailability),
 		BuilderPendingPayments:        b.BuilderPendingPayments,
 		BuilderPendingWithdrawals:     b.BuilderPendingWithdrawals,
 		LatestExecutionPayloadBid:     b.LatestExecutionPayloadBid,
@@ -405,7 +401,8 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "next_withdrawal_builder_index")
 	}
 
-	if err := json.Unmarshal(raw["execution_payload_availability"], &b.ExecutionPayloadAvailability); err != nil {
+	executionPayloadAvailability := string(bytes.TrimPrefix(bytes.Trim(raw["execution_payload_availability"], `"`), []byte{'0', 'x'}))
+	if b.ExecutionPayloadAvailability, err = hex.DecodeString(executionPayloadAvailability); err != nil {
 		return errors.Wrap(err, "execution_payload_availability")
 	}
 
@@ -441,15 +438,17 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		}
 	}
 
-	ptcWindowStr := make([][]string, 0)
-	if err := json.Unmarshal(raw["ptc_window"], &ptcWindowStr); err != nil {
+	// The beacon API convention quotes uint64 values, but lighthouse serves the
+	// ptc_window indices as bare JSON numbers — accept either form.
+	ptcWindowRaw := make([][]json.RawMessage, 0)
+	if err := json.Unmarshal(raw["ptc_window"], &ptcWindowRaw); err != nil {
 		return errors.Wrap(err, "ptc_window")
 	}
-	b.PTCWindow = make([][]phase0.ValidatorIndex, len(ptcWindowStr))
-	for i := range ptcWindowStr {
-		b.PTCWindow[i] = make([]phase0.ValidatorIndex, len(ptcWindowStr[i]))
-		for j := range ptcWindowStr[i] {
-			idx, parseErr := strconv.ParseUint(ptcWindowStr[i][j], 10, 64)
+	b.PTCWindow = make([][]phase0.ValidatorIndex, len(ptcWindowRaw))
+	for i := range ptcWindowRaw {
+		b.PTCWindow[i] = make([]phase0.ValidatorIndex, len(ptcWindowRaw[i]))
+		for j := range ptcWindowRaw[i] {
+			idx, parseErr := strconv.ParseUint(string(bytes.Trim(ptcWindowRaw[i][j], `"`)), 10, 64)
 			if parseErr != nil {
 				return errors.Wrap(parseErr, fmt.Sprintf("ptc_window[%d][%d]", i, j))
 			}
