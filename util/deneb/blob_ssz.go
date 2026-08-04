@@ -33,10 +33,10 @@ func (t *BeaconBlockBlob) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *BeaconBlockBlob from SSZ-encoded bytes.
 func (t *BeaconBlockBlob) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 131072 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 131072)
-	}
-	if buflen > 131072 {
+	if 131072 != buflen {
+		if 131072 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 131072)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 131072)
 	}
 	{ // Field #0 'Blob' (static)

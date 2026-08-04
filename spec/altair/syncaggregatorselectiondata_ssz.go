@@ -39,10 +39,10 @@ func (t *SyncAggregatorSelectionData) MarshalSSZTo(buf []byte) (dst []byte, err 
 // UnmarshalSSZ unmarshals the *SyncAggregatorSelectionData from SSZ-encoded bytes.
 func (t *SyncAggregatorSelectionData) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 16 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 16)
-	}
-	if buflen > 16 {
+	if 16 != buflen {
+		if 16 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 16)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 16)
 	}
 	{ // Field #0 'Slot' (static)

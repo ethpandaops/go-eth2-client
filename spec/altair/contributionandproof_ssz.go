@@ -48,10 +48,10 @@ func (t *ContributionAndProof) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 // UnmarshalSSZ unmarshals the *ContributionAndProof from SSZ-encoded bytes.
 func (t *ContributionAndProof) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 264 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 264)
-	}
-	if buflen > 264 {
+	if 264 != buflen {
+		if 264 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 264)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 264)
 	}
 	{ // Field #0 'AggregatorIndex' (static)

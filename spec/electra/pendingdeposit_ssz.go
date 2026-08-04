@@ -55,10 +55,10 @@ func (t *PendingDeposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *PendingDeposit from SSZ-encoded bytes.
 func (t *PendingDeposit) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 192 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 192)
-	}
-	if buflen > 192 {
+	if 192 != buflen {
+		if 192 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 192)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 192)
 	}
 	{ // Field #0 'Pubkey' (static)
@@ -116,7 +116,7 @@ func (t *PendingDeposit) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 32 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 32), "WithdrawalCredentials")
 		}
-		val := t.WithdrawalCredentials[:]
+		val := t.WithdrawalCredentials[:vlen:vlen]
 		if vlen < 32 {
 			val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 		}

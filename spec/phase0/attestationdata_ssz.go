@@ -59,10 +59,10 @@ func (t *AttestationData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *AttestationData from SSZ-encoded bytes.
 func (t *AttestationData) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 128 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 128)
-	}
-	if buflen > 128 {
+	if 128 != buflen {
+		if 128 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 128)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 128)
 	}
 	{ // Field #0 'Slot' (static)

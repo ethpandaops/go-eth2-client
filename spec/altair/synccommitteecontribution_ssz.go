@@ -55,10 +55,10 @@ func (t *SyncCommitteeContribution) MarshalSSZTo(buf []byte) (dst []byte, err er
 // UnmarshalSSZ unmarshals the *SyncCommitteeContribution from SSZ-encoded bytes.
 func (t *SyncCommitteeContribution) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 160 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 160)
-	}
-	if buflen > 160 {
+	if 160 != buflen {
+		if 160 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 160)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 160)
 	}
 	{ // Field #0 'Slot' (static)
@@ -122,7 +122,7 @@ func (t *SyncCommitteeContribution) HashTreeRootWith(hh sszutils.HashWalker) err
 		if vlen > 16 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 16), "AggregationBits")
 		}
-		val := t.AggregationBits[:]
+		val := t.AggregationBits[:vlen:vlen]
 		if vlen < 16 {
 			val = sszutils.AppendZeroPadding(val, (16-vlen)*1)
 		}

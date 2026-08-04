@@ -48,10 +48,10 @@ func (t *ProposerSlashing) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *ProposerSlashing from SSZ-encoded bytes.
 func (t *ProposerSlashing) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 416 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 416)
-	}
-	if buflen > 416 {
+	if 416 != buflen {
+		if 416 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 416)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 416)
 	}
 	{ // Field #0 'SignedHeader1' (static)

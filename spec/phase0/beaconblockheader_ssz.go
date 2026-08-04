@@ -47,10 +47,10 @@ func (t *BeaconBlockHeader) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *BeaconBlockHeader from SSZ-encoded bytes.
 func (t *BeaconBlockHeader) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 112 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 112)
-	}
-	if buflen > 112 {
+	if 112 != buflen {
+		if 112 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 112)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 112)
 	}
 	{ // Field #0 'Slot' (static)

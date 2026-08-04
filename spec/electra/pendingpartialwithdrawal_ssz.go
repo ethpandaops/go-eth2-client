@@ -42,10 +42,10 @@ func (t *PendingPartialWithdrawal) MarshalSSZTo(buf []byte) (dst []byte, err err
 // UnmarshalSSZ unmarshals the *PendingPartialWithdrawal from SSZ-encoded bytes.
 func (t *PendingPartialWithdrawal) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 24 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 24)
-	}
-	if buflen > 24 {
+	if 24 != buflen {
+		if 24 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 24)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 24)
 	}
 	{ // Field #0 'ValidatorIndex' (static)

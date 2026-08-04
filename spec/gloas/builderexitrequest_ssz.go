@@ -36,10 +36,10 @@ func (t *BuilderExitRequest) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *BuilderExitRequest from SSZ-encoded bytes.
 func (t *BuilderExitRequest) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 68 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 68)
-	}
-	if buflen > 68 {
+	if 68 != buflen {
+		if 68 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 68)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 68)
 	}
 	{ // Field #0 'SourceAddress' (static)

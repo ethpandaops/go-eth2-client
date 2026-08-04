@@ -480,6 +480,9 @@ func (t *BeaconState) UnmarshalSSZ(buf []byte) (err error) {
 		if itemCount > 4096 {
 			return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, 4096), "PreviousEpochAttestations")
 		}
+		if itemCount > (len(buf)-startOffset)/(148) {
+			return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 148, len(buf)-startOffset), "PreviousEpochAttestations")
+		}
 		val9 = sszutils.ExpandSlice(val9, itemCount)
 		for idx1 := range itemCount {
 			var endOffset int
@@ -520,6 +523,9 @@ func (t *BeaconState) UnmarshalSSZ(buf []byte) (err error) {
 		}
 		if itemCount > 4096 {
 			return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, 4096), "CurrentEpochAttestations")
+		}
+		if itemCount > (len(buf)-startOffset)/(148) {
+			return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 148, len(buf)-startOffset), "CurrentEpochAttestations")
 		}
 		val11 = sszutils.ExpandSlice(val11, itemCount)
 		for idx1 := range itemCount {
@@ -863,7 +869,7 @@ func (t *BeaconState) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 1 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 1), "JustificationBits")
 		}
-		val := t.JustificationBits[:]
+		val := t.JustificationBits[:vlen:vlen]
 		if vlen < 1 {
 			val = sszutils.AppendZeroPadding(val, (1-vlen)*1)
 		}

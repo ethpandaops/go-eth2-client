@@ -39,10 +39,10 @@ func (t *PendingConsolidation) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 // UnmarshalSSZ unmarshals the *PendingConsolidation from SSZ-encoded bytes.
 func (t *PendingConsolidation) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 16 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 16)
-	}
-	if buflen > 16 {
+	if 16 != buflen {
+		if 16 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 16)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 16)
 	}
 	{ // Field #0 'SourceIndex' (static)

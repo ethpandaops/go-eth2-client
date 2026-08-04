@@ -45,10 +45,10 @@ func (t *PayloadAttestationData) MarshalSSZTo(buf []byte) (dst []byte, err error
 // UnmarshalSSZ unmarshals the *PayloadAttestationData from SSZ-encoded bytes.
 func (t *PayloadAttestationData) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 42 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 42)
-	}
-	if buflen > 42 {
+	if 42 != buflen {
+		if 42 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 42)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 42)
 	}
 	{ // Field #0 'BeaconBlockRoot' (static)

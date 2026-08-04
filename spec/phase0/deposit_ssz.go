@@ -59,10 +59,10 @@ func (t *Deposit) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *Deposit from SSZ-encoded bytes.
 func (t *Deposit) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 1240 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 1240)
-	}
-	if buflen > 1240 {
+	if 1240 != buflen {
+		if 1240 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 1240)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 1240)
 	}
 	{ // Field #0 'Proof' (static)
@@ -129,7 +129,7 @@ func (t *Deposit) HashTreeRootWith(hh sszutils.HashWalker) error {
 			if vlen > 32 {
 				return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, 32), "Proof[%d]", idx1)
 			}
-			val := val1[:]
+			val := val1[:vlen:vlen]
 			if vlen < 32 {
 				val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 			}

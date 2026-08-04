@@ -45,10 +45,10 @@ func (t *SyncCommitteeMessage) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 // UnmarshalSSZ unmarshals the *SyncCommitteeMessage from SSZ-encoded bytes.
 func (t *SyncCommitteeMessage) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 144 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 144)
-	}
-	if buflen > 144 {
+	if 144 != buflen {
+		if 144 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 144)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 144)
 	}
 	{ // Field #0 'Slot' (static)

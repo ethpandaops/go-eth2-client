@@ -51,10 +51,10 @@ func (t *Builder) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *Builder from SSZ-encoded bytes.
 func (t *Builder) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 93 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 93)
-	}
-	if buflen > 93 {
+	if 93 != buflen {
+		if 93 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 93)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 93)
 	}
 	{ // Field #0 'PublicKey' (static)

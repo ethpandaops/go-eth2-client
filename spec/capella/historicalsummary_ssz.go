@@ -36,10 +36,10 @@ func (t *HistoricalSummary) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *HistoricalSummary from SSZ-encoded bytes.
 func (t *HistoricalSummary) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 64 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 64)
-	}
-	if buflen > 64 {
+	if 64 != buflen {
+		if 64 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 64)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 64)
 	}
 	{ // Field #0 'BlockSummaryRoot' (static)

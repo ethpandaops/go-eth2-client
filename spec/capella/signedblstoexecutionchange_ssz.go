@@ -42,10 +42,10 @@ func (t *SignedBLSToExecutionChange) MarshalSSZTo(buf []byte) (dst []byte, err e
 // UnmarshalSSZ unmarshals the *SignedBLSToExecutionChange from SSZ-encoded bytes.
 func (t *SignedBLSToExecutionChange) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 172 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 172)
-	}
-	if buflen > 172 {
+	if 172 != buflen {
+		if 172 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 172)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 172)
 	}
 	{ // Field #0 'Message' (static)

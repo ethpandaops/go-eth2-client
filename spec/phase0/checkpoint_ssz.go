@@ -38,10 +38,10 @@ func (t *Checkpoint) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *Checkpoint from SSZ-encoded bytes.
 func (t *Checkpoint) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 40 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 40)
-	}
-	if buflen > 40 {
+	if 40 != buflen {
+		if 40 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 40)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 40)
 	}
 	{ // Field #0 'Epoch' (static)

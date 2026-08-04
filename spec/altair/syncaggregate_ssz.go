@@ -43,10 +43,10 @@ func (t *SyncAggregate) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *SyncAggregate from SSZ-encoded bytes.
 func (t *SyncAggregate) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 160 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 160)
-	}
-	if buflen > 160 {
+	if 160 != buflen {
+		if 160 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 160)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 160)
 	}
 	{ // Field #0 'SyncCommitteeBits' (static)
@@ -89,7 +89,7 @@ func (t *SyncAggregate) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 64 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 64), "SyncCommitteeBits")
 		}
-		val := t.SyncCommitteeBits[:]
+		val := t.SyncCommitteeBits[:vlen:vlen]
 		if vlen < 64 {
 			val = sszutils.AppendZeroPadding(val, (64-vlen)*1)
 		}

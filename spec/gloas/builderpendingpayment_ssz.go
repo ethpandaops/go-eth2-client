@@ -48,10 +48,10 @@ func (t *BuilderPendingPayment) MarshalSSZTo(buf []byte) (dst []byte, err error)
 // UnmarshalSSZ unmarshals the *BuilderPendingPayment from SSZ-encoded bytes.
 func (t *BuilderPendingPayment) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 52 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 52)
-	}
-	if buflen > 52 {
+	if 52 != buflen {
+		if 52 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 52)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 52)
 	}
 	{ // Field #0 'Weight' (static)

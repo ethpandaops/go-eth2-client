@@ -45,10 +45,10 @@ func (t *Withdrawal) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *Withdrawal from SSZ-encoded bytes.
 func (t *Withdrawal) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 44 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 44)
-	}
-	if buflen > 44 {
+	if 44 != buflen {
+		if 44 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 44)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 44)
 	}
 	{ // Field #0 'Index' (static)

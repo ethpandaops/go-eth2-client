@@ -48,10 +48,10 @@ func (t *PayloadAttestationMessage) MarshalSSZTo(buf []byte) (dst []byte, err er
 // UnmarshalSSZ unmarshals the *PayloadAttestationMessage from SSZ-encoded bytes.
 func (t *PayloadAttestationMessage) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 146 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 146)
-	}
-	if buflen > 146 {
+	if 146 != buflen {
+		if 146 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 146)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 146)
 	}
 	{ // Field #0 'ValidatorIndex' (static)

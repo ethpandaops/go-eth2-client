@@ -45,10 +45,10 @@ func (t *ValidatorRegistration) MarshalSSZTo(buf []byte) (dst []byte, err error)
 // UnmarshalSSZ unmarshals the *ValidatorRegistration from SSZ-encoded bytes.
 func (t *ValidatorRegistration) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 84 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 84)
-	}
-	if buflen > 84 {
+	if 84 != buflen {
+		if 84 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 84)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 84)
 	}
 	{ // Field #0 'FeeRecipient' (static)

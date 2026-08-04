@@ -48,10 +48,10 @@ func (t *DepositMessage) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *DepositMessage from SSZ-encoded bytes.
 func (t *DepositMessage) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 88 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 88)
-	}
-	if buflen > 88 {
+	if 88 != buflen {
+		if 88 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 88)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 88)
 	}
 	{ // Field #0 'PublicKey' (static)
@@ -101,7 +101,7 @@ func (t *DepositMessage) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 32 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 32), "WithdrawalCredentials")
 		}
-		val := t.WithdrawalCredentials[:]
+		val := t.WithdrawalCredentials[:vlen:vlen]
 		if vlen < 32 {
 			val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 		}

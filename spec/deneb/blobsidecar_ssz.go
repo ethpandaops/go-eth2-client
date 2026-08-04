@@ -65,10 +65,10 @@ func (t *BlobSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *BlobSidecar from SSZ-encoded bytes.
 func (t *BlobSidecar) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 131928 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 131928)
-	}
-	if buflen > 131928 {
+	if 131928 != buflen {
+		if 131928 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 131928)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 131928)
 	}
 	{ // Field #0 'Index' (static)

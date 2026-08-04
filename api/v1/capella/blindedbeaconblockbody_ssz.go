@@ -291,6 +291,9 @@ func (t *BlindedBeaconBlockBody) UnmarshalSSZ(buf []byte) (err error) {
 		if itemCount > 2 {
 			return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, 2), "AttesterSlashings")
 		}
+		if itemCount > (len(buf)-startOffset)/(8) {
+			return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 8, len(buf)-startOffset), "AttesterSlashings")
+		}
 		val2 = sszutils.ExpandSlice(val2, itemCount)
 		for idx1 := range itemCount {
 			var endOffset int
@@ -331,6 +334,9 @@ func (t *BlindedBeaconBlockBody) UnmarshalSSZ(buf []byte) (err error) {
 		}
 		if itemCount > 128 {
 			return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, 128), "Attestations")
+		}
+		if itemCount > (len(buf)-startOffset)/(228) {
+			return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 228, len(buf)-startOffset), "Attestations")
 		}
 		val4 = sszutils.ExpandSlice(val4, itemCount)
 		for idx1 := range itemCount {

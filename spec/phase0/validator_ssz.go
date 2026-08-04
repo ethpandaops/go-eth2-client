@@ -63,10 +63,10 @@ func (t *Validator) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *Validator from SSZ-encoded bytes.
 func (t *Validator) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 121 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 121)
-	}
-	if buflen > 121 {
+	if 121 != buflen {
+		if 121 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 121)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 121)
 	}
 	{ // Field #0 'PublicKey' (static)
@@ -139,7 +139,7 @@ func (t *Validator) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 32 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 32), "WithdrawalCredentials")
 		}
-		val := t.WithdrawalCredentials[:]
+		val := t.WithdrawalCredentials[:vlen:vlen]
 		if vlen < 32 {
 			val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 		}

@@ -38,10 +38,10 @@ func (t *BlobIdentifier) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *BlobIdentifier from SSZ-encoded bytes.
 func (t *BlobIdentifier) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 40 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 40)
-	}
-	if buflen > 40 {
+	if 40 != buflen {
+		if 40 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 40)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 40)
 	}
 	{ // Field #0 'BlockRoot' (static)

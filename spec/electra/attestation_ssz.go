@@ -189,7 +189,7 @@ func (t *Attestation) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 8 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 8), "CommitteeBits")
 		}
-		val := t.CommitteeBits[:]
+		val := t.CommitteeBits[:vlen:vlen]
 		if vlen < 8 {
 			val = sszutils.AppendZeroPadding(val, (8-vlen)*1)
 		}

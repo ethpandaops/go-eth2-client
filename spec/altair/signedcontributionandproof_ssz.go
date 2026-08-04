@@ -42,10 +42,10 @@ func (t *SignedContributionAndProof) MarshalSSZTo(buf []byte) (dst []byte, err e
 // UnmarshalSSZ unmarshals the *SignedContributionAndProof from SSZ-encoded bytes.
 func (t *SignedContributionAndProof) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 360 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 360)
-	}
-	if buflen > 360 {
+	if 360 != buflen {
+		if 360 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 360)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 360)
 	}
 	{ // Field #0 'Message' (static)

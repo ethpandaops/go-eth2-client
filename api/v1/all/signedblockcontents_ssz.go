@@ -1904,7 +1904,7 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents(ds sszutils.D
 					t.SignedBlock.Message.Body = new(all.BeaconBlockBody)
 				}
 				exproffset := 0
-				totalSize := size1+232
+				totalSize := size1 + 232
 				buflen := len(buf)
 				if buflen < totalSize {
 					return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body")
@@ -1959,13 +1959,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents(ds sszutils.D
 						val1 = new(altair.SyncAggregate)
 					}
 					exproffset := 0
-					totalSize := size2+96
+					totalSize := size2 + 96
 					buflen := len(buf)
-					if buflen < totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
-					}
-					if buflen > totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.SyncAggregate")
+					if totalSize != buflen {
+						if totalSize > buflen {
+							return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
+						}
+						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.SyncAggregate")
 					}
 					{ // Field #0 'SyncCommitteeBits' (static)
 						buf := buf[0 : size2+0]
@@ -2032,6 +2032,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents(ds sszutils.D
 					}
 					if itemCount > int(expr2) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr2)), "SignedBlock.Message.Body.AttesterSlashings")
+					}
+					if itemCount > (len(buf)-startOffset)/(8) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 8, len(buf)-startOffset), "SignedBlock.Message.Body.AttesterSlashings")
 					}
 					val3 = sszutils.ExpandSlice(val3, itemCount)
 					for idx1 := range itemCount {
@@ -2169,6 +2172,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents(ds sszutils.D
 					if itemCount > int(expr3) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr3)), "SignedBlock.Message.Body.Attestations")
 					}
+					if itemCount > (len(buf)-startOffset)/(228) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 228, len(buf)-startOffset), "SignedBlock.Message.Body.Attestations")
+					}
 					val7 = sszutils.ExpandSlice(val7, itemCount)
 					for idx1 := range itemCount {
 						var endOffset int
@@ -2245,13 +2251,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents(ds sszutils.D
 						}
 						buf := buf[size3*idx1 : size3*(idx1+1)]
 						exproffset := 0
-						totalSize := size4+184
+						totalSize := size4 + 184
 						buflen := len(buf)
-						if buflen < totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
-						}
-						if buflen > totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+						if totalSize != buflen {
+							if totalSize > buflen {
+								return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+							}
+							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
 						}
 						{ // Field #0 'Proof' (static)
 							buf := buf[0 : size4+0]
@@ -2677,7 +2683,7 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 					t.SignedBlock.Message.Body = new(all.BeaconBlockBody)
 				}
 				exproffset := 0
-				totalSize := size1+236
+				totalSize := size1 + 236
 				buflen := len(buf)
 				if buflen < totalSize {
 					return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body")
@@ -2732,13 +2738,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 						val1 = new(altair.SyncAggregate)
 					}
 					exproffset := 0
-					totalSize := size2+96
+					totalSize := size2 + 96
 					buflen := len(buf)
-					if buflen < totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
-					}
-					if buflen > totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.SyncAggregate")
+					if totalSize != buflen {
+						if totalSize > buflen {
+							return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
+						}
+						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.SyncAggregate")
 					}
 					{ // Field #0 'SyncCommitteeBits' (static)
 						buf := buf[0 : size2+0]
@@ -2810,6 +2816,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 					}
 					if itemCount > int(expr2) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr2)), "SignedBlock.Message.Body.AttesterSlashings")
+					}
+					if itemCount > (len(buf)-startOffset)/(8) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 8, len(buf)-startOffset), "SignedBlock.Message.Body.AttesterSlashings")
 					}
 					val3 = sszutils.ExpandSlice(val3, itemCount)
 					for idx1 := range itemCount {
@@ -2947,6 +2956,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 					if itemCount > int(expr4) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr4)), "SignedBlock.Message.Body.Attestations")
 					}
+					if itemCount > (len(buf)-startOffset)/(size3+228) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, size3+228, len(buf)-startOffset), "SignedBlock.Message.Body.Attestations")
+					}
 					val7 = sszutils.ExpandSlice(val7, itemCount)
 					for idx1 := range itemCount {
 						var endOffset int
@@ -2965,7 +2977,7 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 							val8 = new(all.Attestation)
 						}
 						exproffset := 0
-						totalSize := size3+228
+						totalSize := size3 + 228
 						buflen := len(buf)
 						if buflen < totalSize {
 							return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Attestations[%d]", idx1)
@@ -3031,13 +3043,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_0(ds sszutils
 						}
 						buf := buf[size4*idx1 : size4*(idx1+1)]
 						exproffset := 0
-						totalSize := size5+184
+						totalSize := size5 + 184
 						buflen := len(buf)
-						if buflen < totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
-						}
-						if buflen > totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+						if totalSize != buflen {
+							if totalSize > buflen {
+								return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+							}
+							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
 						}
 						{ // Field #0 'Proof' (static)
 							buf := buf[0 : size5+0]
@@ -3554,7 +3566,7 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 					t.SignedBlock.Message.Body = new(all.BeaconBlockBody)
 				}
 				exproffset := 0
-				totalSize := size1+236
+				totalSize := size1 + 236
 				buflen := len(buf)
 				if buflen < totalSize {
 					return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body")
@@ -3609,13 +3621,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 						val1 = new(altair.SyncAggregate)
 					}
 					exproffset := 0
-					totalSize := size2+96
+					totalSize := size2 + 96
 					buflen := len(buf)
-					if buflen < totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
-					}
-					if buflen > totalSize {
-						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.SyncAggregate")
+					if totalSize != buflen {
+						if totalSize > buflen {
+							return sszutils.ErrorWithPath(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.SyncAggregate")
+						}
+						return sszutils.ErrorWithPath(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.SyncAggregate")
 					}
 					{ // Field #0 'SyncCommitteeBits' (static)
 						buf := buf[0 : size2+0]
@@ -3687,6 +3699,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 					}
 					if itemCount > int(expr2) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr2)), "SignedBlock.Message.Body.AttesterSlashings")
+					}
+					if itemCount > (len(buf)-startOffset)/(8) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, 8, len(buf)-startOffset), "SignedBlock.Message.Body.AttesterSlashings")
 					}
 					val3 = sszutils.ExpandSlice(val3, itemCount)
 					for idx1 := range itemCount {
@@ -3824,6 +3839,9 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 					if itemCount > int(expr4) {
 						return sszutils.ErrorWithPath(sszutils.ErrListLengthFn(itemCount, int(expr4)), "SignedBlock.Message.Body.Attestations")
 					}
+					if itemCount > (len(buf)-startOffset)/(size3+228) {
+						return sszutils.ErrorWithPath(sszutils.ErrListRegionTooSmallFn(itemCount, size3+228, len(buf)-startOffset), "SignedBlock.Message.Body.Attestations")
+					}
 					val7 = sszutils.ExpandSlice(val7, itemCount)
 					for idx1 := range itemCount {
 						var endOffset int
@@ -3842,7 +3860,7 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 							val8 = new(all.Attestation)
 						}
 						exproffset := 0
-						totalSize := size3+228
+						totalSize := size3 + 228
 						buflen := len(buf)
 						if buflen < totalSize {
 							return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Attestations[%d]", idx1)
@@ -3908,13 +3926,13 @@ func (t *SignedBlockContents) unmarshalSSZView_SignedBlockContents_1(ds sszutils
 						}
 						buf := buf[size4*idx1 : size4*(idx1+1)]
 						exproffset := 0
-						totalSize := size5+184
+						totalSize := size5 + 184
 						buflen := len(buf)
-						if buflen < totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
-						}
-						if buflen > totalSize {
-							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen - totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+						if totalSize != buflen {
+							if totalSize > buflen {
+								return sszutils.ErrorWithPathf(sszutils.ErrFixedFieldsEOFFn(buflen, totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
+							}
+							return sszutils.ErrorWithPathf(sszutils.ErrTrailingDataFn(buflen-totalSize), "SignedBlock.Message.Body.Deposits[%d]", idx1)
 						}
 						{ // Field #0 'Proof' (static)
 							buf := buf[0 : size5+0]
@@ -5253,7 +5271,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents(ds sszutils.D
 								if vlen > 32 {
 									return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, 32), "SignedBlock.Message.Body.Deposits[%d].Proof[%d]", idx1, idx2)
 								}
-								val := val1[:]
+								val := val1[:vlen:vlen]
 								if vlen < 32 {
 									val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 								}
@@ -5312,7 +5330,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents(ds sszutils.D
 						if vlen > int(expr7) {
 							return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, int(expr7)), "SignedBlock.Message.Body.SyncAggregate.SyncCommitteeBits")
 						}
-						val := t.SyncCommitteeBits[:]
+						val := t.SyncCommitteeBits[:vlen:vlen]
 						if vlen < int(expr7) {
 							val = sszutils.AppendZeroPadding(val, (int(expr7)-vlen)*1)
 						}
@@ -5779,7 +5797,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_0(ds sszutils
 							if vlen > int(expr4) {
 								return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, int(expr4)), "SignedBlock.Message.Body.Attestations[%d].CommitteeBits", idx1)
 							}
-							val := t.CommitteeBits[:]
+							val := t.CommitteeBits[:vlen:vlen]
 							if vlen < int(expr4) {
 								val = sszutils.AppendZeroPadding(val, (int(expr4)-vlen)*1)
 							}
@@ -5823,7 +5841,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_0(ds sszutils
 								if vlen > 32 {
 									return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, 32), "SignedBlock.Message.Body.Deposits[%d].Proof[%d]", idx1, idx2)
 								}
-								val := val1[:]
+								val := val1[:vlen:vlen]
 								if vlen < 32 {
 									val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 								}
@@ -5882,7 +5900,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_0(ds sszutils
 						if vlen > int(expr8) {
 							return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, int(expr8)), "SignedBlock.Message.Body.SyncAggregate.SyncCommitteeBits")
 						}
-						val := t.SyncCommitteeBits[:]
+						val := t.SyncCommitteeBits[:vlen:vlen]
 						if vlen < int(expr8) {
 							val = sszutils.AppendZeroPadding(val, (int(expr8)-vlen)*1)
 						}
@@ -6420,7 +6438,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_1(ds sszutils
 							if vlen > int(expr4) {
 								return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, int(expr4)), "SignedBlock.Message.Body.Attestations[%d].CommitteeBits", idx1)
 							}
-							val := t.CommitteeBits[:]
+							val := t.CommitteeBits[:vlen:vlen]
 							if vlen < int(expr4) {
 								val = sszutils.AppendZeroPadding(val, (int(expr4)-vlen)*1)
 							}
@@ -6464,7 +6482,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_1(ds sszutils
 								if vlen > 32 {
 									return sszutils.ErrorWithPathf(sszutils.ErrVectorLengthFn(vlen, 32), "SignedBlock.Message.Body.Deposits[%d].Proof[%d]", idx1, idx2)
 								}
-								val := val1[:]
+								val := val1[:vlen:vlen]
 								if vlen < 32 {
 									val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 								}
@@ -6523,7 +6541,7 @@ func (t *SignedBlockContents) hashTreeRootView_SignedBlockContents_1(ds sszutils
 						if vlen > int(expr8) {
 							return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, int(expr8)), "SignedBlock.Message.Body.SyncAggregate.SyncCommitteeBits")
 						}
-						val := t.SyncCommitteeBits[:]
+						val := t.SyncCommitteeBits[:vlen:vlen]
 						if vlen < int(expr8) {
 							val = sszutils.AppendZeroPadding(val, (int(expr8)-vlen)*1)
 						}

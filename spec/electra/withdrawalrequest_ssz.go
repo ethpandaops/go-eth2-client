@@ -42,10 +42,10 @@ func (t *WithdrawalRequest) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *WithdrawalRequest from SSZ-encoded bytes.
 func (t *WithdrawalRequest) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 76 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 76)
-	}
-	if buflen > 76 {
+	if 76 != buflen {
+		if 76 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 76)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 76)
 	}
 	{ // Field #0 'SourceAddress' (static)

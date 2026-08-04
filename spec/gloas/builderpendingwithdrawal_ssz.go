@@ -42,10 +42,10 @@ func (t *BuilderPendingWithdrawal) MarshalSSZTo(buf []byte) (dst []byte, err err
 // UnmarshalSSZ unmarshals the *BuilderPendingWithdrawal from SSZ-encoded bytes.
 func (t *BuilderPendingWithdrawal) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 36 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 36)
-	}
-	if buflen > 36 {
+	if 36 != buflen {
+		if 36 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 36)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 36)
 	}
 	{ // Field #0 'FeeRecipient' (static)

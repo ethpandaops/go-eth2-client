@@ -39,10 +39,10 @@ func (t *ConsolidationRequest) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 // UnmarshalSSZ unmarshals the *ConsolidationRequest from SSZ-encoded bytes.
 func (t *ConsolidationRequest) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 116 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 116)
-	}
-	if buflen > 116 {
+	if 116 != buflen {
+		if 116 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 116)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 116)
 	}
 	{ // Field #0 'SourceAddress' (static)

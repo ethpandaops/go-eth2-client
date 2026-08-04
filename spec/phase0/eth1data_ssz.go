@@ -48,10 +48,10 @@ func (t *ETH1Data) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *ETH1Data from SSZ-encoded bytes.
 func (t *ETH1Data) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 72 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 72)
-	}
-	if buflen > 72 {
+	if 72 != buflen {
+		if 72 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 72)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 72)
 	}
 	{ // Field #0 'DepositRoot' (static)
@@ -104,7 +104,7 @@ func (t *ETH1Data) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 32 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 32), "BlockHash")
 		}
-		val := t.BlockHash[:]
+		val := t.BlockHash[:vlen:vlen]
 		if vlen < 32 {
 			val = sszutils.AppendZeroPadding(val, (32-vlen)*1)
 		}

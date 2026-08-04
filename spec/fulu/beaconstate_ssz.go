@@ -1160,7 +1160,7 @@ func (t *BeaconState) HashTreeRootWith(hh sszutils.HashWalker) error {
 		if vlen > 1 {
 			return sszutils.ErrorWithPath(sszutils.ErrVectorLengthFn(vlen, 1), "JustificationBits")
 		}
-		val := t.JustificationBits[:]
+		val := t.JustificationBits[:vlen:vlen]
 		if vlen < 1 {
 			val = sszutils.AppendZeroPadding(val, (1-vlen)*1)
 		}

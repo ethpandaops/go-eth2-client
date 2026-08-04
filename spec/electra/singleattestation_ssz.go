@@ -51,10 +51,10 @@ func (t *SingleAttestation) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 // UnmarshalSSZ unmarshals the *SingleAttestation from SSZ-encoded bytes.
 func (t *SingleAttestation) UnmarshalSSZ(buf []byte) (err error) {
 	buflen := len(buf)
-	if buflen < 240 {
-		return sszutils.ErrFixedFieldsEOFFn(buflen, 240)
-	}
-	if buflen > 240 {
+	if 240 != buflen {
+		if 240 > buflen {
+			return sszutils.ErrFixedFieldsEOFFn(buflen, 240)
+		}
 		return sszutils.ErrTrailingDataFn(buflen - 240)
 	}
 	{ // Field #0 'CommitteeIndex' (static)
