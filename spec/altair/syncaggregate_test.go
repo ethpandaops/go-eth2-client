@@ -50,6 +50,16 @@ func TestSyncAggregateJSON(t *testing.T) {
 			err:   "invalid value for sync committee bits: encoding/hex: invalid byte: U+0069 'i'",
 		},
 		{
+			name:  "SyncCommitteeBitsShort",
+			input: []byte(`{"sync_committee_bits":"0xe7fcbc21f184b9b89bfc57cc07232a4fce8e12efee3a8c4967932491267a215cd0aff3e79f19645d6f832592f93d91271071a4e911d3f64447e1f6f68247fd","sync_committee_signature":"0xe63b8ab602266593dbfe7f714891c5fed225e09c214bda8281c86ceddb6ee10727a854f213d33be1f032399e0044db6fa30368b6dc857fa8f12f61fc3bf4113a6e9cefeb11758fb01a9939950e127d71dc9c54a26aec63ef024b6620e6d32e44"}`),
+			err:   "sync committee bits short",
+		},
+		{
+			name:  "SyncCommitteeBitsLong",
+			input: []byte(`{"sync_committee_bits":"0xe7fcbc21f184b9b89bfc57cc07232a4fce8e12efee3a8c4967932491267a215cd0aff3e79f19645d6f832592f93d91271071a4e911d3f64447e1f6f68247fdecff","sync_committee_signature":"0xe63b8ab602266593dbfe7f714891c5fed225e09c214bda8281c86ceddb6ee10727a854f213d33be1f032399e0044db6fa30368b6dc857fa8f12f61fc3bf4113a6e9cefeb11758fb01a9939950e127d71dc9c54a26aec63ef024b6620e6d32e44"}`),
+			err:   "sync committee bits long",
+		},
+		{
 			name:  "SyncCommitteeSignatureMissing",
 			input: []byte(`{"sync_committee_bits":"0xe7fcbc21f184b9b89bfc57cc07232a4fce8e12efee3a8c4967932491267a215cd0aff3e79f19645d6f832592f93d91271071a4e911d3f64447e1f6f68247fdec"}`),
 			err:   "sync committee signature missing",

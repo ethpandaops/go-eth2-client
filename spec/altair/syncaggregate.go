@@ -72,6 +72,14 @@ func (s *SyncAggregate) unpack(syncAggregateJSON *syncAggregateJSON) error {
 		return errors.Wrap(err, "invalid value for sync committee bits")
 	}
 
+	if len(syncCommitteeBits) < 64 {
+		return errors.New("sync committee bits short")
+	}
+
+	if len(syncCommitteeBits) > 64 {
+		return errors.New("sync committee bits long")
+	}
+
 	s.SyncCommitteeBits = syncCommitteeBits
 
 	if syncAggregateJSON.SyncCommitteeSignature == "" {
