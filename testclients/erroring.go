@@ -293,6 +293,20 @@ func (s *Erroring) SubmitAttestations(ctx context.Context, attestations *api.Sub
 	return next.SubmitAttestations(ctx, attestations)
 }
 
+// SubmitAttesterSlashingV2 submits a versioned attester slashing.
+func (s *Erroring) SubmitAttesterSlashingV2(ctx context.Context, opts *api.SubmitAttesterSlashingOpts) error {
+	if err := s.maybeError(ctx); err != nil {
+		return err
+	}
+
+	next, isNext := s.next.(consensusclient.AttesterSlashingSubmitterV2)
+	if !isNext {
+		return fmt.Errorf("%s@%s does not support this call", s.next.Name(), s.next.Address())
+	}
+
+	return next.SubmitAttesterSlashingV2(ctx, opts)
+}
+
 // SubmitProposalPreparations submits proposal preparations.
 func (s *Erroring) SubmitProposalPreparations(ctx context.Context, preparations []*apiv1.ProposalPreparation) error {
 	if err := s.maybeError(ctx); err != nil {

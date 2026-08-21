@@ -266,6 +266,18 @@ func (s *Sleepy) SubmitAttestations(ctx context.Context, attestations *api.Submi
 	return next.SubmitAttestations(ctx, attestations)
 }
 
+// SubmitAttesterSlashingV2 submits a versioned attester slashing.
+func (s *Sleepy) SubmitAttesterSlashingV2(ctx context.Context, opts *api.SubmitAttesterSlashingOpts) error {
+	s.sleep(ctx)
+
+	next, isNext := s.next.(consensusclient.AttesterSlashingSubmitterV2)
+	if !isNext {
+		return errors.New("next does not support this call")
+	}
+
+	return next.SubmitAttesterSlashingV2(ctx, opts)
+}
+
 // AttesterDuties obtains attester duties.
 // If validatorIndices is nil it will return all duties for the given epoch.
 func (s *Sleepy) AttesterDuties(ctx context.Context,

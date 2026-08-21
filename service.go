@@ -232,7 +232,15 @@ type AttestationsSubmitter interface {
 // AttesterSlashingSubmitter is the interface for submitting attester slashings.
 type AttesterSlashingSubmitter interface {
 	// SubmitAttesterSlashing submits an attester slashing
+	//
+	// Deprecated: the V1 endpoint was deprecated in the electra release of the beacon APIs.  Use AttesterSlashingSubmitterV2.SubmitAttesterSlashingV2() instead.
 	SubmitAttesterSlashing(ctx context.Context, slashing *phase0.AttesterSlashing) error
+}
+
+// AttesterSlashingSubmitterV2 is the interface for submitting attester slashings using the V2 endpoint.
+type AttesterSlashingSubmitterV2 interface {
+	// SubmitAttesterSlashingV2 submits a versioned attester slashing.
+	SubmitAttesterSlashingV2(ctx context.Context, opts *api.SubmitAttesterSlashingOpts) error
 }
 
 // AttesterDutiesProvider is the interface for providing attester duties.

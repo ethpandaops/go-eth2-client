@@ -33,10 +33,10 @@ import (
 // SubmitExecutionPayloadEnvelope submits a signed execution payload envelope
 // using the stateless request form: a SignedExecutionPayloadEnvelopeContents
 // body (signed envelope plus blobs and KZG proofs) with the
-// Eth-Execution-Payload-Blinded header set to false. The stateful/blinded
-// form only works when the beacon node cached the full envelope from its own
-// block production, so builders publishing externally-built payloads must use
-// the stateless form.
+// Eth-Blob-Data-Included header set to true. The stateful form (bare
+// envelope, header false) only works when the beacon node cached the blobs
+// and KZG proofs from its own block production, so builders publishing
+// externally-built payloads must use the stateless form.
 func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SubmitExecutionPayloadEnvelopeOpts,
 ) error {
@@ -136,9 +136,12 @@ func (s *Service) postExecutionPayloadEnvelope(ctx context.Context,
 
 	headers := make(map[string]string)
 	headers["Eth-Consensus-Version"] = strings.ToLower(consensusVersion.String())
-	// Always the stateless form: header "false" selects the Contents body
-	// schema. Strict consensus clients reject the request when the header is
-	// missing.
+	// Always the stateless form: Eth-Blob-Data-Included "true" selects the
+	// Contents body schema (beacon-APIs#624); strict consensus clients reject
+	// the request when the header is missing. The pre-#624 discriminator
+	// (Eth-Execution-Payload-Blinded "false" = Contents) is still sent for
+	// beacon nodes that have not adopted the rename yet.
+	headers["Eth-Blob-Data-Included"] = "true"
 	headers["Eth-Execution-Payload-Blinded"] = "false"
 
 	if _, err := s.post(ctx, endpoint, query, common, bytes.NewBuffer(body), contentType, headers); err != nil {
