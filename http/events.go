@@ -73,11 +73,16 @@ func (s *Service) Events(ctx context.Context, opts *api.EventsOpts) error {
 	}
 
 	sseClient.Headers["Accept"] = "text/event-stream"
+	// A custom dial function disqualifies the transport from automatic HTTP/2,
+	// so it has to be requested explicitly. Some beacon endpoints (Prysm and
+	// Grandine behind common reverse proxies) never flush an HTTP/1.1 events
+	// response, leaving the stream connected but silently empty for ever.
 	sseClient.Connection.Transport = &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:   2 * time.Second,
 			KeepAlive: 2 * time.Second,
-		}).Dial,
+		}).DialContext,
+		ForceAttemptHTTP2: true,
 	}
 
 	go func() {
