@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,29 +16,17 @@ package gloas
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
 
-// executionPayloadEnvelopeYAML is the spec representation of the struct.
-type executionPayloadEnvelopeYAML struct {
-	Payload               *ExecutionPayload  `yaml:"payload"`
-	ExecutionRequests     *ExecutionRequests `yaml:"execution_requests"`
-	BuilderIndex          uint64             `yaml:"builder_index"`
-	BeaconBlockRoot       string             `yaml:"beacon_block_root"`
-	ParentBeaconBlockRoot string             `yaml:"parent_beacon_block_root"`
-}
-
 // MarshalYAML implements yaml.Marshaler.
-func (e *ExecutionPayloadEnvelope) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&executionPayloadEnvelopeYAML{
-		Payload:               e.Payload,
-		ExecutionRequests:     e.ExecutionRequests,
-		BuilderIndex:          uint64(e.BuilderIndex),
-		BeaconBlockRoot:       fmt.Sprintf("%#x", e.BeaconBlockRoot),
-		ParentBeaconBlockRoot: fmt.Sprintf("%#x", e.ParentBeaconBlockRoot),
+func (p *BuilderPendingWithdrawal) MarshalYAML() ([]byte, error) {
+	yamlBytes, err := yaml.MarshalWithOptions(&builderPendingWithdrawalYAML{
+		FeeRecipient: p.FeeRecipient.String(),
+		Amount:       uint64(p.Amount),
+		BuilderIndex: uint64(p.BuilderIndex),
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err
@@ -48,8 +36,8 @@ func (e *ExecutionPayloadEnvelope) MarshalYAML() ([]byte, error) {
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
-func (e *ExecutionPayloadEnvelope) UnmarshalYAML(input []byte) error {
-	var data executionPayloadEnvelopeJSON
+func (p *BuilderPendingWithdrawal) UnmarshalYAML(input []byte) error {
+	var data builderPendingWithdrawalJSON
 	if err := yaml.Unmarshal(input, &data); err != nil {
 		return errors.Wrap(err, "failed to unmarshal YAML")
 	}
@@ -58,5 +46,5 @@ func (e *ExecutionPayloadEnvelope) UnmarshalYAML(input []byte) error {
 		return errors.Wrap(err, "failed to marshal JSON")
 	}
 
-	return e.UnmarshalJSON(marshaled)
+	return p.UnmarshalJSON(marshaled)
 }

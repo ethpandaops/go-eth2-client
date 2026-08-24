@@ -22,11 +22,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// payloadAttestationDataYAML is the spec representation of the struct.
+type payloadAttestationDataYAML struct {
+	BeaconBlockRoot   string `yaml:"beacon_block_root"`
+	Slot              uint64 `yaml:"slot"`
+	PayloadPresent    bool   `yaml:"payload_present"`
+	BlobDataAvailable bool   `yaml:"blob_data_available"`
+}
+
 // MarshalYAML implements yaml.Marshaler.
 func (p *PayloadAttestationData) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationDataJSON{
+	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationDataYAML{
 		BeaconBlockRoot:   fmt.Sprintf("%#x", p.BeaconBlockRoot),
-		Slot:              fmt.Sprintf("%d", p.Slot),
+		Slot:              uint64(p.Slot),
 		PayloadPresent:    p.PayloadPresent,
 		BlobDataAvailable: p.BlobDataAvailable,
 	}, yaml.Flow(true))
