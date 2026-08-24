@@ -57,11 +57,14 @@ func TestProposalFromSignedBlock(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			view := testGloasSignedBeaconBlock()
-
 			block := &all.SignedBeaconBlock{Version: test.version}
-			require.NoError(t, block.FromView(view))
+			require.NoError(t, block.FromView(testGloasSignedBeaconBlock()))
 			block.Version = test.version
+
+			// Every fork converts to the view of its own package, so the
+			// expected value comes from the block rather than from the seed.
+			view, err := block.ToView()
+			require.NoError(t, err)
 
 			proposal, err := apiv1all.ProposalFromSignedBlock(block)
 			require.NoError(t, err)

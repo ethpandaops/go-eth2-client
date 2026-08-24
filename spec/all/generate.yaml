@@ -13,6 +13,7 @@ types:
       - ../electra.BeaconState
       - ../fulu.BeaconState
       - ../gloas.BeaconState
+      - ../heze.BeaconState
 
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
@@ -25,6 +26,7 @@ types:
       - ../deneb.BeaconBlockBody
       - ../electra.BeaconBlockBody
       - ../gloas.BeaconBlockBody
+      - ../heze.BeaconBlockBody
 
   - name: BeaconBlock
     output: beaconblock_ssz.go
@@ -37,6 +39,7 @@ types:
       - ../deneb.BeaconBlock
       - ../electra.BeaconBlock
       - ../gloas.BeaconBlock
+      - ../heze.BeaconBlock
 
   - name: SignedBeaconBlock
     output: signedbeaconblock_ssz.go
@@ -49,6 +52,7 @@ types:
       - ../deneb.SignedBeaconBlock
       - ../electra.SignedBeaconBlock
       - ../gloas.SignedBeaconBlock
+      - ../heze.SignedBeaconBlock
 
   - name: ExecutionPayload
     output: executionpayload_ssz.go
@@ -112,12 +116,14 @@ types:
     view-only: true
     views:
       - ../gloas.ExecutionPayloadBid
+      - ../heze.ExecutionPayloadBid
 
   - name: SignedExecutionPayloadBid
     output: signedexecutionpayloadbid_ssz.go
     view-only: true
     views:
       - ../gloas.SignedExecutionPayloadBid
+      - ../heze.SignedExecutionPayloadBid
 
   - name: ExecutionPayloadEnvelope
     output: executionpayloadenvelope_ssz.go

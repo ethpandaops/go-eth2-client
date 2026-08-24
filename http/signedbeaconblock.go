@@ -29,6 +29,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -164,7 +165,7 @@ func (s *Service) signedBeaconBlockFromSSZ(ctx context.Context,
 		response.Data.Gloas = &gloas.SignedBeaconBlock{}
 		err = dynSSZ.UnmarshalSSZ(response.Data.Gloas, res.body)
 	case spec.DataVersionHeze:
-		response.Data.Heze = &gloas.SignedBeaconBlock{}
+		response.Data.Heze = &heze.SignedBeaconBlock{}
 		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
 	default:
 		return nil, fmt.Errorf("unhandled signed beacon block version %s", res.consensusVersion)
@@ -221,7 +222,7 @@ func (*Service) signedBeaconBlockFromJSON(res *httpResponse) (*api.Response[*spe
 		)
 	case spec.DataVersionHeze:
 		response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body),
-			&gloas.SignedBeaconBlock{},
+			&heze.SignedBeaconBlock{},
 		)
 	default:
 		return nil, fmt.Errorf("unhandled version %s", res.consensusVersion)

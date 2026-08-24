@@ -27,6 +27,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -54,7 +55,7 @@ type VersionedProposal struct {
 	Fulu             *apiv1fulu.BlockContents
 	FuluBlinded      *apiv1electra.BlindedBeaconBlock
 	Gloas            *gloas.BeaconBlock
-	Heze             *gloas.BeaconBlock
+	Heze             *heze.BeaconBlock
 }
 
 // IsEmpty returns true if there is no proposal.
