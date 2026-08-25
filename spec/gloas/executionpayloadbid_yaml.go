@@ -51,7 +51,7 @@ func (e *ExecutionPayloadBid) MarshalYAML() ([]byte, error) {
 		BlockHash:             fmt.Sprintf("%#x", e.BlockHash),
 		PrevRandao:            fmt.Sprintf("%#x", e.PrevRandao),
 		FeeRecipient:          fmt.Sprintf("%#x", e.FeeRecipient),
-		GasLimit:              uint64(e.GasLimit),
+		GasLimit:              e.GasLimit,
 		BuilderIndex:          uint64(e.BuilderIndex),
 		Slot:                  uint64(e.Slot),
 		Value:                 uint64(e.Value),

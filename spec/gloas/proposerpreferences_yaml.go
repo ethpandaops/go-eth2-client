@@ -38,7 +38,7 @@ func (p *ProposerPreferences) MarshalYAML() ([]byte, error) {
 		ProposalSlot:   uint64(p.ProposalSlot),
 		ValidatorIndex: uint64(p.ValidatorIndex),
 		FeeRecipient:   fmt.Sprintf("%#x", p.FeeRecipient),
-		TargetGasLimit: uint64(p.TargetGasLimit),
+		TargetGasLimit: p.TargetGasLimit,
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err
