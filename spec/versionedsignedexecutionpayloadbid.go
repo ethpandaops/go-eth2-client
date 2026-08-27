@@ -19,6 +19,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -26,7 +27,7 @@ import (
 type VersionedSignedExecutionPayloadBid struct {
 	Version DataVersion
 	Gloas   *gloas.SignedExecutionPayloadBid
-	Heze    *gloas.SignedExecutionPayloadBid
+	Heze    *heze.SignedExecutionPayloadBid
 }
 
 // String returns a string version of the structure.

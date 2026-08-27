@@ -22,10 +22,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+// payloadAttestationMessageYAML is the spec representation of the struct.
+type payloadAttestationMessageYAML struct {
+	ValidatorIndex uint64                  `yaml:"validator_index"`
+	Data           *PayloadAttestationData `yaml:"data"`
+	Signature      string                  `yaml:"signature"`
+}
+
 // MarshalYAML implements yaml.Marshaler.
 func (p *PayloadAttestationMessage) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationMessageJSON{
-		ValidatorIndex: fmt.Sprintf("%d", p.ValidatorIndex),
+	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationMessageYAML{
+		ValidatorIndex: uint64(p.ValidatorIndex),
 		Data:           p.Data,
 		Signature:      fmt.Sprintf("%#x", p.Signature),
 	}, yaml.Flow(true))

@@ -19,6 +19,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -45,10 +46,13 @@ func (a *AggregateAndProof) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.AggregateAndProof)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu,
-		version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionFulu:
 		return (*electra.AggregateAndProof)(nil), nil
+	case version.DataVersionGloas,
+		version.DataVersionHeze:
+		// Gloas turns the aggregate into a progressive container, so the electra
+		// view would hash to a different root.
+		return (*gloas.AggregateAndProof)(nil), nil
 	default:
 		return nil, fmt.Errorf("AggregateAndProof: unsupported version %d", a.Version)
 	}
@@ -162,6 +166,8 @@ func aggregateAndProofVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionPhase0, nil
 	case *electra.AggregateAndProof:
 		return version.DataVersionElectra, nil
+	case *gloas.AggregateAndProof:
+		return version.DataVersionGloas, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("AggregateAndProof: unsupported view type %T", view)
 	}

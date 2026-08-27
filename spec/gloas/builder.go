@@ -52,9 +52,9 @@ type builderYAML struct {
 	PublicKey         string `yaml:"pubkey"`
 	Version           string `yaml:"version"`
 	ExecutionAddress  string `yaml:"execution_address"`
-	Balance           string `yaml:"balance"`
-	DepositEpoch      string `yaml:"deposit_epoch"`
-	WithdrawableEpoch string `yaml:"withdrawable_epoch"`
+	Balance           uint64 `yaml:"balance"`
+	DepositEpoch      uint64 `yaml:"deposit_epoch"`
+	WithdrawableEpoch uint64 `yaml:"withdrawable_epoch"`
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -109,6 +109,8 @@ func (v *Builder) unpack(builderJSON *builderJSON) error {
 	if builderJSON.ExecutionAddress == "" {
 		return errors.New("execution address missing")
 	}
+
+	v.Version = builderJSON.Version
 
 	executionAddress, err := hex.DecodeString(strings.TrimPrefix(builderJSON.ExecutionAddress, "0x"))
 	if err != nil {
@@ -167,9 +169,9 @@ func (v *Builder) MarshalYAML() ([]byte, error) {
 		PublicKey:         fmt.Sprintf("%#x", v.PublicKey),
 		Version:           fmt.Sprintf("%d", v.Version),
 		ExecutionAddress:  v.ExecutionAddress.String(),
-		Balance:           fmt.Sprintf("%d", v.Balance),
-		DepositEpoch:      fmt.Sprintf("%d", v.DepositEpoch),
-		WithdrawableEpoch: fmt.Sprintf("%d", v.WithdrawableEpoch),
+		Balance:           uint64(v.Balance),
+		DepositEpoch:      uint64(v.DepositEpoch),
+		WithdrawableEpoch: uint64(v.WithdrawableEpoch),
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err

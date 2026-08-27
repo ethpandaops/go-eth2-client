@@ -55,7 +55,8 @@ type executionPayloadJSON struct {
 func (e *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	transactions := make([]string, len(e.Transactions))
 	for i := range e.Transactions {
-		transactions[i] = fmt.Sprintf("%#x", e.Transactions[i])
+		// %#x renders an empty transaction as "", while the spec writes "0x".
+		transactions[i] = "0x" + hex.EncodeToString(e.Transactions[i])
 	}
 
 	extraData := "0x"
@@ -239,10 +240,17 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 
 	e.Transactions = make([]bellatrix.Transaction, len(transactions))
 	for i := range transactions {
-		if len(transactions[i]) == 0 ||
-			bytes.Equal(transactions[i], []byte{'"', '"'}) ||
-			bytes.Equal(transactions[i], []byte{'"', '0', 'x', '"'}) {
+		if len(transactions[i]) == 0 {
 			return fmt.Errorf("transaction %d: missing", i)
+		}
+
+		// Since Gloas a transaction is a ProgressiveByteList, which the spec
+		// writes as "0x" when it is empty.
+		if bytes.Equal(transactions[i], []byte{'"', '"'}) ||
+			bytes.Equal(transactions[i], []byte{'"', '0', 'x', '"'}) {
+			e.Transactions[i] = bellatrix.Transaction{}
+
+			continue
 		}
 
 		e.Transactions[i] = make([]byte, (len(transactions[i])-4)/2)

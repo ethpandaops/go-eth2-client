@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 )
 
@@ -63,17 +64,20 @@ func ProposalFromSignedBlock(block *all.SignedBeaconBlock) (*api.VersionedSigned
 		}
 
 		proposal.Capella = capellaBlock
-	case version.DataVersionGloas, version.DataVersionHeze:
+	case version.DataVersionGloas:
 		gloasBlock, ok := view.(*gloas.SignedBeaconBlock)
 		if !ok {
 			return nil, fmt.Errorf("ProposalFromSignedBlock: unexpected view type %T for %s", view, block.Version)
 		}
 
-		if block.Version == version.DataVersionHeze {
-			proposal.Heze = gloasBlock
-		} else {
-			proposal.Gloas = gloasBlock
+		proposal.Gloas = gloasBlock
+	case version.DataVersionHeze:
+		hezeBlock, ok := view.(*heze.SignedBeaconBlock)
+		if !ok {
+			return nil, fmt.Errorf("ProposalFromSignedBlock: unexpected view type %T for %s", view, block.Version)
 		}
+
+		proposal.Heze = hezeBlock
 	default:
 		return nil, fmt.Errorf("ProposalFromSignedBlock: unsupported version %s", block.Version)
 	}

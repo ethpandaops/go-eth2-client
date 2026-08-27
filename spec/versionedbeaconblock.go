@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -36,7 +37,7 @@ type VersionedBeaconBlock struct {
 	Electra   *electra.BeaconBlock
 	Fulu      *electra.BeaconBlock
 	Gloas     *gloas.BeaconBlock
-	Heze      *gloas.BeaconBlock
+	Heze      *heze.BeaconBlock
 }
 
 // IsEmpty returns true if there is no block.
