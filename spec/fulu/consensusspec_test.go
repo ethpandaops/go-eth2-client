@@ -221,7 +221,7 @@ func TestConsensusSpec(t *testing.T) {
 		},
 	}
 
-	baseDir := filepath.Join(os.Getenv("CONSENSUS_SPEC_TESTS_DIR"), "tests", "mainnet", "electra", "ssz_static")
+	baseDir := filepath.Join(os.Getenv("CONSENSUS_SPEC_TESTS_DIR"), "tests", "mainnet", "fulu", "ssz_static")
 	for _, test := range tests {
 		dir := filepath.Join(baseDir, test.name, "ssz_random")
 		require.NoError(t, filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

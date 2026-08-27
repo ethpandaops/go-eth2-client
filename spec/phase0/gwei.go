@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -63,9 +64,13 @@ func (g *Gwei) UnmarshalYAML(input []byte) error {
 		return errors.New("input missing")
 	}
 
-	val, err := strconv.ParseUint(string(input), 10, 64)
+	// A nested value arrives as the re-serialized YAML node, which carries the
+	// document's trailing newline.
+	value := strings.TrimSpace(string(input))
+
+	val, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {
-		return errors.Wrapf(err, "invalid value %s", string(input))
+		return errors.Wrapf(err, "invalid value %s", value)
 	}
 
 	*g = Gwei(val)

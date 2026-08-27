@@ -15,6 +15,7 @@ package gloas
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -50,7 +51,8 @@ type executionPayloadYAML struct {
 func (e *ExecutionPayload) MarshalYAML() ([]byte, error) {
 	transactions := make([]string, len(e.Transactions))
 	for i := range e.Transactions {
-		transactions[i] = fmt.Sprintf("%#x", e.Transactions[i])
+		// %#x renders an empty transaction as "", while the spec writes "0x".
+		transactions[i] = "0x" + hex.EncodeToString(e.Transactions[i])
 	}
 
 	extraData := "0x"

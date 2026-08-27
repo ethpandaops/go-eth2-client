@@ -16,10 +16,17 @@ package gloas
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
+
+// signedBeaconBlockYAML is the spec representation of the struct.
+type signedBeaconBlockYAML struct {
+	Message   *BeaconBlock `yaml:"message"`
+	Signature string       `yaml:"signature"`
+}
 
 // MarshalYAML implements yaml.Marshaler.
 func (s *SignedBeaconBlock) MarshalYAML() ([]byte, error) {
@@ -27,14 +34,14 @@ func (s *SignedBeaconBlock) MarshalYAML() ([]byte, error) {
 		return nil, nil
 	}
 
-	data, err := json.Marshal(s)
+	// Going through the JSON encoding would render every number as a string,
+	// which is the JSON representation but not the spec's YAML one.
+	yamlBytes, err := yaml.MarshalWithOptions(&signedBeaconBlockYAML{
+		Message:   s.Message,
+		Signature: fmt.Sprintf("%#x", s.Signature),
+	}, yaml.Flow(true))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal JSON")
-	}
-
-	yamlBytes, err := yaml.JSONToYAML(data)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to convert JSON to YAML")
+		return nil, err
 	}
 
 	return bytes.ReplaceAll(yamlBytes, []byte(`"`), []byte(`'`)), nil

@@ -23,8 +23,8 @@ import (
 
 // singleAttestationYAML is the spec representation of the struct.
 type singleAttestationYAML struct {
-	CommitteeIndex string                  `yaml:"committee_index"`
-	AttesterIndex  string                  `yaml:"attester_index"`
+	CommitteeIndex uint64                  `yaml:"committee_index"`
+	AttesterIndex  uint64                  `yaml:"attester_index"`
 	Data           *phase0.AttestationData `yaml:"data"`
 	Signature      string                  `yaml:"signature"`
 }
@@ -32,8 +32,8 @@ type singleAttestationYAML struct {
 // MarshalYAML implements yaml.Marshaller.
 func (a *SingleAttestation) MarshalYAML() ([]byte, error) {
 	yamlBytes, err := yaml.MarshalWithOptions(&singleAttestationYAML{
-		CommitteeIndex: fmt.Sprintf("%d", a.CommitteeIndex),
-		AttesterIndex:  fmt.Sprintf("%d", a.AttesterIndex),
+		CommitteeIndex: uint64(a.CommitteeIndex),
+		AttesterIndex:  uint64(a.AttesterIndex),
 		Data:           a.Data,
 		Signature:      fmt.Sprintf("%#x", a.Signature),
 	}, yaml.Flow(true))

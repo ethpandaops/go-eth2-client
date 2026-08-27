@@ -22,13 +22,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+// indexedPayloadAttestationYAML is the spec representation of the struct.
+type indexedPayloadAttestationYAML struct {
+	AttestingIndices []uint64                `yaml:"attesting_indices"`
+	Data             *PayloadAttestationData `yaml:"data"`
+	Signature        string                  `yaml:"signature"`
+}
+
 // MarshalYAML implements yaml.Marshaler.
 func (i *IndexedPayloadAttestation) MarshalYAML() ([]byte, error) {
-	attestingIndices := make([]string, len(i.AttestingIndices))
+	attestingIndices := make([]uint64, len(i.AttestingIndices))
 	for index := range i.AttestingIndices {
-		attestingIndices[index] = fmt.Sprintf("%d", i.AttestingIndices[index])
+		attestingIndices[index] = uint64(i.AttestingIndices[index])
 	}
-	yamlBytes, err := yaml.MarshalWithOptions(&indexedPayloadAttestationJSON{
+	yamlBytes, err := yaml.MarshalWithOptions(&indexedPayloadAttestationYAML{
 		AttestingIndices: attestingIndices,
 		Data:             i.Data,
 		Signature:        fmt.Sprintf("%#x", i.Signature),

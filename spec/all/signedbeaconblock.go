@@ -24,6 +24,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
@@ -55,8 +56,10 @@ func (s *SignedBeaconBlock) viewType() (any, error) {
 		version.DataVersionFulu:
 		// Fulu reuses the Electra signed block schema unchanged.
 		return (*electra.SignedBeaconBlock)(nil), nil
-	case version.DataVersionGloas, version.DataVersionHeze:
+	case version.DataVersionGloas:
 		return (*gloas.SignedBeaconBlock)(nil), nil
+	case version.DataVersionHeze:
+		return (*heze.SignedBeaconBlock)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedBeaconBlock: unsupported version %d", s.Version)
 	}
@@ -181,6 +184,8 @@ func signedBeaconBlockVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.SignedBeaconBlock:
 		return version.DataVersionGloas, nil
+	case *heze.SignedBeaconBlock:
+		return version.DataVersionHeze, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedBeaconBlock: unsupported view type %T", view)
 	}
