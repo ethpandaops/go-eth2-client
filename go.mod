@@ -2,7 +2,7 @@ module github.com/ethpandaops/go-eth2-client
 
 go 1.25.0
 
-toolchain go1.25.2
+toolchain go1.27.0
 
 require (
 	github.com/OffchainLabs/go-bitfield v0.0.0-20251031151322-f427d04d8506

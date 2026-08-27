@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           cache: false
-          go-version: "1.25"
+          go-version: "1.27"
 
       # Cache the custom binary to speed up subsequent runs
       - name: Cache custom golangci-lint
@@ -27,13 +27,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./custom-gcl
-          key: custom-gcl-${{ hashFiles('.custom-gcl.yml') }}
+          key: custom-gcl-${{ hashFiles('.custom-gcl.yml') }}-go1.27
 
       # Build custom binary only if not cached
       - name: Build custom golangci-lint
         if: steps.cache-custom-gcl.outputs.cache-hit != 'true'
         run: |
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.1
           golangci-lint custom
 
       # Make custom binary available as golangci-lint in PATH

@@ -90,7 +90,7 @@ func TestSyncCommitteeDutyJSON(t *testing.T) {
 		{
 			name:  "ValidatorSyncCommitteeIndexWrongType",
 			input: []byte(`{"pubkey":"0xb89bebc699769726a318c8e9971bd3171297c61aea4a6578a7a4f94b547dcba5bac16a89108b6b6a1fe3695d1a874a0b","validator_index":"1","validator_sync_committee_indices":["2","3",true]}`),
-			err:   "invalid JSON: json: cannot unmarshal bool into Go struct field syncCommitteeDutyJSON.validator_sync_committee_indices of type string",
+			err:   "invalid JSON: json: cannot unmarshal bool into syncCommitteeDutyJSON.validator_sync_committee_indices.2 of type string",
 		},
 		{
 			name:  "ValidatorSyncCommitteeIndexInvalid",

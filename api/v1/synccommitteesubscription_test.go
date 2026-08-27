@@ -65,7 +65,7 @@ func TestSyncCommitteeSubscriptionJSON(t *testing.T) {
 		{
 			name:  "SyncCommitteeIndexWrongType",
 			input: []byte(`{"validator_index":"10","sync_committee_indices":[true],"until_epoch":"5"}`),
-			err:   "invalid JSON: json: cannot unmarshal bool into Go struct field syncCommitteeSubscriptionJSON.sync_committee_indices of type string",
+			err:   "invalid JSON: json: cannot unmarshal bool into syncCommitteeSubscriptionJSON.sync_committee_indices.0 of type string",
 		},
 		{
 			name:  "SyncCommitteeIndexInvalid",

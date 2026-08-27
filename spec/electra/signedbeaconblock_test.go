@@ -46,7 +46,7 @@ func TestSignedBeaconBlockJSON(t *testing.T) {
 		{
 			name:  "MessageWrongType",
 			input: []byte(`{"message":true,"signature":"0x87d62604bfd97fdef7ec97957f36fdd19099fc7c662eb4f58cb2c1b32a9a0edb39c06a2e127872b61594030dbd13c3b2127cc7564a88dcc32c905cb06ac4ad87ca3121b9be4fecd0b4defda1accadbb979d666c4b474b78e8702ec4dba9ca1e5"}`),
-			err:   "invalid JSON: invalid JSON: json: cannot unmarshal bool into Go value of type map[string]json.RawMessage",
+			err:   "invalid JSON: invalid JSON: json: cannot unmarshal bool into Go value of type map[string]jsontext.Value",
 		},
 		{
 			name:  "MessageInvalid",

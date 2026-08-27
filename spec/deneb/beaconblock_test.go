@@ -36,7 +36,7 @@ func TestBeaconBlockJSON(t *testing.T) {
 		{
 			name:  "JSONBad",
 			input: []byte("[]"),
-			err:   "invalid JSON: json: cannot unmarshal array into Go value of type map[string]json.RawMessage",
+			err:   "invalid JSON: json: cannot unmarshal array into Go value of type map[string]jsontext.Value",
 		},
 		{
 			name:  "SlotMissing",
@@ -116,7 +116,7 @@ func TestBeaconBlockJSON(t *testing.T) {
 		{
 			name:  "BodyWrongType",
 			input: []byte(`{"slot":"1","proposer_index":"2","parent_root":"0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f","state_root":"0x202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f","body":true}`),
-			err:   "body: invalid JSON: json: cannot unmarshal bool into Go value of type map[string]json.RawMessage",
+			err:   "body: invalid JSON: json: cannot unmarshal bool into Go value of type map[string]jsontext.Value",
 		},
 		{
 			name:  "BodyInvalid",

@@ -55,7 +55,7 @@ func TestSyncCommitteeJSON(t *testing.T) {
 		{
 			name:  "ValidatorsIndexWrongType",
 			input: []byte(`{"validators":["2","128","4",true],"validator_aggregates":[["2","128"],["4","61"]]}`),
-			err:   "invalid JSON: json: cannot unmarshal bool into Go struct field syncCommitteeJSON.validators of type string",
+			err:   "invalid JSON: json: cannot unmarshal bool into syncCommitteeJSON.validators.3 of type string",
 		},
 		{
 			name:  "ValidatorsIndexInvalid",
@@ -80,7 +80,7 @@ func TestSyncCommitteeJSON(t *testing.T) {
 		{
 			name:  "ValidatorAggregateWrongType",
 			input: []byte(`{"validators":["2","128","4","61"],"validator_aggregates":[["2","128"],true]}`),
-			err:   "invalid JSON: json: cannot unmarshal bool into Go struct field syncCommitteeJSON.validator_aggregates of type []string",
+			err:   "invalid JSON: json: cannot unmarshal bool into syncCommitteeJSON.validator_aggregates.1 of type []string",
 		},
 		{
 			name:  "ValidatorAggregateEmpty",
@@ -90,7 +90,7 @@ func TestSyncCommitteeJSON(t *testing.T) {
 		{
 			name:  "ValidatorAggregateIndexWrongType",
 			input: []byte(`{"validators":["2","128","4","61"],"validator_aggregates":[["2","128"],["4",true]]}`),
-			err:   "invalid JSON: json: cannot unmarshal bool into Go struct field syncCommitteeJSON.validator_aggregates of type string",
+			err:   "invalid JSON: json: cannot unmarshal bool into syncCommitteeJSON.validator_aggregates.1.1 of type string",
 		},
 		{
 			name:  "ValidatorAggregateIndexInvalid",

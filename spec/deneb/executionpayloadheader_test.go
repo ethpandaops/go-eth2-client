@@ -37,7 +37,7 @@ func TestExecutionPayloadHeaderJSON(t *testing.T) {
 		{
 			name:  "JSONBad",
 			input: []byte("[]"),
-			err:   "invalid JSON: json: cannot unmarshal array into Go value of type map[string]json.RawMessage",
+			err:   "invalid JSON: json: cannot unmarshal array into Go value of type map[string]jsontext.Value",
 		},
 		{
 			name:  "ParentHashMissing",
