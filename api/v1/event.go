@@ -52,6 +52,7 @@ var SupportedEventTopics = map[string]bool{
 	"fast_confirmation":           true,
 	"finalized_checkpoint":        true,
 	"head":                        true,
+	"head_v2":                     true,
 	"inclusion_list":              true,
 	"payload_attestation_message": true,
 	"payload_attributes":          true,
@@ -136,6 +137,8 @@ func (e *Event) UnmarshalJSON(input []byte) error {
 		e.Data = &FinalizedCheckpointEvent{}
 	case "head":
 		e.Data = &HeadEvent{}
+	case "head_v2":
+		e.Data = &HeadEventV2{}
 	case "payload_attestation_message":
 		e.Data = &gloas.PayloadAttestationMessage{}
 	case "payload_attributes":
