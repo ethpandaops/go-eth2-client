@@ -50,7 +50,7 @@ type builderJSON struct {
 // builderYAML is the spec representation of the struct.
 type builderYAML struct {
 	PublicKey         string `yaml:"pubkey"`
-	Version           string `yaml:"version"`
+	Version           uint8  `yaml:"version"`
 	ExecutionAddress  string `yaml:"execution_address"`
 	Balance           uint64 `yaml:"balance"`
 	DepositEpoch      uint64 `yaml:"deposit_epoch"`
@@ -110,8 +110,6 @@ func (v *Builder) unpack(builderJSON *builderJSON) error {
 		return errors.New("execution address missing")
 	}
 
-	v.Version = builderJSON.Version
-
 	executionAddress, err := hex.DecodeString(strings.TrimPrefix(builderJSON.ExecutionAddress, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid value for execution address")
@@ -167,7 +165,7 @@ func (v *Builder) unpack(builderJSON *builderJSON) error {
 func (v *Builder) MarshalYAML() ([]byte, error) {
 	yamlBytes, err := yaml.MarshalWithOptions(&builderYAML{
 		PublicKey:         fmt.Sprintf("%#x", v.PublicKey),
-		Version:           fmt.Sprintf("%d", v.Version),
+		Version:           v.Version,
 		ExecutionAddress:  v.ExecutionAddress.String(),
 		Balance:           uint64(v.Balance),
 		DepositEpoch:      uint64(v.DepositEpoch),

@@ -75,7 +75,8 @@ func TestBuilderYAML(t *testing.T) {
 
 	yamlBytes, err := builder.MarshalYAML()
 	require.NoError(t, err)
-	require.Contains(t, string(yamlBytes), "version: '1'")
+	// The consensus spec vectors write version as a bare integer in YAML.
+	require.Contains(t, string(yamlBytes), "version: 1")
 
 	var roundTripped gloas.Builder
 	require.NoError(t, roundTripped.UnmarshalYAML(yamlBytes))
