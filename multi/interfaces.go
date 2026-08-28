@@ -13,7 +13,7 @@
 
 package multi
 
-import consensusclient "github.com/attestantio/go-eth2-client"
+import consensusclient "github.com/ethpandaops/go-eth2-client"
 
 // Compile-time assertions ensure that Service continues to satisfy its intended client interfaces.
 var (

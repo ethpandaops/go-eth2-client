@@ -13,7 +13,7 @@
 
 package http
 
-import client "github.com/attestantio/go-eth2-client"
+import client "github.com/ethpandaops/go-eth2-client"
 
 // Compile-time assertions ensure that Service continues to satisfy its intended client interfaces.
 var (

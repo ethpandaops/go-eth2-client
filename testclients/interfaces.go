@@ -13,7 +13,7 @@
 
 package testclients
 
-import consensusclient "github.com/attestantio/go-eth2-client"
+import consensusclient "github.com/ethpandaops/go-eth2-client"
 
 // Compile-time assertions ensure that the test clients continue to satisfy their intended client interfaces.
 var (
