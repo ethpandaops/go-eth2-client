@@ -351,6 +351,9 @@ func (s *Service) clearStaticValues() {
 	s.nodeVersionMutex.Lock()
 	s.nodeVersion = ""
 	s.nodeVersionMutex.Unlock()
+	s.connectionMu.Lock()
+	s.connectedToDVTMiddleware = false
+	s.connectionMu.Unlock()
 }
 
 // checkDVT checks if connected to DVT middleware and sets
@@ -364,10 +367,20 @@ func (s *Service) checkDVT(ctx context.Context) error {
 	version := strings.ToLower(response.Data)
 
 	if strings.Contains(version, "charon") {
+		s.connectionMu.Lock()
 		s.connectedToDVTMiddleware = true
+		s.connectionMu.Unlock()
 	}
 
 	return nil
+}
+
+// IsConnectedToDVTMiddleware returns true if the client is connected to DVT middleware.
+func (s *Service) IsConnectedToDVTMiddleware() bool {
+	s.connectionMu.RLock()
+	defer s.connectionMu.RUnlock()
+
+	return s.connectedToDVTMiddleware
 }
 
 func (*Service) close() {
