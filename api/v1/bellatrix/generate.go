@@ -14,4 +14,4 @@
 package bellatrix
 
 //go:generate rm -f blindedbeaconblockbody_ssz.go blindedbeaconblock_ssz.go signedblindedbeaconblock_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove

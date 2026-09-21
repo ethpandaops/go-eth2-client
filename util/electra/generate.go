@@ -14,4 +14,4 @@
 package electra
 
 //go:generate rm -f consolidation_requests_ssz.go depositrequests_ssz.go withdrawalrequests_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove

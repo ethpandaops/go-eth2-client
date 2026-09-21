@@ -14,4 +14,4 @@
 package deneb
 
 //go:generate rm -f blob_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove

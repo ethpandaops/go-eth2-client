@@ -12,7 +12,7 @@ require (
 	github.com/holiman/uint256 v1.3.2
 	github.com/huandu/go-clone v1.6.0
 	github.com/huandu/go-clone/generic v1.6.0
-	github.com/pk910/dynamic-ssz v1.3.3-0.20260812091520-ef568569f9c1
+	github.com/pk910/dynamic-ssz v1.3.3-0.20260921152246-990798fa9718
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
 	github.com/r3labs/sse/v2 v2.10.0
@@ -36,7 +36,7 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/pk910/hashtree-bindings v0.2.5 // indirect
+	github.com/pk910/hashtree-bindings v0.2.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
