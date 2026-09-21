@@ -14,4 +14,4 @@
 package bellatrix
 
 //go:generate rm -f transactions_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove

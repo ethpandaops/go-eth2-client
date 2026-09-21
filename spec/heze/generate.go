@@ -14,4 +14,4 @@
 package heze
 
 //go:generate rm -f *_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove

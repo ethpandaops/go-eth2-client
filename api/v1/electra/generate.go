@@ -15,4 +15,4 @@ package electra
 
 //nolint:revive
 //go:generate rm -f blindedbeaconblock_ssz.go blindedbeaconblockbody_ssz.go blockcontents_ssz.go signedblindedbeaconblock_ssz.go signedblockcontents_ssz.go
-//go:generate go tool dynssz-gen -config generate.yaml
+//go:generate go tool dynssz-gen -config generate.yaml -remove
