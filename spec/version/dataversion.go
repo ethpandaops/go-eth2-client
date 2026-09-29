@@ -67,6 +67,9 @@ var dataVersionMap = map[string]DataVersion{
 	`"fulu"`:      DataVersionFulu,
 	`"gloas"`:     DataVersionGloas,
 	`"heze"`:      DataVersionHeze,
+	// EIP-8198 (quick slots) is a feature fork built on Heze that changes no
+	// containers, so its data decodes with the Heze types.
+	`"eip8198"`: DataVersionHeze,
 }
 
 // MarshalJSON implements json.Marshaler.
