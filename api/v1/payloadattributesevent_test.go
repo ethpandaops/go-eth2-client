@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	api "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/stretchr/testify/assert"
 	require "github.com/stretchr/testify/require"
 )
@@ -203,5 +204,20 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 				assert.Equal(t, string(rt), res.String())
 			}
 		})
+	}
+}
+
+func TestPayloadAttributesEventHeze(t *testing.T) {
+	for _, version := range []string{"heze", "eip8198"} {
+		input := []byte(`{"version":"` + version + `","data":{"proposer_index":"123","proposal_slot":"10","parent_block_number":"9","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","deposit_requests":[],"withdrawal_requests":[],"consolidation_requests":[]}}}`)
+
+		var res api.PayloadAttributesEvent
+		require.NoError(t, json.Unmarshal(input, &res), version)
+		require.Equal(t, spec.DataVersionHeze, res.Version, version)
+		require.NotNil(t, res.Data.V4, version)
+		require.Equal(t, uint64(123456), res.Data.V4.Timestamp, version)
+
+		_, err := json.Marshal(&res)
+		require.NoError(t, err, version)
 	}
 }

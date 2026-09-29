@@ -67,6 +67,14 @@ type SlotDurationProvider interface {
 	SlotDuration(ctx context.Context) (time.Duration, error)
 }
 
+// SlotDurationScheduleProvider is the interface for providing the EIP-8198 slot
+// duration schedule of a chain.
+type SlotDurationScheduleProvider interface {
+	// SlotDurationSchedule provides the slot duration schedule of the chain,
+	// sorted by epoch and starting at epoch 0.
+	SlotDurationSchedule(ctx context.Context) ([]*api.SlotDurationScheduleEntry, error)
+}
+
 // SlotsPerEpochProvider is the interface for providing the number of slots in each epoch of a chain.
 type SlotsPerEpochProvider interface {
 	// SlotsPerEpoch provides the slots per epoch of the chain.
