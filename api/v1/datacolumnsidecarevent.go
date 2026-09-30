@@ -23,6 +23,12 @@ import (
 )
 
 // DataColumnSidecarEvent is the data for the data column sidecar event.
+//
+// KZGCommitments is optional. beacon-APIs #583 removed kzg_commitments from
+// the event; Lighthouse omits it for every fork, Lodestar, Teku and Grandine
+// omit it from Gloas onwards, and Prysm and Nimbus still send it. It is nil
+// when the beacon node omitted the field, and an empty non-nil slice when the
+// node sent an empty list.
 type DataColumnSidecarEvent struct {
 	BlockRoot      phase0.Root
 	Slot           phase0.Slot
@@ -31,26 +37,33 @@ type DataColumnSidecarEvent struct {
 }
 
 // dataColumnSidecarEventJSON is the spec representation of the struct.
+// KZGCommitments is a pointer so that an absent field round-trips differently
+// from an empty list.
 type dataColumnSidecarEventJSON struct {
-	BlockRoot      string   `json:"block_root"`
-	Slot           string   `json:"slot"`
-	Index          string   `json:"index"`
-	KZGCommitments []string `json:"kzg_commitments"`
+	BlockRoot      string    `json:"block_root"`
+	Slot           string    `json:"slot"`
+	Index          string    `json:"index"`
+	KZGCommitments *[]string `json:"kzg_commitments,omitempty"`
 }
 
 // MarshalJSON implements json.Marshaler.
 func (e *DataColumnSidecarEvent) MarshalJSON() ([]byte, error) {
-	commitments := make([]string, len(e.KZGCommitments))
-	for i, commitment := range e.KZGCommitments {
-		commitments[i] = fmt.Sprintf("%#x", commitment)
+	data := &dataColumnSidecarEventJSON{
+		BlockRoot: fmt.Sprintf("%#x", e.BlockRoot),
+		Slot:      fmt.Sprintf("%d", e.Slot),
+		Index:     fmt.Sprintf("%d", e.Index),
 	}
 
-	return json.Marshal(&dataColumnSidecarEventJSON{
-		BlockRoot:      fmt.Sprintf("%#x", e.BlockRoot),
-		Slot:           fmt.Sprintf("%d", e.Slot),
-		Index:          fmt.Sprintf("%d", e.Index),
-		KZGCommitments: commitments,
-	})
+	if e.KZGCommitments != nil {
+		commitments := make([]string, len(e.KZGCommitments))
+		for i, commitment := range e.KZGCommitments {
+			commitments[i] = fmt.Sprintf("%#x", commitment)
+		}
+
+		data.KZGCommitments = &commitments
+	}
+
+	return json.Marshal(data)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -90,10 +103,19 @@ func (e *DataColumnSidecarEvent) UnmarshalJSON(input []byte) error {
 	}
 
 	// kzg_commitments carried the block's commitments until beacon-APIs #583
-	// dropped it from the data_column_sidecar event for Gloas. A Fulu node still
-	// populates it; a Gloas node sends an empty list or omits the field.
-	e.KZGCommitments = make([]deneb.KZGCommitment, len(dataColumnSidecarEventJSON.KZGCommitments))
-	for i, commitment := range dataColumnSidecarEventJSON.KZGCommitments {
+	// dropped it from the data_column_sidecar event. Nodes may send it, send an
+	// empty list, or omit it; an absent field is kept as nil so callers can
+	// tell "not sent" apart from "sent empty".
+	if dataColumnSidecarEventJSON.KZGCommitments == nil {
+		e.KZGCommitments = nil
+
+		return nil
+	}
+
+	commitments := *dataColumnSidecarEventJSON.KZGCommitments
+
+	e.KZGCommitments = make([]deneb.KZGCommitment, len(commitments))
+	for i, commitment := range commitments {
 		if commitment == "" {
 			return fmt.Errorf("kzg_commitments[%d] missing", i)
 		}
