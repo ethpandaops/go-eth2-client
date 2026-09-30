@@ -13,7 +13,9 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 	tests := []struct {
 		name  string
 		input []byte
-		err   string
+		// expected is the re-marshaled form when it differs from input.
+		expected []byte
+		err      string
 	}{
 		{
 			name: "Empty",
@@ -186,6 +188,32 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 			name:  "GoodPayloadAttributesV3",
 			input: []byte(`{"version":"deneb","data":{"proposer_index":"123","proposal_slot":"10","parent_block_number":"9","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df"}}}`),
 		},
+		{
+			// Electra/Fulu nodes send the engine API PayloadAttributesV3 shape
+			// (Lighthouse SsePayloadAttributes::V3 for deneb..gloas): no
+			// execution requests. This used to fail with "payload attributes
+			// deposit requests missing".
+			name:  "ElectraV3Shape",
+			input: []byte(`{"version":"electra","data":{"proposer_index":"123","proposal_slot":"10","parent_block_number":"9","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2"}}}`),
+		},
+		{
+			name:  "FuluV3Shape",
+			input: []byte(`{"version":"fulu","data":{"proposer_index":"123","proposal_slot":"10","parent_block_number":"9","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[],"parent_beacon_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2"}}}`),
+		},
+		{
+			// beacon-APIs spec example: parent_block_number is removed from gloas
+			// onwards (#621). slot_number/target_gas_limit are not modelled and
+			// are dropped on re-marshal.
+			name:     "GloasSpecExample",
+			input:    []byte(`{"version": "gloas", "data": {"proposer_index": "123", "proposal_slot": "10", "parent_block_root": "0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2", "parent_block_hash": "0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf", "payload_attributes": {"timestamp": "123456", "prev_randao": "0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2", "suggested_fee_recipient": "0x0000000000000000000000000000000000000000", "withdrawals": [{"index": "5", "validator_index": "10", "address": "0x0000000000000000000000000000000000000000", "amount": "15640"}], "parent_beacon_block_root": "0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2", "slot_number": "10", "target_gas_limit": "60000000"}}}`),
+			expected: []byte(`{"version":"gloas","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2"}}}`),
+		},
+		{
+			// Pre-gloas, parent_block_number is still required.
+			name:  "ElectraParentBlockNumberMissing",
+			input: []byte(`{"version":"electra","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[],"parent_beacon_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2"}}}`),
+			err:   "parent block number missing",
+		},
 	}
 
 	for _, test := range tests {
@@ -199,7 +227,11 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 				require.NoError(t, err)
 				rt, err := json.Marshal(&res)
 				require.NoError(t, err)
-				assert.Equal(t, string(test.input), string(rt))
+				expected := test.expected
+				if expected == nil {
+					expected = test.input
+				}
+				assert.Equal(t, string(expected), string(rt))
 				assert.Equal(t, string(rt), res.String())
 			}
 		})

@@ -124,7 +124,7 @@ type payloadAttributesEventJSON struct {
 type payloadAttributesDataJSON struct {
 	ProposerIndex     string          `json:"proposer_index"`
 	ProposalSlot      string          `json:"proposal_slot"`
-	ParentBlockNumber string          `json:"parent_block_number"`
+	ParentBlockNumber string          `json:"parent_block_number,omitempty"`
 	ParentBlockRoot   string          `json:"parent_block_root"`
 	ParentBlockHash   string          `json:"parent_block_hash"`
 	PayloadAttributes json.RawMessage `json:"payload_attributes"`
@@ -161,9 +161,9 @@ type payloadAttributesV4JSON struct {
 	SuggestedFeeRecipient string                          `json:"suggested_fee_recipient"`
 	Withdrawals           []*capella.Withdrawal           `json:"withdrawals"`
 	ParentBeaconBlockRoot string                          `json:"parent_beacon_block_root"`
-	DepositRequests       []*electra.DepositRequest       `json:"deposit_requests"`
-	WithdrawalRequests    []*electra.WithdrawalRequest    `json:"withdrawal_requests"`
-	ConsolidationRequests []*electra.ConsolidationRequest `json:"consolidation_requests"`
+	DepositRequests       []*electra.DepositRequest       `json:"deposit_requests,omitempty"`
+	WithdrawalRequests    []*electra.WithdrawalRequest    `json:"withdrawal_requests,omitempty"`
+	ConsolidationRequests []*electra.ConsolidationRequest `json:"consolidation_requests,omitempty"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -449,10 +449,6 @@ func (p *PayloadAttributesV4) unpack(data *payloadAttributesV4JSON) error {
 
 	copy(p.ParentBeaconBlockRoot[:], parentBeaconBlockRoot)
 
-	if data.DepositRequests == nil {
-		return errors.New("payload attributes deposit requests missing")
-	}
-
 	for i := range data.DepositRequests {
 		if data.DepositRequests[i] == nil {
 			return fmt.Errorf("deposit requests entry %d missing", i)
@@ -461,10 +457,6 @@ func (p *PayloadAttributesV4) unpack(data *payloadAttributesV4JSON) error {
 
 	p.DepositRequests = data.DepositRequests
 
-	if data.WithdrawalRequests == nil {
-		return errors.New("payload attributes withdraw requests missing")
-	}
-
 	for i := range data.WithdrawalRequests {
 		if data.WithdrawalRequests[i] == nil {
 			return fmt.Errorf("withdraw requests entry %d missing", i)
@@ -472,10 +464,6 @@ func (p *PayloadAttributesV4) unpack(data *payloadAttributesV4JSON) error {
 	}
 
 	p.WithdrawalRequests = data.WithdrawalRequests
-
-	if data.ConsolidationRequests == nil {
-		return errors.New("payload attributes consolidation requests missing")
-	}
 
 	for i := range data.ConsolidationRequests {
 		if data.ConsolidationRequests[i] == nil {
@@ -563,10 +551,12 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 	data := payloadAttributesDataJSON{
 		ProposerIndex:     fmt.Sprintf("%d", e.Data.ProposerIndex),
 		ProposalSlot:      fmt.Sprintf("%d", e.Data.ProposalSlot),
-		ParentBlockNumber: strconv.FormatUint(e.Data.ParentBlockNumber, 10),
 		ParentBlockRoot:   fmt.Sprintf("%#x", e.Data.ParentBlockRoot),
 		ParentBlockHash:   fmt.Sprintf("%#x", e.Data.ParentBlockHash),
 		PayloadAttributes: payloadAttributes,
+	}
+	if e.Version < spec.DataVersionGloas {
+		data.ParentBlockNumber = strconv.FormatUint(e.Data.ParentBlockNumber, 10)
 	}
 
 	return json.Marshal(&payloadAttributesEventJSON{
@@ -626,16 +616,18 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 
 	e.Data.ProposalSlot = phase0.Slot(proposalSlot)
 
-	if data.Data.ParentBlockNumber == "" {
+	// parent_block_number is removed from gloas onwards (beacon-APIs #621),
+	// so it is optional; it is left at zero when absent.
+	if data.Data.ParentBlockNumber != "" {
+		parentBlockNumber, err := strconv.ParseUint(data.Data.ParentBlockNumber, 10, 64)
+		if err != nil {
+			return errors.Wrap(err, "invalid value for parent block number")
+		}
+
+		e.Data.ParentBlockNumber = parentBlockNumber
+	} else if data.Version < spec.DataVersionGloas {
 		return errors.New("parent block number missing")
 	}
-
-	parentBlockNumber, err := strconv.ParseUint(data.Data.ParentBlockNumber, 10, 64)
-	if err != nil {
-		return errors.Wrap(err, "invalid value for parent block number")
-	}
-
-	e.Data.ParentBlockNumber = parentBlockNumber
 
 	if data.Data.ParentBlockRoot == "" {
 		return errors.New("parent block root missing")

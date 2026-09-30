@@ -32,7 +32,14 @@ type ChainReorgEvent struct {
 	NewHeadBlock phase0.Root
 	OldHeadState phase0.Root
 	NewHeadState phase0.Root
-	Epoch        phase0.Epoch
+	// Epoch is the epoch of Slot as reported by the beacon node.
+	//
+	// The beacon-APIs chain_reorg event has no formal schema, only an example,
+	// and not every beacon node sends this field (Nimbus omits it). It is left
+	// at zero when absent; consumers that need it should derive it from Slot
+	// (epoch = slot / SLOTS_PER_EPOCH), which is what every client that does
+	// send it reports.
+	Epoch phase0.Epoch
 }
 
 // chainReorgEventJSON is the spec representation of the struct.
@@ -147,16 +154,17 @@ func (e *ChainReorgEvent) UnmarshalJSON(input []byte) error {
 
 	copy(e.NewHeadState[:], newHeadState)
 
-	if chainReorgEventJSON.Epoch == "" {
-		return errors.New("epoch missing")
-	}
+	// Epoch is optional: Nimbus does not send it. It is derivable from slot,
+	// so a missing epoch must not cause the whole reorg event to be dropped.
+	e.Epoch = 0
+	if chainReorgEventJSON.Epoch != "" {
+		epoch, err := strconv.ParseUint(chainReorgEventJSON.Epoch, 10, 64)
+		if err != nil {
+			return errors.Wrap(err, "invalid value for epoch")
+		}
 
-	epoch, err := strconv.ParseUint(chainReorgEventJSON.Epoch, 10, 64)
-	if err != nil {
-		return errors.Wrap(err, "invalid value for epoch")
+		e.Epoch = phase0.Epoch(epoch)
 	}
-
-	e.Epoch = phase0.Epoch(epoch)
 
 	return nil
 }
