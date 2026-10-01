@@ -113,5 +113,6 @@ func AddDataVersionAlias(alias string, version DataVersion) error {
 	}
 
 	dataVersionMap[key] = version
+
 	return nil
 }

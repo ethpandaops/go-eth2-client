@@ -673,15 +673,14 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 
 	// The parent block number is not part of the event from Gloas onwards;
 	// beacon nodes that still send it are tolerated.
-	switch {
-	case data.Data.ParentBlockNumber != "":
+	if data.Data.ParentBlockNumber != "" {
 		parentBlockNumber, err := strconv.ParseUint(data.Data.ParentBlockNumber, 10, 64)
 		if err != nil {
 			return errors.Wrap(err, "invalid value for parent block number")
 		}
 
 		e.Data.ParentBlockNumber = parentBlockNumber
-	case data.Version < spec.DataVersionGloas:
+	} else if data.Version < spec.DataVersionGloas {
 		return errors.New("parent block number missing")
 	}
 
