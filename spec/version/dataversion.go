@@ -104,3 +104,14 @@ func DataVersionFromString(fork string) (DataVersion, error) {
 
 	return version, version.UnmarshalJSON(fmt.Appendf(nil, "\"%v\"", fork))
 }
+
+// AddDataVersionAlias adds an alias for a data version.
+func AddDataVersionAlias(alias string, version DataVersion) error {
+	key := fmt.Sprintf("\"%v\"", strings.ToLower(alias))
+	if _, ok := dataVersionMap[key]; ok {
+		return fmt.Errorf("alias %s already exists", alias)
+	}
+
+	dataVersionMap[key] = version
+	return nil
+}
