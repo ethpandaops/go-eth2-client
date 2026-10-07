@@ -59,10 +59,11 @@ func (s *Service) Events(ctx context.Context, opts *api.EventsOpts) error {
 
 	sseClient.Headers["Accept"] = "text/event-stream"
 	sseClient.Connection.Transport = &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout:   2 * time.Second,
 			KeepAlive: 2 * time.Second,
-		}).Dial,
+		}).DialContext,
+		ForceAttemptHTTP2: true,
 	}
 
 	go func() {

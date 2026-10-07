@@ -39,12 +39,37 @@ type Builder struct {
 
 // builderJSON is the spec representation of the struct.
 type builderJSON struct {
-	PublicKey         string `json:"pubkey"`
-	Version           uint8  `json:"version"`
-	ExecutionAddress  string `json:"execution_address"`
-	Balance           string `json:"balance"`
-	DepositEpoch      string `json:"deposit_epoch"`
-	WithdrawableEpoch string `json:"withdrawable_epoch"`
+	PublicKey         string             `json:"pubkey"`
+	Version           builderVersionJSON `json:"version"`
+	ExecutionAddress  string             `json:"execution_address"`
+	Balance           string             `json:"balance"`
+	DepositEpoch      string             `json:"deposit_epoch"`
+	WithdrawableEpoch string             `json:"withdrawable_epoch"`
+}
+
+// builderVersionJSON is written as a bare number but reads either a bare number or a
+// quoted decimal string, which is how Lighthouse serves the field.
+type builderVersionJSON uint8
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (v *builderVersionJSON) UnmarshalJSON(input []byte) error {
+	return v.parse(input)
+}
+
+// UnmarshalYAML implements yaml.BytesUnmarshaler.
+func (v *builderVersionJSON) UnmarshalYAML(input []byte) error {
+	return v.parse(input)
+}
+
+func (v *builderVersionJSON) parse(input []byte) error {
+	version, err := strconv.ParseUint(string(bytes.Trim(bytes.TrimSpace(input), `"'`)), 10, 8)
+	if err != nil {
+		return errors.Wrap(err, "invalid value for version")
+	}
+
+	*v = builderVersionJSON(version)
+
+	return nil
 }
 
 // builderYAML is the spec representation of the struct.
@@ -61,7 +86,7 @@ type builderYAML struct {
 func (v *Builder) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&builderJSON{
 		PublicKey:         fmt.Sprintf("%#x", v.PublicKey),
-		Version:           v.Version,
+		Version:           builderVersionJSON(v.Version),
 		ExecutionAddress:  v.ExecutionAddress.String(),
 		Balance:           fmt.Sprintf("%d", v.Balance),
 		DepositEpoch:      fmt.Sprintf("%d", v.DepositEpoch),
@@ -95,7 +120,7 @@ func (v *Builder) unpack(builderJSON *builderJSON) error {
 
 	copy(v.PublicKey[:], publicKey)
 
-	v.Version = builderJSON.Version
+	v.Version = uint8(builderJSON.Version)
 
 	if builderJSON.ExecutionAddress == "" {
 		return errors.New("execution address missing")

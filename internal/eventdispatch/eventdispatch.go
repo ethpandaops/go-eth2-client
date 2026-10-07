@@ -16,6 +16,7 @@ package eventdispatch
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -210,7 +211,31 @@ func Handle(ctx context.Context, opts *api.EventsOpts, topic string, data []byte
 		return fmt.Errorf("%w %s", ErrUnsupportedTopic, topic)
 	}
 
+	// Grandine publishes post-Electra single attestations on the attestation topic.  They
+	// do not decode as an aggregate, so hand them to the single_attestation handler.
+	if topic == "attestation" && isSingleAttestationPayload(data) {
+		zerolog.Ctx(ctx).Debug().RawJSON("data", data).
+			Msg("Received single attestation payload on attestation topic; rerouting")
+
+		topic = "single_attestation"
+		handler = topicHandlers[topic]
+	}
+
 	return handler.handle(ctx, opts, data)
+}
+
+// isSingleAttestationPayload reports whether the data has the shape of an
+// electra.SingleAttestation, which carries attester_index where an aggregate carries
+// aggregation_bits.
+func isSingleAttestationPayload(data []byte) bool {
+	var probe struct {
+		AttesterIndex *string `json:"attester_index"`
+	}
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return false
+	}
+
+	return probe.AttesterIndex != nil
 }
 
 // ForwardingGuarded returns a copy of opts whose handlers forward events only when forward

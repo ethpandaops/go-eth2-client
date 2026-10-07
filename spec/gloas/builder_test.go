@@ -15,6 +15,7 @@ package gloas_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
@@ -71,4 +72,20 @@ func TestBuilderVersionYAML(t *testing.T) {
 	var decoded gloas.Builder
 	require.NoError(t, decoded.UnmarshalYAML(data))
 	require.Equal(t, builder, &decoded)
+}
+
+// TestBuilderVersionUnmarshalString verifies that a quoted version, which is how
+// Lighthouse serves the field in a Gloas BeaconState, decodes the same as the bare
+// number this package writes.
+func TestBuilderVersionUnmarshalString(t *testing.T) {
+	builder := testBuilder()
+
+	quoted := strings.Replace(mustMarshal(t, builder), `"version":1`, `"version":"1"`, 1)
+	require.Contains(t, quoted, `"version":"1"`)
+
+	var decoded gloas.Builder
+	require.NoError(t, json.Unmarshal([]byte(quoted), &decoded))
+	require.Equal(t, builder, &decoded)
+
+	require.Error(t, json.Unmarshal([]byte(`{"pubkey":"0x00","version":"x"}`), &decoded))
 }
