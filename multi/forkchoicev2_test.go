@@ -85,3 +85,32 @@ func TestForkChoiceV2Unsupported(t *testing.T) {
 	require.True(t, errors.As(err, &apiErr), "error is not an api.Error: %v", err)
 	require.Equal(t, nethttp.StatusNotFound, apiErr.StatusCode)
 }
+
+// TestForkChoiceV2UnsupportedAndFailing ensures that a pool in which some clients lack the endpoint and the others
+// fail returns the unsupported error, so that callers fall back to v1, which the former can serve.
+func TestForkChoiceV2UnsupportedAndFailing(t *testing.T) {
+	ctx := context.Background()
+
+	failing, err := mock.New(ctx, mock.WithName("mock 2"))
+	require.NoError(t, err)
+	failing.ForkChoiceV2Func = func(context.Context, *api.ForkChoiceOpts) (*api.Response[*apiv1.ForkChoiceV2], error) {
+		return nil, &api.Error{Method: nethttp.MethodGet, Endpoint: "/eth/v2/debug/fork_choice", StatusCode: nethttp.StatusInternalServerError}
+	}
+
+	multiClient, err := multi.New(ctx,
+		multi.WithLogLevel(zerolog.Disabled),
+		multi.WithClients([]consensusclient.Service{
+			unsupportedForkChoiceV2Client(t, "mock 1", nethttp.StatusBadRequest),
+			failing,
+		}),
+	)
+	require.NoError(t, err)
+
+	_, err = multiClient.(consensusclient.ForkChoiceV2Provider).ForkChoiceV2(ctx, &api.ForkChoiceOpts{})
+	require.Error(t, err)
+
+	var apiErr *api.Error
+	require.True(t, errors.As(err, &apiErr), "error is not an api.Error: %v", err)
+	require.Equal(t, nethttp.StatusBadRequest, apiErr.StatusCode)
+	require.ErrorContains(t, err, "500")
+}

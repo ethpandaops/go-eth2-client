@@ -293,24 +293,29 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
+	// Fields are taken in a fixed order, so that the first of several invalid fields is always the one
+	// reported.
 	var nodeJSON forkChoiceNodeV2JSON
-	for key, dst := range map[string]any{
-		"slot":                                &nodeJSON.Slot,
-		"block_root":                          &nodeJSON.BlockRoot,
-		"payload_status":                      &nodeJSON.PayloadStatus,
-		"parent_root":                         &nodeJSON.ParentRoot,
-		"parent_payload_status":               &nodeJSON.ParentPayloadStatus,
-		"justified_epoch":                     &nodeJSON.JustifiedEpoch,
-		"finalized_epoch":                     &nodeJSON.FinalizedEpoch,
-		"weight":                              &nodeJSON.Weight,
-		"validity":                            &nodeJSON.Validity,
-		"execution_block_hash":                &nodeJSON.ExecutionBlockHash,
-		"payload_attester_count":              &nodeJSON.PayloadAttesterCount,
-		"payload_availability_yes_count":      &nodeJSON.PayloadAvailabilityYesCount,
-		"payload_data_availability_yes_count": &nodeJSON.PayloadDataAvailabilityYesCount,
-		"extra_data":                          &nodeJSON.ExtraData,
+	for _, field := range [...]struct {
+		key string
+		dst any
+	}{
+		{"slot", &nodeJSON.Slot},
+		{"block_root", &nodeJSON.BlockRoot},
+		{"payload_status", &nodeJSON.PayloadStatus},
+		{"parent_root", &nodeJSON.ParentRoot},
+		{"parent_payload_status", &nodeJSON.ParentPayloadStatus},
+		{"justified_epoch", &nodeJSON.JustifiedEpoch},
+		{"finalized_epoch", &nodeJSON.FinalizedEpoch},
+		{"weight", &nodeJSON.Weight},
+		{"validity", &nodeJSON.Validity},
+		{"execution_block_hash", &nodeJSON.ExecutionBlockHash},
+		{"payload_attester_count", &nodeJSON.PayloadAttesterCount},
+		{"payload_availability_yes_count", &nodeJSON.PayloadAvailabilityYesCount},
+		{"payload_data_availability_yes_count", &nodeJSON.PayloadDataAvailabilityYesCount},
+		{"extra_data", &nodeJSON.ExtraData},
 	} {
-		if err := takeField(fields, key, dst); err != nil {
+		if err := takeField(fields, field.key, field.dst); err != nil {
 			return err
 		}
 	}
@@ -467,7 +472,8 @@ func decodeObject(input []byte) (map[string]json.RawMessage, error) {
 }
 
 // takeField decodes the field key, if present, into dst and removes it from fields, so that only
-// unknown fields remain.
+// unknown fields remain. Unlike encoding/json's struct decoding, keys match exactly rather than
+// ignoring case: the API's keys are snake_case, and a differently cased key is an unknown field.
 func takeField(fields map[string]json.RawMessage, key string, dst any) error {
 	raw, exists := fields[key]
 	if !exists {

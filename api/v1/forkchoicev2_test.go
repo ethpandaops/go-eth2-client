@@ -155,6 +155,16 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"pending","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
 		},
 		{
+			name:  "FieldCaseMismatch",
+			input: []byte(`{"Slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			err:   "slot missing",
+		},
+		{
+			name:  "SeveralFieldsInvalid",
+			input: []byte(`{"slot":1,"block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":2,"validity":3,"execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			err:   "invalid value for slot: json: cannot unmarshal number into Go value of type string",
+		},
+		{
 			name:  "PayloadStatusInvalid",
 			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"bad","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
 			err:   "unrecognised fork choice payload status: bad",

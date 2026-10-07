@@ -27,8 +27,10 @@ import (
 //
 // Not every client implements the endpoint yet, and those that do not answer with an error status
 // (Lighthouse 400, Nimbus 404) rather than failing over. Such clients are skipped, without being
-// deactivated, in favour of the next client. If no client supports the endpoint the last of those
-// errors is returned, so callers can fall back to GET /eth/v1/debug/fork_choice.
+// deactivated, in favour of the next client. If no client returns a fork choice and any of them
+// lacked the endpoint, the error returned is (or, alongside the other clients' error, wraps) the
+// last of those errors, so callers can fall back to GET /eth/v1/debug/fork_choice, which the
+// clients without the v2 endpoint can serve.
 func (s *Service) ForkChoiceV2(ctx context.Context,
 	opts *api.ForkChoiceOpts,
 ) (
@@ -62,11 +64,15 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 		return forkChoice, nil
 	}, nil)
 	if err != nil {
-		if unsupportedErr != nil && unsupportedCalls == calls {
+		switch {
+		case unsupportedErr == nil, errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			return nil, err
+		case unsupportedCalls == calls:
 			return nil, unsupportedErr
+		default:
+			// The unsupported error comes first, so that errors.As finds its status code.
+			return nil, errors.Join(unsupportedErr, err)
 		}
-
-		return nil, err
 	}
 
 	response, isResponse := res.(*api.Response[*apiv1.ForkChoiceV2])
