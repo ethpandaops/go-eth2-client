@@ -108,6 +108,9 @@ const (
 	ForkChoiceNodeValidityValid
 	// ForkChoiceNodeValidityOptimistic is an optimistic fork choice node.
 	ForkChoiceNodeValidityOptimistic
+	// ForkChoiceNodeValidityNotYetRevealed is a Gloas fork choice node whose
+	// execution payload has not been revealed.
+	ForkChoiceNodeValidityNotYetRevealed
 )
 
 // ForkChoiceNodeValidityStrings are the strings for fork choice validity names.
@@ -116,6 +119,7 @@ var ForkChoiceNodeValidityStrings = [...]string{
 	"invalid",
 	"valid",
 	"optimistic",
+	"not_yet_revealed",
 }
 
 // ForkChoiceNodeValidityFromString converts a string input to a fork choice.
@@ -127,6 +131,8 @@ func ForkChoiceNodeValidityFromString(input string) (ForkChoiceNodeValidity, err
 		return ForkChoiceNodeValidityValid, nil
 	case "optimistic":
 		return ForkChoiceNodeValidityOptimistic, nil
+	case "not_yet_revealed":
+		return ForkChoiceNodeValidityNotYetRevealed, nil
 	default:
 		return ForkChoiceNodeValidityUnknown, fmt.Errorf("unrecognised fork choice validity: %s", input)
 	}
