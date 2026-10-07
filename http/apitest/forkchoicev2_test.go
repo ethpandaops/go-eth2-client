@@ -183,6 +183,28 @@ func TestForkChoiceV2Metadata(t *testing.T) {
 	require.Equal(t, map[string]any{"execution_optimistic": false}, response.Metadata)
 }
 
+// TestForkChoiceV2UnwrappedMetadata ensures response metadata of an unwrapped response is kept as
+// metadata, as for wrapped responses, rather than as fork choice extra data.
+func TestForkChoiceV2UnwrappedMetadata(t *testing.T) {
+	body, err := os.ReadFile("testdata/forkchoicev2_prysm.json")
+	require.NoError(t, err)
+
+	var unwrapped map[string]any
+	require.NoError(t, json.Unmarshal(body, &unwrapped))
+	unwrapped["execution_optimistic"] = false
+	unwrapped["unknown_field"] = "kept"
+	body, err = json.Marshal(unwrapped)
+	require.NoError(t, err)
+
+	provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
+	response, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+	require.NoError(t, err)
+	require.Equal(t, map[string]any{"execution_optimistic": false}, response.Metadata)
+	require.NotContains(t, response.Data.ExtraData, "execution_optimistic")
+	require.Equal(t, "kept", response.Data.ExtraData["unknown_field"])
+	require.Contains(t, response.Data.ExtraData, "unrealized_justified_checkpoint")
+}
+
 // TestForkChoiceV2Unsupported ensures that clients without the endpoint surface their status code,
 // so that callers can fall back to GET /eth/v1/debug/fork_choice.
 func TestForkChoiceV2Unsupported(t *testing.T) {

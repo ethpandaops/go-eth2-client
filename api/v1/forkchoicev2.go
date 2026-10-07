@@ -14,6 +14,7 @@
 package v1
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -61,6 +62,30 @@ func ForkChoicePayloadStatusFromString(input string) (ForkChoicePayloadStatus, e
 	}
 }
 
+// MarshalJSON implements json.Marshaler.
+func (s ForkChoicePayloadStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+// Unlike fork choice node decoding, which keeps an unrecognised parent payload
+// status in the node's ExtraData, a lone payload status has nowhere to keep the
+// original value, so an unrecognised one is an error rather than silently unknown.
+func (s *ForkChoicePayloadStatus) UnmarshalJSON(input []byte) error {
+	var inputString string
+	if err := json.Unmarshal(input, &inputString); err != nil {
+		return errors.Wrap(err, "invalid JSON")
+	}
+
+	status, err := ForkChoicePayloadStatusFromString(inputString)
+	if err != nil {
+		return err
+	}
+	*s = status
+
+	return nil
+}
+
 // String returns a string representation of the ForkChoicePayloadStatus.
 func (s ForkChoicePayloadStatus) String() string {
 	if uint64(s) >= uint64(len(ForkChoicePayloadStatusStrings)) {
@@ -95,14 +120,6 @@ type forkChoiceV2JSON struct {
 	ExtraData           map[string]any      `json:"extra_data"`
 }
 
-// forkChoiceV2Fields are the fields of forkChoiceV2JSON.
-var forkChoiceV2Fields = map[string]struct{}{
-	"justified_checkpoint": {},
-	"finalized_checkpoint": {},
-	"fork_choice_nodes":    {},
-	"extra_data":           {},
-}
-
 // MarshalJSON implements json.Marshaler.
 func (f ForkChoiceV2) MarshalJSON() ([]byte, error) {
 	extraData := f.ExtraData
@@ -125,9 +142,23 @@ func (f ForkChoiceV2) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (f *ForkChoiceV2) UnmarshalJSON(input []byte) error {
+	fields, err := decodeObject(input)
+	if err != nil {
+		return err
+	}
+
 	var forkChoiceJSON forkChoiceV2JSON
-	if err := json.Unmarshal(input, &forkChoiceJSON); err != nil {
-		return errors.Wrap(err, "invalid JSON")
+	if err := takeField(fields, "justified_checkpoint", &forkChoiceJSON.JustifiedCheckpoint); err != nil {
+		return err
+	}
+	if err := takeField(fields, "finalized_checkpoint", &forkChoiceJSON.FinalizedCheckpoint); err != nil {
+		return err
+	}
+	if err := takeField(fields, "fork_choice_nodes", &forkChoiceJSON.ForkChoiceNodes); err != nil {
+		return err
+	}
+	if err := takeField(fields, "extra_data", &forkChoiceJSON.ExtraData); err != nil {
+		return err
 	}
 
 	if forkChoiceJSON.JustifiedCheckpoint == nil {
@@ -150,7 +181,7 @@ func (f *ForkChoiceV2) UnmarshalJSON(input []byte) error {
 	}
 	f.ForkChoiceNodes = forkChoiceJSON.ForkChoiceNodes
 
-	extraData, err := foldUnknownFields(input, forkChoiceV2Fields, forkChoiceJSON.ExtraData)
+	extraData, err := foldUnknownFields(fields, forkChoiceJSON.ExtraData)
 	if err != nil {
 		return err
 	}
@@ -180,9 +211,11 @@ type ForkChoiceNodeV2 struct {
 	// ParentRoot is the block root of the parent fork choice node.
 	// For Gloas empty and full nodes this is the node's own block root, pointing at its pending node,
 	// although not every client implements this yet.
+	// A zero root means none: some clients return a null parent root for the oldest retained node.
 	ParentRoot phase0.Root
 	// ParentPayloadStatus is the payload status of the parent fork choice node.
 	// Nil if the parent is not retained in the fork choice tree, or if the client does not provide it.
+	// An unrecognised value is also nil, with the original kept in ExtraData["parent_payload_status"].
 	ParentPayloadStatus *ForkChoicePayloadStatus
 	// JustifiedEpoch is the justified epoch of the node, if provided.
 	JustifiedEpoch *phase0.Epoch
@@ -222,24 +255,6 @@ type forkChoiceNodeV2JSON struct {
 	ExtraData                       map[string]any `json:"extra_data"`
 }
 
-// forkChoiceNodeV2Fields are the fields of forkChoiceNodeV2JSON.
-var forkChoiceNodeV2Fields = map[string]struct{}{
-	"slot":                                {},
-	"block_root":                          {},
-	"payload_status":                      {},
-	"parent_root":                         {},
-	"parent_payload_status":               {},
-	"justified_epoch":                     {},
-	"finalized_epoch":                     {},
-	"weight":                              {},
-	"validity":                            {},
-	"execution_block_hash":                {},
-	"payload_attester_count":              {},
-	"payload_availability_yes_count":      {},
-	"payload_data_availability_yes_count": {},
-	"extra_data":                          {},
-}
-
 // MarshalJSON implements json.Marshaler.
 func (f ForkChoiceNodeV2) MarshalJSON() ([]byte, error) {
 	data := &forkChoiceNodeV2JSON{
@@ -273,9 +288,31 @@ func (f ForkChoiceNodeV2) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
+	fields, err := decodeObject(input)
+	if err != nil {
+		return err
+	}
+
 	var nodeJSON forkChoiceNodeV2JSON
-	if err := json.Unmarshal(input, &nodeJSON); err != nil {
-		return errors.Wrap(err, "invalid JSON")
+	for key, dst := range map[string]any{
+		"slot":                                &nodeJSON.Slot,
+		"block_root":                          &nodeJSON.BlockRoot,
+		"payload_status":                      &nodeJSON.PayloadStatus,
+		"parent_root":                         &nodeJSON.ParentRoot,
+		"parent_payload_status":               &nodeJSON.ParentPayloadStatus,
+		"justified_epoch":                     &nodeJSON.JustifiedEpoch,
+		"finalized_epoch":                     &nodeJSON.FinalizedEpoch,
+		"weight":                              &nodeJSON.Weight,
+		"validity":                            &nodeJSON.Validity,
+		"execution_block_hash":                &nodeJSON.ExecutionBlockHash,
+		"payload_attester_count":              &nodeJSON.PayloadAttesterCount,
+		"payload_availability_yes_count":      &nodeJSON.PayloadAvailabilityYesCount,
+		"payload_data_availability_yes_count": &nodeJSON.PayloadDataAvailabilityYesCount,
+		"extra_data":                          &nodeJSON.ExtraData,
+	} {
+		if err := takeField(fields, key, dst); err != nil {
+			return err
+		}
 	}
 
 	if nodeJSON.Slot == "" {
@@ -308,12 +345,16 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		}
 	}
 
+	// Unlike the payload status, which identifies the node, an unrecognised parent payload status
+	// is left nil, keeping the original in ExtraData, so that it does not fail the whole response.
+	unrecognisedParentPayloadStatus := false
 	if nodeJSON.ParentPayloadStatus != nil {
 		parentPayloadStatus, err := ForkChoicePayloadStatusFromString(*nodeJSON.ParentPayloadStatus)
-		if err != nil {
-			return errors.Wrap(err, "invalid value for parent payload status")
+		if err == nil {
+			f.ParentPayloadStatus = &parentPayloadStatus
+		} else {
+			unrecognisedParentPayloadStatus = true
 		}
-		f.ParentPayloadStatus = &parentPayloadStatus
 	}
 
 	var justifiedEpoch, finalizedEpoch *uint64
@@ -362,12 +403,15 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
-	if f.ExtraData, err = foldUnknownFields(input, forkChoiceNodeV2Fields, nodeJSON.ExtraData); err != nil {
+	if f.ExtraData, err = foldUnknownFields(fields, nodeJSON.ExtraData); err != nil {
 		return err
 	}
 
 	if unrecognisedValidity {
-		f.ExtraData = keepUnrecognisedValidity(f.ExtraData, nodeJSON.Validity)
+		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "validity", nodeJSON.Validity)
+	}
+	if unrecognisedParentPayloadStatus {
+		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "parent_payload_status", *nodeJSON.ParentPayloadStatus)
 	}
 
 	return nil
@@ -408,20 +452,40 @@ func formatOptionalUint64(input *uint64) string {
 	return strconv.FormatUint(*input, 10)
 }
 
-// foldUnknownFields returns extraData with any fields of the input object that are not in known added to it.
-// Fields already present in extraData take precedence. Only the values of unknown fields are decoded, so the
-// (large) known fields such as fork_choice_nodes are not decoded a second time.
-func foldUnknownFields(input []byte, known map[string]struct{}, extraData map[string]any) (map[string]any, error) {
+// decodeObject decodes a JSON object into its fields, leaving their values undecoded.
+func decodeObject(input []byte) (map[string]json.RawMessage, error) {
+	if trimmed := bytes.TrimSpace(input); len(trimmed) == 0 || trimmed[0] != '{' {
+		return nil, errors.New("invalid JSON: not an object")
+	}
+
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(input, &fields); err != nil {
 		return nil, errors.Wrap(err, "invalid JSON")
 	}
 
-	for k, raw := range fields {
-		if _, isKnown := known[k]; isKnown {
-			continue
-		}
+	return fields, nil
+}
 
+// takeField decodes the field key, if present, into dst and removes it from fields, so that only
+// unknown fields remain.
+func takeField(fields map[string]json.RawMessage, key string, dst any) error {
+	raw, exists := fields[key]
+	if !exists {
+		return nil
+	}
+	delete(fields, key)
+
+	if err := json.Unmarshal(raw, dst); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("invalid value for %s", key))
+	}
+
+	return nil
+}
+
+// foldUnknownFields returns extraData with the remaining, unknown, fields added to it. Fields already
+// present in extraData take precedence.
+func foldUnknownFields(fields map[string]json.RawMessage, extraData map[string]any) (map[string]any, error) {
+	for k, raw := range fields {
 		if _, exists := extraData[k]; exists {
 			continue
 		}

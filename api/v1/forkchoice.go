@@ -175,6 +175,7 @@ type ForkChoiceNode struct {
 	// BlockRoot is the block root of the node.
 	BlockRoot phase0.Root
 	// ParentRoot is the parent root of the node.
+	// A zero root means none: some clients return a null parent root for the oldest retained node.
 	ParentRoot phase0.Root
 	// JustifiedEpcoh is the justified epoch of the node.
 	JustifiedEpoch phase0.Epoch
@@ -298,7 +299,7 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 
 	f.ExtraData = forkChoiceNodeJSON.ExtraData
 	if unrecognisedValidity {
-		f.ExtraData = keepUnrecognisedValidity(f.ExtraData, forkChoiceNodeJSON.Validity)
+		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "validity", forkChoiceNodeJSON.Validity)
 	}
 
 	return nil
@@ -314,16 +315,16 @@ func (f *ForkChoiceNode) String() string {
 	return string(data)
 }
 
-// keepUnrecognisedValidity records a node validity the spec does not define,
-// which decodes as unknown, under extraData["validity"] (unless the client
-// already uses that key), so callers can still tell values such as
-// Lighthouse's not_yet_revealed apart and re-encoding keeps them.
-func keepUnrecognisedValidity(extraData map[string]any, validity string) map[string]any {
-	if validity == "" {
+// keepUnrecognisedValue records a value the spec does not define, which decodes
+// as unknown or nil, under extraData[key] (unless the client already uses that
+// key), so callers can still tell values such as Lighthouse's not_yet_revealed
+// validity apart and re-encoding keeps them.
+func keepUnrecognisedValue(extraData map[string]any, key string, value string) map[string]any {
+	if value == "" {
 		return extraData
 	}
 
-	if _, exists := extraData["validity"]; exists {
+	if _, exists := extraData[key]; exists {
 		return extraData
 	}
 
@@ -331,7 +332,7 @@ func keepUnrecognisedValidity(extraData map[string]any, validity string) map[str
 		extraData = make(map[string]any)
 	}
 
-	extraData["validity"] = validity
+	extraData[key] = value
 
 	return extraData
 }

@@ -36,7 +36,7 @@ func TestForkChoiceV2JSON(t *testing.T) {
 		{
 			name:  "JSONBad",
 			input: []byte("[]"),
-			err:   "invalid JSON: json: cannot unmarshal array into Go value of type v1.forkChoiceV2JSON",
+			err:   "invalid JSON: not an object",
 		},
 		{
 			name:  "Good",
@@ -110,7 +110,7 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 		{
 			name:  "JSONBad",
 			input: []byte("[]"),
-			err:   "invalid JSON: json: cannot unmarshal array into Go value of type v1.forkChoiceNodeV2JSON",
+			err:   "invalid JSON: not an object",
 		},
 		{
 			name:  "GoodPending",
@@ -160,9 +160,19 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			err:   "unrecognised fork choice payload status: bad",
 		},
 		{
-			name:  "ParentPayloadStatusInvalid",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"bad","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "invalid value for parent payload status: unrecognised fork choice payload status: bad",
+			name:     "ParentPayloadStatusUnrecognised",
+			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"bad","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"parent_payload_status":"bad"}}`,
+		},
+		{
+			name:  "ParentPayloadStatusWrongType",
+			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":1,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			err:   "invalid value for parent_payload_status: json: cannot unmarshal number into Go value of type string",
+		},
+		{
+			name:     "ParentRootNull",
+			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0x0000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
 		},
 		{
 			name:     "ValidityNotYetRevealed",
@@ -221,4 +231,24 @@ func TestForkChoiceV2ZeroValueRoundTrip(t *testing.T) {
 	var decoded api.ForkChoiceV2
 	require.NoError(t, json.Unmarshal(encoded, &decoded))
 	require.Empty(t, decoded.ForkChoiceNodes)
+}
+
+func TestForkChoicePayloadStatusJSON(t *testing.T) {
+	for _, status := range []api.ForkChoicePayloadStatus{
+		api.ForkChoicePayloadStatusUnknown,
+		api.ForkChoicePayloadStatusEmpty,
+		api.ForkChoicePayloadStatusFull,
+		api.ForkChoicePayloadStatusPending,
+	} {
+		data, err := json.Marshal(status)
+		require.NoError(t, err)
+		require.Equal(t, `"`+status.String()+`"`, string(data))
+
+		var decoded api.ForkChoicePayloadStatus
+		require.NoError(t, json.Unmarshal(data, &decoded))
+		require.Equal(t, status, decoded)
+	}
+
+	var decoded api.ForkChoicePayloadStatus
+	require.EqualError(t, json.Unmarshal([]byte(`"bad"`), &decoded), "unrecognised fork choice payload status: bad")
 }
