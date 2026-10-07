@@ -23,25 +23,48 @@ import (
 )
 
 // ForkChoicePayloadStatus is the payload status of a Gloas fork choice node.
-type ForkChoicePayloadStatus string
+type ForkChoicePayloadStatus uint64
 
 const (
-	// ForkChoicePayloadStatusPending is the node that is the parent of a block's empty and full nodes.
-	ForkChoicePayloadStatusPending ForkChoicePayloadStatus = "pending"
+	// ForkChoicePayloadStatusUnknown is an unknown payload status.
+	ForkChoicePayloadStatusUnknown ForkChoicePayloadStatus = iota
 	// ForkChoicePayloadStatusEmpty is the node representing a block without its execution payload.
-	ForkChoicePayloadStatusEmpty ForkChoicePayloadStatus = "empty"
+	ForkChoicePayloadStatusEmpty
 	// ForkChoicePayloadStatusFull is the node representing a block with its execution payload.
-	ForkChoicePayloadStatusFull ForkChoicePayloadStatus = "full"
+	ForkChoicePayloadStatusFull
+	// ForkChoicePayloadStatusPending is the node that is the parent of a block's empty and full nodes.
+	ForkChoicePayloadStatusPending
 )
+
+// ForkChoicePayloadStatusStrings are the strings for fork choice payload status names.
+var ForkChoicePayloadStatusStrings = [...]string{
+	"unknown",
+	"empty",
+	"full",
+	"pending",
+}
 
 // ForkChoicePayloadStatusFromString converts a string input to a fork choice payload status.
 func ForkChoicePayloadStatusFromString(input string) (ForkChoicePayloadStatus, error) {
-	switch status := ForkChoicePayloadStatus(input); status {
-	case ForkChoicePayloadStatusPending, ForkChoicePayloadStatusEmpty, ForkChoicePayloadStatusFull:
-		return status, nil
+	switch input {
+	case "empty":
+		return ForkChoicePayloadStatusEmpty, nil
+	case "full":
+		return ForkChoicePayloadStatusFull, nil
+	case "pending":
+		return ForkChoicePayloadStatusPending, nil
 	default:
-		return "", fmt.Errorf("unrecognised fork choice payload status: %s", input)
+		return ForkChoicePayloadStatusUnknown, fmt.Errorf("unrecognised fork choice payload status: %s", input)
 	}
+}
+
+// String returns a string representation of the ForkChoicePayloadStatus.
+func (s ForkChoicePayloadStatus) String() string {
+	if uint64(s) >= uint64(len(ForkChoicePayloadStatusStrings)) {
+		return "unknown"
+	}
+
+	return ForkChoicePayloadStatusStrings[s]
 }
 
 // ForkChoiceV2 is the data regarding the node's current fork choice context, as returned by
@@ -214,7 +237,7 @@ func (f ForkChoiceNodeV2) MarshalJSON() ([]byte, error) {
 	data := &forkChoiceNodeV2JSON{
 		Slot:                            fmt.Sprintf("%d", f.Slot),
 		BlockRoot:                       fmt.Sprintf("%#x", f.BlockRoot),
-		PayloadStatus:                   string(f.PayloadStatus),
+		PayloadStatus:                   f.PayloadStatus.String(),
 		ParentRoot:                      fmt.Sprintf("%#x", f.ParentRoot),
 		ParentPayloadStatus:             nil,
 		JustifiedEpoch:                  formatOptionalUint64((*uint64)(f.JustifiedEpoch)),
@@ -229,7 +252,7 @@ func (f ForkChoiceNodeV2) MarshalJSON() ([]byte, error) {
 	}
 
 	if f.ParentPayloadStatus != nil {
-		parentPayloadStatus := string(*f.ParentPayloadStatus)
+		parentPayloadStatus := f.ParentPayloadStatus.String()
 		data.ParentPayloadStatus = &parentPayloadStatus
 	}
 
