@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2025 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -147,7 +147,7 @@ type ExecutionPayloadAvailableEventHandlerFunc func(context.Context, *apiv1.Exec
 type ExecutionPayloadBidEventHandlerFunc func(context.Context, *gloas.SignedExecutionPayloadBid)
 
 // ExecutionPayloadGossipEventHandlerFunc is the handler for execution_payload_gossip events.
-type ExecutionPayloadGossipEventHandlerFunc func(context.Context, *apiv1.ExecutionPayloadEvent)
+type ExecutionPayloadGossipEventHandlerFunc func(context.Context, *apiv1.ExecutionPayloadGossipEvent)
 
 // FastConfirmationEventHandlerFunc is the handler for fast_confirmation events.
 type FastConfirmationEventHandlerFunc func(context.Context, *apiv1.FastConfirmationEvent)

@@ -1,4 +1,4 @@
-// Copyright © 2021 - 2024 Attestant Limited.
+// Copyright © 2021 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -165,6 +165,8 @@ func (v *VersionedSignedBeaconBlock) ProposerIndex() (phase0.ValidatorIndex, err
 }
 
 // ExecutionBlockHash returns the block hash of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) ExecutionBlockHash() (phase0.Hash32, error) {
 	switch v.Version {
 	case DataVersionBellatrix:
@@ -338,6 +340,8 @@ func (v *VersionedSignedBeaconBlock) ExecutionTransactions() ([]bellatrix.Transa
 }
 
 // Graffiti returns the graffiti for the block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) Graffiti() ([32]byte, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -598,6 +602,8 @@ func (v *VersionedSignedBeaconBlock) Root() (phase0.Root, error) {
 }
 
 // BodyRoot returns the body root of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) BodyRoot() (phase0.Root, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -784,6 +790,8 @@ func (v *VersionedSignedBeaconBlock) StateRoot() (phase0.Root, error) {
 }
 
 // RandaoReveal returns the randao reveal of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) RandaoReveal() (phase0.BLSSignature, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -846,6 +854,8 @@ func (v *VersionedSignedBeaconBlock) RandaoReveal() (phase0.BLSSignature, error)
 }
 
 // ETH1Data returns the eth1 data of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) ETH1Data() (*phase0.ETH1Data, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -908,6 +918,8 @@ func (v *VersionedSignedBeaconBlock) ETH1Data() (*phase0.ETH1Data, error) {
 }
 
 // Deposits returns the deposits of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) Deposits() ([]*phase0.Deposit, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -970,6 +982,8 @@ func (v *VersionedSignedBeaconBlock) Deposits() ([]*phase0.Deposit, error) {
 }
 
 // VoluntaryExits returns the voluntary exits of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) VoluntaryExits() ([]*phase0.SignedVoluntaryExit, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -1168,6 +1182,8 @@ func (v *VersionedSignedBeaconBlock) AttesterSlashings() ([]VersionedAttesterSla
 }
 
 // ProposerSlashings returns the proposer slashings of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedSignedBeaconBlock) ProposerSlashings() ([]*phase0.ProposerSlashing, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -1436,7 +1452,7 @@ func (v *VersionedSignedBeaconBlock) BlobKZGCommitments() ([]deneb.KZGCommitment
 }
 
 // ExecutionRequests returs the execution requests for the block.
-func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*VersionedExecutionRequests, error) {
+func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*electra.ExecutionRequests, error) {
 	switch v.Version {
 	case DataVersionPhase0:
 		return nil, errors.New("phase0 block does not have execution requests")
@@ -1455,63 +1471,17 @@ func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*VersionedExecutionReq
 			return nil, errors.New("no electra block")
 		}
 
-		return &VersionedExecutionRequests{
-			Version: DataVersionElectra,
-			Electra: v.Electra.Message.Body.ExecutionRequests,
-		}, nil
+		return v.Electra.Message.Body.ExecutionRequests, nil
 	case DataVersionFulu:
 		if v.Fulu == nil || v.Fulu.Message == nil || v.Fulu.Message.Body == nil {
 			return nil, errors.New("no fulu block")
 		}
 
-		return &VersionedExecutionRequests{
-			Version: DataVersionFulu,
-			Fulu:    v.Fulu.Message.Body.ExecutionRequests,
-		}, nil
+		return v.Fulu.Message.Body.ExecutionRequests, nil
 	case DataVersionGloas:
-		return nil, errors.New("no execution requests for gloas block")
+		return nil, errors.New("gloas block does not have execution requests")
 	case DataVersionHeze:
-		return nil, errors.New("no execution requests for heze block")
-	default:
-		return nil, errors.New("unknown version")
-	}
-}
-
-// SignedExecutionPayloadBid returns the execution payload bid of the beacon block.
-func (v *VersionedSignedBeaconBlock) SignedExecutionPayloadBid() (*VersionedSignedExecutionPayloadBid, error) {
-	switch v.Version {
-	case DataVersionPhase0:
-		return nil, errors.New("no signed execution payload bid in phase0")
-	case DataVersionAltair:
-		return nil, errors.New("no signed execution payload bid in altair")
-	case DataVersionBellatrix:
-		return nil, errors.New("no signed execution payload bid in bellatrix")
-	case DataVersionCapella:
-		return nil, errors.New("no signed execution payload bid in capella")
-	case DataVersionDeneb:
-		return nil, errors.New("no signed execution payload bid in deneb")
-	case DataVersionElectra:
-		return nil, errors.New("no signed execution payload bid in electra")
-	case DataVersionFulu:
-		return nil, errors.New("no signed execution payload bid in fulu")
-	case DataVersionGloas:
-		if v.Gloas == nil || v.Gloas.Message == nil || v.Gloas.Message.Body == nil {
-			return nil, errors.New("no gloas block")
-		}
-
-		return &VersionedSignedExecutionPayloadBid{
-			Version: DataVersionGloas,
-			Gloas:   v.Gloas.Message.Body.SignedExecutionPayloadBid,
-		}, nil
-	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil || v.Heze.Message.Body == nil {
-			return nil, errors.New("no heze block")
-		}
-
-		return &VersionedSignedExecutionPayloadBid{
-			Version: DataVersionHeze,
-			Heze:    v.Heze.Message.Body.SignedExecutionPayloadBid,
-		}, nil
+		return nil, errors.New("heze block does not have execution requests")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1634,5 +1604,45 @@ func (v *VersionedSignedBeaconBlock) String() string {
 // IsEmpty returns true if the block is empty.
 func (v *VersionedSignedBeaconBlock) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+}
+
+// SignedExecutionPayloadBid returns the execution payload bid of the beacon block.
+func (v *VersionedSignedBeaconBlock) SignedExecutionPayloadBid() (*VersionedSignedExecutionPayloadBid, error) {
+	switch v.Version {
+	case DataVersionPhase0:
+		return nil, errors.New("no signed execution payload bid in phase0")
+	case DataVersionAltair:
+		return nil, errors.New("no signed execution payload bid in altair")
+	case DataVersionBellatrix:
+		return nil, errors.New("no signed execution payload bid in bellatrix")
+	case DataVersionCapella:
+		return nil, errors.New("no signed execution payload bid in capella")
+	case DataVersionDeneb:
+		return nil, errors.New("no signed execution payload bid in deneb")
+	case DataVersionElectra:
+		return nil, errors.New("no signed execution payload bid in electra")
+	case DataVersionFulu:
+		return nil, errors.New("no signed execution payload bid in fulu")
+	case DataVersionGloas:
+		if v.Gloas == nil || v.Gloas.Message == nil || v.Gloas.Message.Body == nil {
+			return nil, errors.New("no gloas block")
+		}
+
+		return &VersionedSignedExecutionPayloadBid{
+			Version: DataVersionGloas,
+			Gloas:   v.Gloas.Message.Body.SignedExecutionPayloadBid,
+		}, nil
+	case DataVersionHeze:
+		if v.Heze == nil || v.Heze.Message == nil || v.Heze.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return &VersionedSignedExecutionPayloadBid{
+			Version: DataVersionHeze,
+			Heze:    v.Heze.Message.Body.SignedExecutionPayloadBid,
+		}, nil
+	default:
+		return nil, errors.New("unknown version")
+	}
 }

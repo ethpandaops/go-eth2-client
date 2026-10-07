@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,22 +22,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// executionPayloadBidYAML is the spec representation of the struct.
-type executionPayloadBidYAML struct {
-	ParentBlockHash       string   `yaml:"parent_block_hash"`
-	ParentBlockRoot       string   `yaml:"parent_block_root"`
-	BlockHash             string   `yaml:"block_hash"`
-	PrevRandao            string   `yaml:"prev_randao"`
-	FeeRecipient          string   `yaml:"fee_recipient"`
-	GasLimit              uint64   `yaml:"gas_limit"`
-	BuilderIndex          uint64   `yaml:"builder_index"`
-	Slot                  uint64   `yaml:"slot"`
-	Value                 uint64   `yaml:"value"`
-	ExecutionPayment      uint64   `yaml:"execution_payment"`
-	BlobKZGCommitments    []string `yaml:"blob_kzg_commitments"`
-	ExecutionRequestsRoot string   `yaml:"execution_requests_root"`
-}
-
 // MarshalYAML implements yaml.Marshaler.
 func (e *ExecutionPayloadBid) MarshalYAML() ([]byte, error) {
 	blobKZGCommitments := make([]string, len(e.BlobKZGCommitments))
@@ -45,17 +29,17 @@ func (e *ExecutionPayloadBid) MarshalYAML() ([]byte, error) {
 		blobKZGCommitments[i] = fmt.Sprintf("%#x", e.BlobKZGCommitments[i])
 	}
 
-	yamlBytes, err := yaml.MarshalWithOptions(&executionPayloadBidYAML{
+	yamlBytes, err := yaml.MarshalWithOptions(&executionPayloadBidJSON{
 		ParentBlockHash:       fmt.Sprintf("%#x", e.ParentBlockHash),
 		ParentBlockRoot:       fmt.Sprintf("%#x", e.ParentBlockRoot),
 		BlockHash:             fmt.Sprintf("%#x", e.BlockHash),
 		PrevRandao:            fmt.Sprintf("%#x", e.PrevRandao),
 		FeeRecipient:          fmt.Sprintf("%#x", e.FeeRecipient),
-		GasLimit:              e.GasLimit,
-		BuilderIndex:          uint64(e.BuilderIndex),
-		Slot:                  uint64(e.Slot),
-		Value:                 uint64(e.Value),
-		ExecutionPayment:      uint64(e.ExecutionPayment),
+		GasLimit:              fmt.Sprintf("%d", e.GasLimit),
+		BuilderIndex:          fmt.Sprintf("%d", e.BuilderIndex),
+		Slot:                  fmt.Sprintf("%d", e.Slot),
+		Value:                 fmt.Sprintf("%d", e.Value),
+		ExecutionPayment:      fmt.Sprintf("%d", e.ExecutionPayment),
 		BlobKZGCommitments:    blobKZGCommitments,
 		ExecutionRequestsRoot: fmt.Sprintf("%#x", e.ExecutionRequestsRoot),
 	}, yaml.Flow(true))

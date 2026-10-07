@@ -1,4 +1,4 @@
-// Copyright © 2024 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -109,13 +109,6 @@ func (i *IndexedAttestation) String() string {
 
 func (i *IndexedAttestation) unpack(indexedAttestationJSON *indexedAttestationJSON) error {
 	var err error
-	// Spec tests contain indexed attestations with empty attesting indices.
-	// if indexedAttestationJSON.AttestingIndices == nil {
-	// 	return errors.New("attesting indices missing")
-	// }
-	// if len(indexedAttestationJSON.AttestingIndices) == 0 {
-	// 	return errors.New("attesting indices missing")
-	// }
 	i.AttestingIndices = make([]uint64, len(indexedAttestationJSON.AttestingIndices))
 	for j := range indexedAttestationJSON.AttestingIndices {
 		if i.AttestingIndices[j], err = strconv.ParseUint(indexedAttestationJSON.AttestingIndices[j], 10, 64); err != nil {

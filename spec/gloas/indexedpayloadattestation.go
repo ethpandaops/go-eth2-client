@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,9 +22,9 @@ import (
 
 // IndexedPayloadAttestation represents an indexed payload attestation.
 type IndexedPayloadAttestation struct {
-	AttestingIndices []phase0.ValidatorIndex `ssz-index:"0" dynssz-max:"PTC_SIZE" ssz-max:"512"`
+	AttestingIndices []phase0.ValidatorIndex `dynssz-max:"PTC_SIZE" ssz-index:"0" ssz-max:"512"`
 	Data             *PayloadAttestationData `ssz-index:"1"`
-	Signature        phase0.BLSSignature     `ssz-index:"2"`
+	Signature        phase0.BLSSignature     `ssz-index:"2"         ssz-size:"96"`
 }
 
 // String returns a string version of the structure.

@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2025 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -38,9 +38,8 @@ type VersionedExecutionPayload struct {
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedExecutionPayload) IsEmpty() bool {
-	return v.Version < DataVersionBellatrix ||
-		(v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil && v.Electra == nil &&
-			v.Fulu == nil && v.Gloas == nil && v.Heze == nil)
+	return v.Version < DataVersionBellatrix || (v.Bellatrix == nil &&
+		v.Capella == nil && v.Deneb == nil && v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil)
 }
 
 // ParentHash returns the parent hash of the execution payload.

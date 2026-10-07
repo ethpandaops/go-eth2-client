@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -55,6 +55,9 @@ func (p *PayloadAttestationData) UnmarshalJSON(input []byte) error {
 	root, err := hex.DecodeString(strings.TrimPrefix(data.BeaconBlockRoot, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid beacon block root")
+	}
+	if len(root) != phase0.RootLength {
+		return errors.New("incorrect length for beacon block root")
 	}
 	copy(p.BeaconBlockRoot[:], root)
 

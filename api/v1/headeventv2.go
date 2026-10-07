@@ -14,23 +14,18 @@
 package v1
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
 
+	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
 )
 
-// HeadEventV2 is the data for the head_v2 event (Gloas / EIP-7732).
-//
-// Relative to HeadEvent it drops previous_duty_dependent_root, renames
-// current_duty_dependent_root to current_epoch_dependent_root, and adds
-// next_epoch_dependent_root plus payload_status. The event can be emitted
-// twice for the same block when payload_status transitions from empty to
-// full.
+// HeadEventV2 is the data for the head_v2 event.
 type HeadEventV2 struct {
+	Version                   spec.DataVersion
 	Slot                      phase0.Slot
 	Block                     phase0.Root
 	State                     phase0.Root
@@ -41,93 +36,39 @@ type HeadEventV2 struct {
 	ExecutionOptimistic       bool
 }
 
-// headEventV2JSON is the spec representation of the struct.
+// headEventV2JSON is the spec representation of the versioned event.
 type headEventV2JSON struct {
+	Version spec.DataVersion     `json:"version"`
+	Data    *headEventV2DataJSON `json:"data"`
+}
+
+// headEventV2DataJSON is the spec representation of the event data.
+type headEventV2DataJSON struct {
 	Slot                      string `json:"slot"`
 	Block                     string `json:"block"`
 	State                     string `json:"state"`
-	PayloadStatus             string `json:"payload_status,omitempty"`
+	PayloadStatus             string `json:"payload_status"`
 	EpochTransition           bool   `json:"epoch_transition"`
-	CurrentEpochDependentRoot string `json:"current_epoch_dependent_root,omitempty"`
-	NextEpochDependentRoot    string `json:"next_epoch_dependent_root,omitempty"`
+	CurrentEpochDependentRoot string `json:"current_epoch_dependent_root"`
+	NextEpochDependentRoot    string `json:"next_epoch_dependent_root"`
 	ExecutionOptimistic       bool   `json:"execution_optimistic"`
 }
 
 // MarshalJSON implements json.Marshaler.
 func (e *HeadEventV2) MarshalJSON() ([]byte, error) {
-	data := &headEventV2JSON{
-		Slot:                fmt.Sprintf("%d", e.Slot),
-		Block:               fmt.Sprintf("%#x", e.Block),
-		State:               fmt.Sprintf("%#x", e.State),
-		PayloadStatus:       e.PayloadStatus,
-		EpochTransition:     e.EpochTransition,
-		ExecutionOptimistic: e.ExecutionOptimistic,
-	}
-
-	var zeroRoot phase0.Root
-	if !bytes.Equal(zeroRoot[:], e.CurrentEpochDependentRoot[:]) {
-		data.CurrentEpochDependentRoot = fmt.Sprintf("%#x", e.CurrentEpochDependentRoot)
-	}
-
-	if !bytes.Equal(zeroRoot[:], e.NextEpochDependentRoot[:]) {
-		data.NextEpochDependentRoot = fmt.Sprintf("%#x", e.NextEpochDependentRoot)
-	}
-
-	return json.Marshal(data)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (e *HeadEventV2) UnmarshalJSON(input []byte) error {
-	var headEventV2JSON headEventV2JSON
-	if err := json.Unmarshal(input, &headEventV2JSON); err != nil {
-		return errors.Wrap(err, "invalid JSON")
-	}
-
-	if headEventV2JSON.Slot == "" {
-		return errors.New("slot missing")
-	}
-
-	slot, err := strconv.ParseUint(headEventV2JSON.Slot, 10, 64)
-	if err != nil {
-		return errors.Wrap(err, "invalid value for slot")
-	}
-
-	e.Slot = phase0.Slot(slot)
-
-	if headEventV2JSON.Block == "" {
-		return errors.New("block missing")
-	}
-
-	if err := decodeFixedBytes(e.Block[:], headEventV2JSON.Block, rootLength, "block"); err != nil {
-		return err
-	}
-
-	if headEventV2JSON.State == "" {
-		return errors.New("state missing")
-	}
-
-	if err := decodeFixedBytes(e.State[:], headEventV2JSON.State, rootLength, "state"); err != nil {
-		return err
-	}
-
-	e.PayloadStatus = headEventV2JSON.PayloadStatus
-	e.EpochTransition = headEventV2JSON.EpochTransition
-	e.ExecutionOptimistic = headEventV2JSON.ExecutionOptimistic
-
-	// Dependent roots only have partial client coverage so do not complain if not present.
-	if headEventV2JSON.CurrentEpochDependentRoot != "" {
-		if err := decodeFixedBytes(e.CurrentEpochDependentRoot[:], headEventV2JSON.CurrentEpochDependentRoot, rootLength, "current epoch dependent root"); err != nil {
-			return err
-		}
-	}
-
-	if headEventV2JSON.NextEpochDependentRoot != "" {
-		if err := decodeFixedBytes(e.NextEpochDependentRoot[:], headEventV2JSON.NextEpochDependentRoot, rootLength, "next epoch dependent root"); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return json.Marshal(&headEventV2JSON{
+		Version: e.Version,
+		Data: &headEventV2DataJSON{
+			Slot:                      fmt.Sprintf("%d", e.Slot),
+			Block:                     fmt.Sprintf("%#x", e.Block),
+			State:                     fmt.Sprintf("%#x", e.State),
+			PayloadStatus:             e.PayloadStatus,
+			EpochTransition:           e.EpochTransition,
+			CurrentEpochDependentRoot: fmt.Sprintf("%#x", e.CurrentEpochDependentRoot),
+			NextEpochDependentRoot:    fmt.Sprintf("%#x", e.NextEpochDependentRoot),
+			ExecutionOptimistic:       e.ExecutionOptimistic,
+		},
+	})
 }
 
 // String returns a string version of the structure.
@@ -138,4 +79,69 @@ func (e *HeadEventV2) String() string {
 	}
 
 	return string(data)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (e *HeadEventV2) UnmarshalJSON(input []byte) error {
+	var event headEventV2JSON
+	if err := json.Unmarshal(input, &event); err != nil {
+		return errors.Wrap(err, "invalid JSON")
+	}
+	if event.Version == spec.DataVersionUnknown {
+		return errors.New("version missing")
+	}
+	if event.Data == nil {
+		return errors.New("data missing")
+	}
+	if event.Data.PayloadStatus == "" {
+		return errors.New("payload status missing")
+	}
+	if event.Data.Slot == "" {
+		return errors.New("slot missing")
+	}
+
+	slot, err := strconv.ParseUint(event.Data.Slot, 10, 64)
+	if err != nil {
+		return errors.Wrap(err, "invalid value for slot")
+	}
+	if event.Data.Block == "" {
+		return errors.New("block missing")
+	}
+	if err := decodeFixedBytes(e.Block[:], event.Data.Block, "block"); err != nil {
+		return err
+	}
+	if event.Data.State == "" {
+		return errors.New("state missing")
+	}
+	if err := decodeFixedBytes(e.State[:], event.Data.State, "state"); err != nil {
+		return err
+	}
+	if event.Data.CurrentEpochDependentRoot == "" {
+		return errors.New("current epoch dependent root missing")
+	}
+	if err := decodeFixedBytes(
+		e.CurrentEpochDependentRoot[:],
+		event.Data.CurrentEpochDependentRoot,
+		"current epoch dependent root",
+	); err != nil {
+		return err
+	}
+	if event.Data.NextEpochDependentRoot == "" {
+		return errors.New("next epoch dependent root missing")
+	}
+	if err := decodeFixedBytes(
+		e.NextEpochDependentRoot[:],
+		event.Data.NextEpochDependentRoot,
+		"next epoch dependent root",
+	); err != nil {
+		return err
+	}
+
+	e.Version = event.Version
+	e.Slot = phase0.Slot(slot)
+	e.PayloadStatus = event.Data.PayloadStatus
+	e.EpochTransition = event.Data.EpochTransition
+	e.ExecutionOptimistic = event.Data.ExecutionOptimistic
+
+	return nil
 }

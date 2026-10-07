@@ -1,4 +1,4 @@
-// Copyright © 2020 - 2024 Attestant Limited.
+// Copyright © 2020 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -156,13 +156,37 @@ func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*a
 		err = dynSSZ.UnmarshalSSZ(response.Data.Electra, res.body)
 	case spec.DataVersionFulu:
 		response.Data.Fulu = &fulu.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Fulu, res.body)
+		if s.customSpecSupport {
+			err = dynSSZ.UnmarshalSSZ(response.Data.Fulu, res.body)
+		} else {
+			err = response.Data.Fulu.UnmarshalSSZ(res.body)
+		}
+
+		if err != nil {
+			return nil, errors.Join(errors.New("failed to decode fulu beacon state"), err)
+		}
 	case spec.DataVersionGloas:
 		response.Data.Gloas = &gloas.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Gloas, res.body)
+		if s.customSpecSupport {
+			err = dynSSZ.UnmarshalSSZ(response.Data.Gloas, res.body)
+		} else {
+			err = response.Data.Gloas.UnmarshalSSZ(res.body)
+		}
+
+		if err != nil {
+			return nil, errors.Join(errors.New("failed to decode gloas beacon state"), err)
+		}
 	case spec.DataVersionHeze:
 		response.Data.Heze = &heze.BeaconState{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
+		if s.customSpecSupport {
+			err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
+		} else {
+			err = response.Data.Heze.UnmarshalSSZ(res.body)
+		}
+
+		if err != nil {
+			return nil, errors.Join(errors.New("failed to decode heze beacon state"), err)
+		}
 	default:
 		return nil, fmt.Errorf("unhandled state version %s", res.consensusVersion)
 	}

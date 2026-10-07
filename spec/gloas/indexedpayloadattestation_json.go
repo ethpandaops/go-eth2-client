@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -72,6 +72,9 @@ func (i *IndexedPayloadAttestation) UnmarshalJSON(input []byte) error {
 	signature, err := hex.DecodeString(strings.TrimPrefix(data.Signature, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid signature")
+	}
+	if len(signature) != phase0.SignatureLength {
+		return errors.New("incorrect length for signature")
 	}
 	copy(i.Signature[:], signature)
 

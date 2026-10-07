@@ -1,4 +1,4 @@
-// Copyright © 2020 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -40,7 +40,7 @@ type Builder struct {
 // builderJSON is the spec representation of the struct.
 type builderJSON struct {
 	PublicKey         string `json:"pubkey"`
-	Version           string `json:"version"`
+	Version           uint8  `json:"version"`
 	ExecutionAddress  string `json:"execution_address"`
 	Balance           string `json:"balance"`
 	DepositEpoch      string `json:"deposit_epoch"`
@@ -52,16 +52,16 @@ type builderYAML struct {
 	PublicKey         string `yaml:"pubkey"`
 	Version           uint8  `yaml:"version"`
 	ExecutionAddress  string `yaml:"execution_address"`
-	Balance           uint64 `yaml:"balance"`
-	DepositEpoch      uint64 `yaml:"deposit_epoch"`
-	WithdrawableEpoch uint64 `yaml:"withdrawable_epoch"`
+	Balance           string `yaml:"balance"`
+	DepositEpoch      string `yaml:"deposit_epoch"`
+	WithdrawableEpoch string `yaml:"withdrawable_epoch"`
 }
 
 // MarshalJSON implements json.Marshaler.
 func (v *Builder) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&builderJSON{
 		PublicKey:         fmt.Sprintf("%#x", v.PublicKey),
-		Version:           fmt.Sprintf("%d", v.Version),
+		Version:           v.Version,
 		ExecutionAddress:  v.ExecutionAddress.String(),
 		Balance:           fmt.Sprintf("%d", v.Balance),
 		DepositEpoch:      fmt.Sprintf("%d", v.DepositEpoch),
@@ -95,16 +95,7 @@ func (v *Builder) unpack(builderJSON *builderJSON) error {
 
 	copy(v.PublicKey[:], publicKey)
 
-	if builderJSON.Version == "" {
-		return errors.New("version missing")
-	}
-
-	version, err := strconv.ParseUint(builderJSON.Version, 10, 8)
-	if err != nil {
-		return errors.Wrap(err, "invalid value for version")
-	}
-
-	v.Version = uint8(version)
+	v.Version = builderJSON.Version
 
 	if builderJSON.ExecutionAddress == "" {
 		return errors.New("execution address missing")
@@ -167,9 +158,9 @@ func (v *Builder) MarshalYAML() ([]byte, error) {
 		PublicKey:         fmt.Sprintf("%#x", v.PublicKey),
 		Version:           v.Version,
 		ExecutionAddress:  v.ExecutionAddress.String(),
-		Balance:           uint64(v.Balance),
-		DepositEpoch:      uint64(v.DepositEpoch),
-		WithdrawableEpoch: uint64(v.WithdrawableEpoch),
+		Balance:           fmt.Sprintf("%d", v.Balance),
+		DepositEpoch:      fmt.Sprintf("%d", v.DepositEpoch),
+		WithdrawableEpoch: fmt.Sprintf("%d", v.WithdrawableEpoch),
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err

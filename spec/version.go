@@ -36,3 +36,9 @@ var (
 
 	BuilderVersionV1 = version.BuilderVersionV1
 )
+
+// DataVersionFromString returns the DataVersion for the given fork name.
+var DataVersionFromString = version.DataVersionFromString
+
+// AddDataVersionAlias registers an additional fork name that maps to an existing DataVersion.
+var AddDataVersionAlias = version.AddDataVersionAlias

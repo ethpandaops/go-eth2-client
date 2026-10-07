@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2025 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import (
 	"errors"
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -30,8 +31,11 @@ type VersionedSignedAggregateAndProof struct {
 	Deneb     *phase0.SignedAggregateAndProof
 	Electra   *electra.SignedAggregateAndProof
 	Fulu      *electra.SignedAggregateAndProof
-	Gloas     *electra.SignedAggregateAndProof
-	Heze      *electra.SignedAggregateAndProof
+	// Gloas has its own container because gloas.Attestation merkleizes its aggregation bits as a
+	// progressive bitlist, giving a different hash tree root (and so a different signing root)
+	// from the electra container.
+	Gloas *gloas.SignedAggregateAndProof
+	Heze  *gloas.SignedAggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -81,13 +85,13 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 		return v.Fulu.Message.AggregatorIndex, nil
 	case DataVersionGloas:
 		if v.Gloas == nil {
-			return 0, errors.New("no Gloas signed aggregate and proof")
+			return 0, errors.New("no gloas signed aggregate and proof")
 		}
 
 		return v.Gloas.Message.AggregatorIndex, nil
 	case DataVersionHeze:
 		if v.Heze == nil {
-			return 0, errors.New("no Heze signed aggregate and proof")
+			return 0, errors.New("no heze signed aggregate and proof")
 		}
 
 		return v.Heze.Message.AggregatorIndex, nil
