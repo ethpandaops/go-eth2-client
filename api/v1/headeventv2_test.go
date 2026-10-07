@@ -35,14 +35,9 @@ func TestHeadEventV2JSONErrors(t *testing.T) {
 			err:   "invalid JSON: json: cannot unmarshal array into Go value of type v1.headEventV2JSON",
 		},
 		{
-			name:  "VersionMissing",
-			input: []byte(`{"data":{}}`),
-			err:   "version missing",
-		},
-		{
-			name:  "DataMissing",
+			name:  "BareDataMissingSlot",
 			input: []byte(`{"version":"gloas"}`),
-			err:   "data missing",
+			err:   "payload status missing",
 		},
 		{
 			name:  "PayloadStatusMissing",
@@ -74,16 +69,6 @@ func TestHeadEventV2JSONErrors(t *testing.T) {
 			input: []byte(`{"version":"gloas","data":{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_status":"empty"}}`),
 			err:   "state missing",
 		},
-		{
-			name:  "CurrentEpochDependentRootMissing",
-			input: []byte(`{"version":"gloas","data":{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","state":"0x600e852a08c1200654ddf11025f1ceacb3c2e74bdd5c630cde0838b2591b69f9","payload_status":"empty"}}`),
-			err:   "current epoch dependent root missing",
-		},
-		{
-			name:  "NextEpochDependentRootMissing",
-			input: []byte(`{"version":"gloas","data":{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","state":"0x600e852a08c1200654ddf11025f1ceacb3c2e74bdd5c630cde0838b2591b69f9","payload_status":"empty","current_epoch_dependent_root":"0x5e0043f107cb57913498fbf2f99ff55e730bf1e151f02f221e977c91a90a0e91"}}`),
-			err:   "next epoch dependent root missing",
-		},
 	}
 
 	for _, test := range tests {
@@ -113,4 +98,19 @@ func TestHeadEventV2JSON(t *testing.T) {
 	require.NoError(t, err)
 	require.JSONEq(t, string(input), string(output))
 	require.JSONEq(t, string(input), actual.String())
+}
+
+// TestHeadEventV2JSONBare covers clients that publish the event without the
+// {"version","data"} wrapper and without the dependent roots.
+func TestHeadEventV2JSONBare(t *testing.T) {
+	input := []byte(`{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","state":"0x600e852a08c1200654ddf11025f1ceacb3c2e74bdd5c630cde0838b2591b69f9","payload_status":"empty","epoch_transition":true,"execution_optimistic":false}`)
+
+	var actual api.HeadEventV2
+	require.NoError(t, json.Unmarshal(input, &actual))
+	require.Equal(t, spec.DataVersionUnknown, actual.Version)
+	require.Equal(t, phase0.Slot(10), actual.Slot)
+	require.Equal(t, "empty", actual.PayloadStatus)
+	require.True(t, actual.EpochTransition)
+	require.Equal(t, phase0.Root{}, actual.CurrentEpochDependentRoot)
+	require.Equal(t, phase0.Root{}, actual.NextEpochDependentRoot)
 }

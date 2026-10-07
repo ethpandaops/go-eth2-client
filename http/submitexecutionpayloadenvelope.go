@@ -147,6 +147,10 @@ func (s *Service) postExecutionPayloadEnvelope(ctx context.Context,
 	// schema (signed envelope with its blobs and KZG proofs). Strict consensus
 	// clients reject the request when the header is missing.
 	headers["Eth-Blob-Data-Included"] = "true"
+	// The pre-beacon-APIs#624 discriminator (Eth-Execution-Payload-Blinded "false"
+	// selects the Contents body) is still sent for beacon nodes that have not
+	// adopted the rename yet.
+	headers["Eth-Execution-Payload-Blinded"] = "false"
 
 	if _, err := s.post(ctx, endpoint, query, common, bytes.NewBuffer(body), contentType, headers); err != nil {
 		return errors.Join(errors.New("failed to submit execution payload envelope"), err)

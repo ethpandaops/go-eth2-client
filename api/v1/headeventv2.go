@@ -87,11 +87,12 @@ func (e *HeadEventV2) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &event); err != nil {
 		return errors.Wrap(err, "invalid JSON")
 	}
-	if event.Version == spec.DataVersionUnknown {
-		return errors.New("version missing")
-	}
 	if event.Data == nil {
-		return errors.New("data missing")
+		// Some clients publish the data bare, without the {"version","data"} wrapper.
+		event.Data = &headEventV2DataJSON{}
+		if err := json.Unmarshal(input, event.Data); err != nil {
+			return errors.Wrap(err, "invalid JSON")
+		}
 	}
 	if event.Data.PayloadStatus == "" {
 		return errors.New("payload status missing")
@@ -116,25 +117,24 @@ func (e *HeadEventV2) UnmarshalJSON(input []byte) error {
 	if err := decodeFixedBytes(e.State[:], event.Data.State, "state"); err != nil {
 		return err
 	}
-	if event.Data.CurrentEpochDependentRoot == "" {
-		return errors.New("current epoch dependent root missing")
+	// Dependent roots only have partial client coverage so do not complain if not present.
+	if event.Data.CurrentEpochDependentRoot != "" {
+		if err := decodeFixedBytes(
+			e.CurrentEpochDependentRoot[:],
+			event.Data.CurrentEpochDependentRoot,
+			"current epoch dependent root",
+		); err != nil {
+			return err
+		}
 	}
-	if err := decodeFixedBytes(
-		e.CurrentEpochDependentRoot[:],
-		event.Data.CurrentEpochDependentRoot,
-		"current epoch dependent root",
-	); err != nil {
-		return err
-	}
-	if event.Data.NextEpochDependentRoot == "" {
-		return errors.New("next epoch dependent root missing")
-	}
-	if err := decodeFixedBytes(
-		e.NextEpochDependentRoot[:],
-		event.Data.NextEpochDependentRoot,
-		"next epoch dependent root",
-	); err != nil {
-		return err
+	if event.Data.NextEpochDependentRoot != "" {
+		if err := decodeFixedBytes(
+			e.NextEpochDependentRoot[:],
+			event.Data.NextEpochDependentRoot,
+			"next epoch dependent root",
+		); err != nil {
+			return err
+		}
 	}
 
 	e.Version = event.Version

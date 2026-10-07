@@ -195,6 +195,13 @@ linters:
         text: "line is [0-9]+ characters"
         linters:
           - revive
+      # The http package is named after the API it wraps.  revive reports the
+      # clash with net/http once per package on an arbitrary file, so a merge
+      # that adds files to the package would otherwise fail the new-lines check.
+      - path: ^http/
+        text: 'package-naming: don''t use "http"'
+        linters:
+          - revive
 # Formatters: Code formatting tools
 formatters:
   enable:

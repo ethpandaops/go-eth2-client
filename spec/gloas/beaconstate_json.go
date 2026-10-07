@@ -444,29 +444,31 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		}
 	}
 
-	ptcWindowStr := make([][]string, 0)
-	if err := json.Unmarshal(raw["ptc_window"], &ptcWindowStr); err != nil {
+	// The indices are read as raw values because Lighthouse serves them as bare JSON
+	// numbers where the spec quotes them; the quotes are stripped before parsing.
+	ptcWindowRaw := make([][]json.RawMessage, 0)
+	if err := json.Unmarshal(raw["ptc_window"], &ptcWindowRaw); err != nil {
 		// Prysm wraps each inner vector in an object carrying validator_indices,
 		// because proto3 cannot express a nested repeated field without an
 		// intermediate message.  The spec shape is tried first and is the only one
 		// marshalled, so the deviation is absorbed where it arrives rather than
 		// propagated; on failure of both the spec shape's error is the one reported.
 		wrapped := make([]struct {
-			ValidatorIndices []string `json:"validator_indices"`
+			ValidatorIndices []json.RawMessage `json:"validator_indices"`
 		}, 0)
 		if wrappedErr := json.Unmarshal(raw["ptc_window"], &wrapped); wrappedErr != nil {
 			return errors.Wrap(err, "ptc_window")
 		}
-		ptcWindowStr = make([][]string, len(wrapped))
+		ptcWindowRaw = make([][]json.RawMessage, len(wrapped))
 		for i := range wrapped {
-			ptcWindowStr[i] = wrapped[i].ValidatorIndices
+			ptcWindowRaw[i] = wrapped[i].ValidatorIndices
 		}
 	}
-	b.PTCWindow = make([][]phase0.ValidatorIndex, len(ptcWindowStr))
-	for i := range ptcWindowStr {
-		b.PTCWindow[i] = make([]phase0.ValidatorIndex, len(ptcWindowStr[i]))
-		for j := range ptcWindowStr[i] {
-			idx, parseErr := strconv.ParseUint(ptcWindowStr[i][j], 10, 64)
+	b.PTCWindow = make([][]phase0.ValidatorIndex, len(ptcWindowRaw))
+	for i := range ptcWindowRaw {
+		b.PTCWindow[i] = make([]phase0.ValidatorIndex, len(ptcWindowRaw[i]))
+		for j := range ptcWindowRaw[i] {
+			idx, parseErr := strconv.ParseUint(string(bytes.Trim(ptcWindowRaw[i][j], `"`)), 10, 64)
 			if parseErr != nil {
 				return errors.Wrap(parseErr, fmt.Sprintf("ptc_window[%d][%d]", i, j))
 			}
