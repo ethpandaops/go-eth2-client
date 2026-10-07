@@ -293,6 +293,10 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
+	// Optional fields are only set when present, so clear any left from decoding into an existing node.
+	f.ParentRoot = phase0.Root{}
+	f.ParentPayloadStatus = nil
+
 	// Fields are taken in a fixed order, so that the first of several invalid fields is always the one
 	// reported.
 	var nodeJSON forkChoiceNodeV2JSON

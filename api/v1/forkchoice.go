@@ -251,6 +251,7 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, fmt.Sprintf("invalid value for parent root: %s", forkChoiceNodeJSON.ParentRoot))
 	}
 
+	f.ParentRoot = phase0.Root{}
 	copy(f.ParentRoot[:], parentRoot)
 
 	justifiedEpoch, err := strconv.ParseUint(forkChoiceNodeJSON.JustifiedEpoch, 10, 64)
@@ -278,6 +279,9 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 	// not_yet_revealed for a Gloas block whose payload has not been revealed);
 	// those decode as unknown, keeping the original in ExtraData, rather than
 	// failing the whole fork choice.
+	if forkChoiceNodeJSON.Validity == "" {
+		return errors.New("validity missing")
+	}
 	validity, err := ForkChoiceNodeValidityFromString(forkChoiceNodeJSON.Validity)
 	unrecognisedValidity := err != nil
 	if unrecognisedValidity {

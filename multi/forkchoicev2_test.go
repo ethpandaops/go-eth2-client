@@ -86,31 +86,69 @@ func TestForkChoiceV2Unsupported(t *testing.T) {
 	require.Equal(t, nethttp.StatusNotFound, apiErr.StatusCode)
 }
 
-// TestForkChoiceV2UnsupportedAndFailing ensures that a pool in which some clients lack the endpoint and the others
-// fail returns the unsupported error, so that callers fall back to v1, which the former can serve.
-func TestForkChoiceV2UnsupportedAndFailing(t *testing.T) {
-	ctx := context.Background()
+// failingForkChoiceV2Client returns a client whose fork choice v2 requests fail with a server error.
+func failingForkChoiceV2Client(t *testing.T, name string) consensusclient.Service {
+	t.Helper()
 
-	failing, err := mock.New(ctx, mock.WithName("mock 2"))
+	client, err := mock.New(context.Background(), mock.WithName(name))
 	require.NoError(t, err)
-	failing.ForkChoiceV2Func = func(context.Context, *api.ForkChoiceOpts) (*api.Response[*apiv1.ForkChoiceV2], error) {
+	client.ForkChoiceV2Func = func(context.Context, *api.ForkChoiceOpts) (*api.Response[*apiv1.ForkChoiceV2], error) {
 		return nil, &api.Error{Method: nethttp.MethodGet, Endpoint: "/eth/v2/debug/fork_choice", StatusCode: nethttp.StatusInternalServerError}
 	}
 
-	multiClient, err := multi.New(ctx,
-		multi.WithLogLevel(zerolog.Disabled),
-		multi.WithClients([]consensusclient.Service{
-			unsupportedForkChoiceV2Client(t, "mock 1", nethttp.StatusBadRequest),
-			failing,
-		}),
-	)
-	require.NoError(t, err)
+	return client
+}
 
-	_, err = multiClient.(consensusclient.ForkChoiceV2Provider).ForkChoiceV2(ctx, &api.ForkChoiceOpts{})
-	require.Error(t, err)
+// TestForkChoiceV2UnsupportedAndFailing ensures that a pool in which some clients lack the endpoint and the others
+// fail returns the unsupported error, so that callers fall back to v1, which the former can serve, along with the
+// other clients' error, whichever order they are in.
+func TestForkChoiceV2UnsupportedAndFailing(t *testing.T) {
+	tests := []struct {
+		name    string
+		clients func(t *testing.T) []consensusclient.Service
+	}{
+		{
+			name: "UnsupportedFirst",
+			clients: func(t *testing.T) []consensusclient.Service {
+				t.Helper()
 
-	var apiErr *api.Error
-	require.True(t, errors.As(err, &apiErr), "error is not an api.Error: %v", err)
-	require.Equal(t, nethttp.StatusBadRequest, apiErr.StatusCode)
-	require.ErrorContains(t, err, "500")
+				return []consensusclient.Service{
+					unsupportedForkChoiceV2Client(t, "mock 1", nethttp.StatusBadRequest),
+					failingForkChoiceV2Client(t, "mock 2"),
+				}
+			},
+		},
+		{
+			name: "FailingFirst",
+			clients: func(t *testing.T) []consensusclient.Service {
+				t.Helper()
+
+				return []consensusclient.Service{
+					failingForkChoiceV2Client(t, "mock 1"),
+					unsupportedForkChoiceV2Client(t, "mock 2", nethttp.StatusBadRequest),
+				}
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			multiClient, err := multi.New(ctx,
+				multi.WithLogLevel(zerolog.Disabled),
+				multi.WithClients(test.clients(t)),
+			)
+			require.NoError(t, err)
+
+			_, err = multiClient.(consensusclient.ForkChoiceV2Provider).ForkChoiceV2(ctx, &api.ForkChoiceOpts{})
+			require.Error(t, err)
+
+			var apiErr *api.Error
+			require.True(t, errors.As(err, &apiErr), "error is not an api.Error: %v", err)
+			require.Equal(t, nethttp.StatusBadRequest, apiErr.StatusCode)
+			require.ErrorContains(t, err, "500")
+			require.NotContains(t, err.Error(), "empty response")
+		})
+	}
 }

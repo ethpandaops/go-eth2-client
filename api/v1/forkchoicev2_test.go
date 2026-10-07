@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	api "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -261,4 +262,20 @@ func TestForkChoicePayloadStatusJSON(t *testing.T) {
 
 	var decoded api.ForkChoicePayloadStatus
 	require.EqualError(t, json.Unmarshal([]byte(`"bad"`), &decoded), "unrecognised fork choice payload status: bad")
+}
+
+// TestForkChoiceNodeV2JSONReuse ensures that decoding into an existing node, as encoding/json does when decoding into
+// a non-empty slice of nodes, leaves no optional values from the previous node behind.
+func TestForkChoiceNodeV2JSONReuse(t *testing.T) {
+	node := new(api.ForkChoiceNodeV2)
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"full","justified_epoch":"3","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"16","extra_data":{"state_root":"0xc0"}}`), node))
+
+	nodes := []*api.ForkChoiceNodeV2{node}
+	require.NoError(t, json.Unmarshal([]byte(`[{"slot":"30","block_root":"0xc000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":null,"weight":"0","validity":"valid","execution_block_hash":"0xcc00000000000000000000000000000000000000000000000000000000000000"}]`), &nodes))
+	require.Same(t, node, nodes[0])
+	require.Equal(t, phase0.Root{}, node.ParentRoot)
+	require.Nil(t, node.ParentPayloadStatus)
+	require.Nil(t, node.JustifiedEpoch)
+	require.Nil(t, node.PayloadAttesterCount)
+	require.Nil(t, node.ExtraData)
 }

@@ -37,26 +37,22 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 	*api.Response[*apiv1.ForkChoiceV2],
 	error,
 ) {
-	var (
-		calls            int
-		unsupportedCalls int
-		unsupportedErr   error
-	)
+	// The last errors of clients without the endpoint and of other failing clients. doCall only
+	// keeps the last client's error, which is "empty response" if it lacked the endpoint.
+	var unsupportedErr, otherErr error
 
 	res, err := s.doCall(ctx, func(ctx context.Context, client consensusclient.Service) (any, error) {
-		calls++
-
 		forkChoice, err := client.(consensusclient.ForkChoiceV2Provider).ForkChoiceV2(ctx, opts)
 		if err != nil {
 			var apiErr *api.Error
 			if errors.As(err, &apiErr) && isUnsupportedEndpoint(apiErr.StatusCode) {
-				unsupportedCalls++
 				unsupportedErr = err
 
 				// No response, so that the next client is tried without deactivating this one; an
 				// error would deactivate it, or end the call on a 4xx.
 				return nil, nil //nolint:nilnil
 			}
+			otherErr = err
 
 			return nil, err
 		}
@@ -67,11 +63,11 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 		switch {
 		case unsupportedErr == nil, errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 			return nil, err
-		case unsupportedCalls == calls:
+		case otherErr == nil:
 			return nil, unsupportedErr
 		default:
 			// The unsupported error comes first, so that errors.As finds its status code.
-			return nil, errors.Join(unsupportedErr, err)
+			return nil, errors.Join(unsupportedErr, otherErr)
 		}
 	}
 
@@ -85,6 +81,10 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 
 // isUnsupportedEndpoint returns true if the status code is one that clients return for an endpoint
 // they do not implement.
+//
+// This includes 400, which Lighthouse returns for endpoint versions it does not have. The endpoint
+// takes no parameters, so a client implementing it has no reason to return 400; if one did, it
+// would be skipped as unsupported, and callers would fall back to v1.
 func isUnsupportedEndpoint(statusCode int) bool {
 	switch statusCode {
 	case http.StatusBadRequest, http.StatusNotFound, http.StatusMethodNotAllowed, http.StatusNotImplemented:
