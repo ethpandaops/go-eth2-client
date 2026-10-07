@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -15,12 +15,12 @@ package gloas
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/goccy/go-yaml"
+	"github.com/holiman/uint256"
 	"github.com/pkg/errors"
 )
 
@@ -51,8 +51,10 @@ type executionPayloadYAML struct {
 func (e *ExecutionPayload) MarshalYAML() ([]byte, error) {
 	transactions := make([]string, len(e.Transactions))
 	for i := range e.Transactions {
-		// %#x renders an empty transaction as "", while the spec writes "0x".
-		transactions[i] = "0x" + hex.EncodeToString(e.Transactions[i])
+		transactions[i] = "0x"
+		if len(e.Transactions[i]) > 0 {
+			transactions[i] = fmt.Sprintf("%#x", e.Transactions[i])
+		}
 	}
 
 	extraData := "0x"
@@ -63,6 +65,13 @@ func (e *ExecutionPayload) MarshalYAML() ([]byte, error) {
 	blockAccessList := "0x"
 	if len(e.BlockAccessList) > 0 {
 		blockAccessList = fmt.Sprintf("%#x", e.BlockAccessList)
+	}
+
+	// BaseFeePerGas is a nilable *uint256.Int; guard the nil case as the SSZ
+	// marshaler does so a zero-value payload does not panic on .Dec().
+	baseFeePerGas := e.BaseFeePerGas
+	if baseFeePerGas == nil {
+		baseFeePerGas = new(uint256.Int)
 	}
 
 	yamlBytes, err := yaml.MarshalWithOptions(&executionPayloadYAML{
@@ -77,7 +86,7 @@ func (e *ExecutionPayload) MarshalYAML() ([]byte, error) {
 		GasUsed:         e.GasUsed,
 		Timestamp:       e.Timestamp,
 		ExtraData:       extraData,
-		BaseFeePerGas:   e.BaseFeePerGas.Dec(),
+		BaseFeePerGas:   baseFeePerGas.Dec(),
 		BlockHash:       fmt.Sprintf("%#x", e.BlockHash),
 		Transactions:    transactions,
 		Withdrawals:     e.Withdrawals,

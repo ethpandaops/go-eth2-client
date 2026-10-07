@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -24,11 +24,11 @@ import (
 
 // ExecutionPayloadBid represents an execution payload bid for EIP-7732.
 type ExecutionPayloadBid struct {
-	ParentBlockHash       phase0.Hash32              `ssz-index:"0"`
-	ParentBlockRoot       phase0.Root                `ssz-index:"1"`
-	BlockHash             phase0.Hash32              `ssz-index:"2"`
-	PrevRandao            phase0.Root                `ssz-index:"3"`
-	FeeRecipient          bellatrix.ExecutionAddress `ssz-index:"4"`
+	ParentBlockHash       phase0.Hash32              `ssz-index:"0"  ssz-size:"32"`
+	ParentBlockRoot       phase0.Root                `ssz-index:"1"  ssz-size:"32"`
+	BlockHash             phase0.Hash32              `ssz-index:"2"  ssz-size:"32"`
+	PrevRandao            phase0.Root                `ssz-index:"3"  ssz-size:"32"`
+	FeeRecipient          bellatrix.ExecutionAddress `ssz-index:"4"  ssz-size:"20"`
 	GasLimit              uint64                     `ssz-index:"5"`
 	BuilderIndex          BuilderIndex               `ssz-index:"6"`
 	Slot                  phase0.Slot                `ssz-index:"7"`

@@ -1,4 +1,4 @@
-// Copyright © 2020 - 2024 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -41,8 +41,20 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 		return nil, err
 	}
 
-	// All current envelope-bearing forks (Gloas, Heze) reuse the gloas
-	// schema, so the wire bytes always parse into *gloas.SignedExecutionPayloadEnvelope.
+	return s.signedExecutionPayloadEnvelopeFromResponse(ctx, httpResponse)
+}
+
+// signedExecutionPayloadEnvelopeFromResponse decodes a fetched signed envelope
+// response.  It is separate from the fetch so that both encodings, and the
+// empty-response guard, stay testable without a node serving the endpoint.
+func (s *Service) signedExecutionPayloadEnvelopeFromResponse(ctx context.Context,
+	httpResponse *httpResponse,
+) (
+	*api.Response[*spec.VersionedSignedExecutionPayloadEnvelope],
+	error,
+) {
+	// The envelope is a gloas-onwards container, so the wire bytes always
+	// parse into *gloas.SignedExecutionPayloadEnvelope.
 	envelope := &gloas.SignedExecutionPayloadEnvelope{}
 	metadata := metadataFromHeaders(httpResponse.headers)
 
@@ -54,12 +66,29 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 		}
 
 		if err := ds.UnmarshalSSZ(envelope, httpResponse.body); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(
+				fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion),
+				err,
+			)
 		}
 	case ContentTypeJSON:
-		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		// Seeded with a typed nil pointer so that a body with no data key in it
+		// is distinguishable from one carrying a zero-valued envelope, matching
+		// the sibling unsigned-envelope endpoint.  decodeJSONResponse only
+		// unmarshals when a data key is present and does not error when it is
+		// absent, so a non-nil seed would return a zero-valued envelope as
+		// success and every downstream accessor would read garbage.
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body),
+			(*gloas.SignedExecutionPayloadEnvelope)(nil))
 		if err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(
+				fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion),
+				err,
+			)
+		}
+
+		if decoded == nil {
+			return nil, fmt.Errorf("no %s signed execution payload envelope in response", httpResponse.consensusVersion)
 		}
 
 		envelope = decoded
@@ -78,11 +107,7 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	}, nil
 }
 
-// AgnosticSignedExecutionPayloadEnvelope fetches a signed execution payload
-// envelope and decodes it directly into a fork-agnostic
-// *all.SignedExecutionPayloadEnvelope. The Version is set from the consensus
-// version header before unmarshaling so the union type's view-aware codec
-// dispatches into the correct fork's schema. No intermediate copy.
+// AgnosticSignedExecutionPayloadEnvelope provides a fork-agnostic signed execution payload envelope.
 func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SignedExecutionPayloadEnvelopeOpts,
 ) (
@@ -105,12 +130,18 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 		}
 
 		if err := envelope.UnmarshalSSZDyn(ds, httpResponse.body); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(
+				fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion),
+				err,
+			)
 		}
 	case ContentTypeJSON:
 		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
 		if err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(
+				fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion),
+				err,
+			)
 		}
 
 		envelope = decoded
@@ -126,10 +157,9 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 	}, nil
 }
 
-// fetchSignedExecutionPayloadEnvelope performs the GET request shared by both
-// SignedExecutionPayloadEnvelope and AgnosticSignedExecutionPayloadEnvelope:
-// validates opts, hits the endpoint, and rejects responses for forks where
-// the envelope doesn't apply.
+// fetchSignedExecutionPayloadEnvelope performs the GET request for
+// SignedExecutionPayloadEnvelope: validates opts, hits the endpoint, and
+// rejects responses for forks where the envelope doesn't apply.
 func (s *Service) fetchSignedExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SignedExecutionPayloadEnvelopeOpts,
 ) (*httpResponse, error) {
@@ -147,12 +177,14 @@ func (s *Service) fetchSignedExecutionPayloadEnvelope(ctx context.Context,
 
 	endpoint := fmt.Sprintf("/eth/v1/beacon/execution_payload_envelopes/%s", opts.Block)
 
-	httpResponse, err := s.get(ctx, endpoint, "", &opts.Common, true)
+	httpResponse, err := s.getWithResponseLimit(ctx, endpoint, "", &opts.Common, true, maxEPBSResponseSize)
 	if err != nil {
 		return nil, err
 	}
 
-	if httpResponse.consensusVersion != spec.DataVersionGloas && httpResponse.consensusVersion != spec.DataVersionHeze {
+	switch httpResponse.consensusVersion {
+	case spec.DataVersionGloas, spec.DataVersionHeze:
+	default:
 		return nil, fmt.Errorf("execution payload envelope not available for block version %s", httpResponse.consensusVersion)
 	}
 

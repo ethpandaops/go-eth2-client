@@ -20,20 +20,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
 )
 
-// ExecutionPayloadEvent is the data for the `execution_payload` and
-// `execution_payload_gossip` EIP-7732 events. Both carry a flat summary of a
-// revealed execution payload (not the full SignedExecutionPayloadEnvelope): the
-// `execution_payload` event fires when the envelope is imported into the
-// fork-choice store, and `execution_payload_gossip` when it passes gossip
-// validation. ExecutionOptimistic is only present on the `execution_payload`
-// event.
+// ExecutionPayloadEvent is the data for the `execution_payload` event, emitted
+// when a revealed execution payload is imported into the fork-choice store.
 type ExecutionPayloadEvent struct {
 	Slot                phase0.Slot
-	BuilderIndex        uint64
+	BuilderIndex        gloas.BuilderIndex
 	BlockHash           phase0.Hash32
 	BlockRoot           phase0.Root
 	ExecutionOptimistic bool
@@ -61,10 +57,8 @@ func (e *ExecutionPayloadEvent) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.Unmarshaler.
 //
-// Only the identifying slot and block root are required. builder_index and
-// block_hash are parsed when present and validated for length, tolerating
-// per-client field divergence (e.g. some clients emit an extra, non-spec
-// state_root, which is ignored).
+// Unknown keys are ignored. Nimbus emits a fabricated zero state_root, which
+// must not be modeled as an event field.
 func (e *ExecutionPayloadEvent) UnmarshalJSON(input []byte) error {
 	var data executionPayloadEventJSON
 	if err := json.Unmarshal(input, &data); err != nil {
@@ -83,22 +77,24 @@ func (e *ExecutionPayloadEvent) UnmarshalJSON(input []byte) error {
 	if data.BlockRoot == "" {
 		return errors.New("block root missing")
 	}
-	if err := decodeFixedBytes(e.BlockRoot[:], data.BlockRoot, rootLength, "block root"); err != nil {
+	if err := decodeFixedBytes(e.BlockRoot[:], data.BlockRoot, "block root"); err != nil {
 		return err
 	}
 
-	if data.BuilderIndex != "" {
-		builderIndex, err := strconv.ParseUint(data.BuilderIndex, 10, 64)
-		if err != nil {
-			return errors.Wrap(err, "invalid value for builder index")
-		}
-		e.BuilderIndex = builderIndex
+	if data.BuilderIndex == "" {
+		return errors.New("builder index missing")
 	}
+	builderIndex, err := strconv.ParseUint(data.BuilderIndex, 10, 64)
+	if err != nil {
+		return errors.Wrap(err, "invalid value for builder index")
+	}
+	e.BuilderIndex = gloas.BuilderIndex(builderIndex)
 
-	if data.BlockHash != "" {
-		if err := decodeFixedBytes(e.BlockHash[:], data.BlockHash, phase0.Hash32Length, "block hash"); err != nil {
-			return err
-		}
+	if data.BlockHash == "" {
+		return errors.New("block hash missing")
+	}
+	if err := decodeFixedBytes(e.BlockHash[:], data.BlockHash, "block hash"); err != nil {
+		return err
 	}
 
 	e.ExecutionOptimistic = data.ExecutionOptimistic
@@ -116,16 +112,15 @@ func (e *ExecutionPayloadEvent) String() string {
 	return string(data)
 }
 
-// decodeFixedBytes hex-decodes a 0x-prefixed value into dst, requiring exactly
-// wantLen bytes.
-//
-//nolint:unparam // every current field is 32 bytes; wantLen keeps the helper usable for 20-byte addresses et al.
-func decodeFixedBytes(dst []byte, value string, wantLen int, name string) error {
+// decodeFixedBytes hex-decodes a value, with or without a 0x prefix, into dst,
+// requiring exactly len(dst) bytes. The length comes from dst rather than from a
+// parameter so the two cannot disagree.
+func decodeFixedBytes(dst []byte, value string, name string) error {
 	decoded, err := hex.DecodeString(strings.TrimPrefix(value, "0x"))
 	if err != nil {
 		return errors.Wrapf(err, "invalid value for %s", name)
 	}
-	if len(decoded) != wantLen {
+	if len(decoded) != len(dst) {
 		return fmt.Errorf("incorrect length %d for %s", len(decoded), name)
 	}
 	copy(dst, decoded)

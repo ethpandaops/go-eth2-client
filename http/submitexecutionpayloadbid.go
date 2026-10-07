@@ -16,7 +16,6 @@ package http
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -70,9 +69,7 @@ func (s *Service) SubmitExecutionPayloadBid(ctx context.Context,
 	return s.postExecutionPayloadBid(ctx, &opts.Common, versioned.Version, bid)
 }
 
-// SubmitAgnosticExecutionPayloadBid submits a signed execution payload bid
-// supplied as a fork-agnostic *all.SignedExecutionPayloadBid for gossip
-// broadcast.
+// SubmitAgnosticExecutionPayloadBid submits a fork-agnostic execution payload bid.
 func (s *Service) SubmitAgnosticExecutionPayloadBid(ctx context.Context,
 	opts *api.SubmitAgnosticExecutionPayloadBidOpts,
 ) error {
@@ -93,38 +90,15 @@ func (s *Service) SubmitAgnosticExecutionPayloadBid(ctx context.Context,
 }
 
 // postExecutionPayloadBid marshals the bid to the negotiated content type
-// (SSZ unless JSON is enforced) and performs the POST shared by both submit
-// variants.
+// (SSZ unless JSON is enforced) and performs the POST.
 func (s *Service) postExecutionPayloadBid(ctx context.Context,
 	common *api.CommonOpts,
 	consensusVersion spec.DataVersion,
 	bid any,
 ) error {
-	var (
-		body        []byte
-		contentType ContentType
-		err         error
-	)
-
-	if s.enforceJSON {
-		contentType = ContentTypeJSON
-
-		body, err = json.Marshal(bid)
-		if err != nil {
-			return errors.Join(errors.New("failed to marshal JSON"), err)
-		}
-	} else {
-		contentType = ContentTypeSSZ
-
-		ds, dsErr := s.dynSSZForRequest(ctx)
-		if dsErr != nil {
-			return dsErr
-		}
-
-		body, err = ds.MarshalSSZ(bid)
-		if err != nil {
-			return errors.Join(errors.New("failed to marshal SSZ"), err)
-		}
+	body, contentType, err := s.marshalRequestBody(ctx, bid)
+	if err != nil {
+		return err
 	}
 
 	endpoint := "/eth/v1/beacon/execution_payload_bids"

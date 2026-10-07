@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -38,14 +38,14 @@ type ExecutionPayload struct {
 	GasLimit        uint64                     `ssz-index:"7"`
 	GasUsed         uint64                     `ssz-index:"8"`
 	Timestamp       uint64                     `ssz-index:"9"`
-	ExtraData       []byte                     `ssz-index:"10" dynssz-max:"MAX_EXTRA_DATA_BYTES" ssz-max:"32"`
-	BaseFeePerGas   *uint256.Int               `ssz-index:"11" ssz-type:"uint256"`
+	ExtraData       []byte                     `dynssz-max:"MAX_EXTRA_DATA_BYTES" ssz-index:"10"                               ssz-max:"32"`
+	BaseFeePerGas   *uint256.Int               `ssz-index:"11"                    ssz-type:"uint256"`
 	BlockHash       phase0.Hash32              `ssz-index:"12"`
-	Transactions    []bellatrix.Transaction    `ssz-index:"13" ssz-type:"progressive-list,progressive-list"`
-	Withdrawals     []*capella.Withdrawal      `ssz-index:"14" ssz-type:"progressive-list"`
+	Transactions    []bellatrix.Transaction    `ssz-index:"13"                    ssz-type:"progressive-list,progressive-list"`
+	Withdrawals     []*capella.Withdrawal      `ssz-index:"14"                    ssz-type:"progressive-list"`
 	BlobGasUsed     uint64                     `ssz-index:"15"`
 	ExcessBlobGas   uint64                     `ssz-index:"16"`
-	BlockAccessList BlockAccessList            `ssz-index:"17" ssz-type:"progressive-list"`
+	BlockAccessList BlockAccessList            `ssz-index:"17"                    ssz-type:"progressive-list"`
 	SlotNumber      uint64                     `ssz-index:"18"`
 }
 

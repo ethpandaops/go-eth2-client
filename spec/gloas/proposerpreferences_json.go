@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
 )
@@ -91,6 +92,9 @@ func (p *ProposerPreferences) UnmarshalJSON(input []byte) error {
 	feeRecipient, err := hex.DecodeString(strings.TrimPrefix(data.FeeRecipient, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid fee recipient")
+	}
+	if len(feeRecipient) != bellatrix.FeeRecipientLength {
+		return errors.New("incorrect length for fee recipient")
 	}
 	copy(p.FeeRecipient[:], feeRecipient)
 

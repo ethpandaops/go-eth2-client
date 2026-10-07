@@ -28,13 +28,10 @@ type SubmitExecutionPayloadBidOpts struct {
 	SignedExecutionPayloadBid *spec.VersionedSignedExecutionPayloadBid
 }
 
-// SubmitAgnosticExecutionPayloadBidOpts are the options for submitting
-// execution payload bids supplied as a fork-agnostic
-// *all.SignedExecutionPayloadBid.
+// SubmitAgnosticExecutionPayloadBidOpts are the options for submitting a fork-agnostic execution payload bid.
 type SubmitAgnosticExecutionPayloadBidOpts struct {
 	Common CommonOpts
 
-	// SignedExecutionPayloadBid is the signed bid to publish. Its Version
-	// selects the wire schema and the consensus version header.
+	// SignedExecutionPayloadBid is the fork-agnostic signed execution payload bid to submit.
 	SignedExecutionPayloadBid *all.SignedExecutionPayloadBid
 }

@@ -143,7 +143,7 @@ func fromVersioned(dst fromViewer, src any) error {
 		return fmt.Errorf("fromVersioned: %T has no Version field", src)
 	}
 
-	v, ok := versionField.Interface().(version.DataVersion)
+	v, ok := reflect.TypeAssert[version.DataVersion](versionField)
 	if !ok {
 		return fmt.Errorf("fromVersioned: Version field on %T is %T not version.DataVersion",
 			src, versionField.Interface())

@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -14,11 +14,9 @@
 package v1
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
@@ -55,14 +53,9 @@ func (e *ExecutionPayloadAvailableEvent) UnmarshalJSON(input []byte) error {
 	if executionPayloadAvailableEventJSON.BlockRoot == "" {
 		return errors.New("block root missing")
 	}
-	block, err := hex.DecodeString(strings.TrimPrefix(executionPayloadAvailableEventJSON.BlockRoot, "0x"))
-	if err != nil {
-		return errors.Wrap(err, "invalid value for block root")
+	if err := decodeFixedBytes(e.BlockRoot[:], executionPayloadAvailableEventJSON.BlockRoot, "block root"); err != nil {
+		return err
 	}
-	if len(block) != rootLength {
-		return fmt.Errorf("incorrect length %d for block root", len(block))
-	}
-	copy(e.BlockRoot[:], block)
 	if executionPayloadAvailableEventJSON.Slot == "" {
 		return errors.New("slot missing")
 	}

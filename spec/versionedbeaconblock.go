@@ -1,4 +1,4 @@
-// Copyright © 2021 - 2024 Attestant Limited.
+// Copyright © 2021 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -42,8 +42,8 @@ type VersionedBeaconBlock struct {
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedBeaconBlock) IsEmpty() bool {
-	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil &&
+		v.Deneb == nil && v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
 }
 
 // Slot returns the slot of the beacon block.
@@ -645,6 +645,8 @@ func (v *VersionedBeaconBlock) StateRoot() (phase0.Root, error) {
 }
 
 // Attestations returns the attestations of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedBeaconBlock) Attestations() ([]VersionedAttestation, error) {
 	switch v.Version {
 	case DataVersionPhase0:
@@ -779,6 +781,8 @@ func (v *VersionedBeaconBlock) Attestations() ([]VersionedAttestation, error) {
 }
 
 // AttesterSlashings returns the attester slashings of the beacon block.
+//
+//nolint:gocyclo
 func (v *VersionedBeaconBlock) AttesterSlashings() ([]VersionedAttesterSlashing, error) {
 	switch v.Version {
 	case DataVersionPhase0:

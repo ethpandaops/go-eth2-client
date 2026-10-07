@@ -15,7 +15,11 @@ package v1_test
 
 import (
 	"encoding/json"
+	"math"
+	"reflect"
 	"testing"
+
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 
 	api "github.com/ethpandaops/go-eth2-client/api/v1"
 	"github.com/stretchr/testify/assert"
@@ -39,33 +43,52 @@ func TestExecutionPayloadEventJSON(t *testing.T) {
 		},
 		{
 			name:  "SlotMissing",
-			input: []byte(`{"builder_index":"1","block_hash":"0xc8ac520b396aad76b4cf448aa4ff8ca9b4c1fe600e6416234849654e874db714","block_root":"0x2e52507aad249d4dfe1557f9031d5154c1c7b2a2e5819d0639f719725aa538af","execution_optimistic":true}`),
+			input: []byte(`{"builder_index":"12","block_hash":"0x1c3981b7439cd2dc53dca1a99122e1cacb36a13796d426d4c8a03ba745cb0c8b","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false}`),
 			err:   "slot missing",
 		},
 		{
+			name:  "SlotInvalid",
+			input: []byte(`{"slot":"-1","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028"}`),
+			err:   "invalid value for slot: strconv.ParseUint: parsing \"-1\": invalid syntax",
+		},
+		{
 			name:  "BlockRootMissing",
-			input: []byte(`{"slot":"91000","builder_index":"1","block_hash":"0xc8ac520b396aad76b4cf448aa4ff8ca9b4c1fe600e6416234849654e874db714","execution_optimistic":true}`),
+			input: []byte(`{"slot":"4095940"}`),
 			err:   "block root missing",
 		},
 		{
-			name:  "BlockRootInvalidLength",
-			input: []byte(`{"slot":"91000","builder_index":"1","block_hash":"0xc8ac520b396aad76b4cf448aa4ff8ca9b4c1fe600e6416234849654e874db714","block_root":"0x2e52","execution_optimistic":true}`),
-			err:   "incorrect length 2 for block root",
+			name:  "BlockRootInvalid",
+			input: []byte(`{"slot":"4095940","block_root":"invalid"}`),
+			err:   "invalid value for block root: encoding/hex: invalid byte: U+0069 'i'",
 		},
 		{
-			// Real prysm/lighthouse-shape sample: no state_root, execution_optimistic present.
-			name:  "GoodBare",
-			input: []byte(`{"slot":"91000","builder_index":"1","block_hash":"0xc8ac520b396aad76b4cf448aa4ff8ca9b4c1fe600e6416234849654e874db714","block_root":"0x2e52507aad249d4dfe1557f9031d5154c1c7b2a2e5819d0639f719725aa538af","execution_optimistic":true}`),
+			name:  "BlockRootShort",
+			input: []byte(`{"slot":"4095940","block_root":"0xe3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028"}`),
+			err:   "incorrect length 31 for block root",
 		},
 		{
-			// Real nimbus-shape sample: carries an extra, non-spec state_root that must be ignored.
-			name:  "GoodWithNonSpecStateRoot",
-			input: []byte(`{"slot":"91894","builder_index":"18446744073709551615","block_hash":"0x716b390040980aa80e891c4881b5f266812ca1fdbf14efc4ef048145b8d0edb6","block_root":"0x957251f4a7a2b9713520a3f44d008a7814efaf5c63ff2cfe2ff908f28d09866f","state_root":"0x0000000000000000000000000000000000000000000000000000000000000000","execution_optimistic":true}`),
+			name:  "BlockRootLong",
+			input: []byte(`{"slot":"4095940","block_root":"0x9999e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028"}`),
+			err:   "incorrect length 33 for block root",
 		},
 		{
-			// Gossip-shape sample: no execution_optimistic.
-			name:  "GoodGossip",
-			input: []byte(`{"slot":"91001","builder_index":"1","block_hash":"0x45aaeada228ea83858022991d8e6e8a2d6492f58e60d5d4a30acc528fcd5063d","block_root":"0xe7b490b90ad5bcc30d933c88f0177df4df2eb32094036421e455737582880268"}`),
+			name:  "BuilderIndexInvalid",
+			input: []byte(`{"slot":"4095940","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","builder_index":"-1"}`),
+			err:   "invalid value for builder index: strconv.ParseUint: parsing \"-1\": invalid syntax",
+		},
+		{
+			name:  "BlockHashInvalid",
+			input: []byte(`{"slot":"4095940","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","builder_index":"12","block_hash":"invalid"}`),
+			err:   "invalid value for block hash: encoding/hex: invalid byte: U+0069 'i'",
+		},
+		{
+			name:  "BlockHashShort",
+			input: []byte(`{"slot":"4095940","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","builder_index":"12","block_hash":"0xe3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028"}`),
+			err:   "incorrect length 31 for block hash",
+		},
+		{
+			name:  "Good",
+			input: []byte(`{"slot":"4095940","builder_index":"12","block_hash":"0x1c3981b7439cd2dc53dca1a99122e1cacb36a13796d426d4c8a03ba745cb0c8b","block_root":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":true}`),
 		},
 	}
 
@@ -79,21 +102,74 @@ func TestExecutionPayloadEventJSON(t *testing.T) {
 				require.NoError(t, err)
 				rt, err := json.Marshal(&res)
 				require.NoError(t, err)
-				assert.NotEmpty(t, rt)
+				assert.Equal(t, string(test.input), string(rt))
+				assert.Equal(t, string(rt), res.String())
 			}
+		})
+	}
+
+}
+
+func TestExecutionPayloadEventRequiredFields(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		err   string
+	}{
+		{name: "BuilderIndexMissing", input: `{"slot":"10","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef","block_root":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf"}`, err: "builder index missing"},
+		{name: "BlockHashMissing", input: `{"slot":"10","builder_index":"42","block_root":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf"}`, err: "block hash missing"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var event api.ExecutionPayloadEvent
+			require.EqualError(t, json.Unmarshal([]byte(test.input), &event), test.err)
 		})
 	}
 }
 
-func TestExecutionPayloadEventValues(t *testing.T) {
-	input := []byte(`{"slot":"91894","builder_index":"18446744073709551615","block_hash":"0x716b390040980aa80e891c4881b5f266812ca1fdbf14efc4ef048145b8d0edb6","block_root":"0x957251f4a7a2b9713520a3f44d008a7814efaf5c63ff2cfe2ff908f28d09866f","state_root":"0x0000000000000000000000000000000000000000000000000000000000000000","execution_optimistic":true}`)
+func TestExecutionPayloadGossipEventRequiredFields(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		err   string
+	}{
+		{name: "BuilderIndexMissing", input: `{"slot":"10","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef","block_root":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf"}`, err: "builder index missing"},
+		{name: "BlockHashMissing", input: `{"slot":"10","builder_index":"42","block_root":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf"}`, err: "block hash missing"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var event api.ExecutionPayloadGossipEvent
+			require.EqualError(t, json.Unmarshal([]byte(test.input), &event), test.err)
+		})
+	}
+}
 
-	var res api.ExecutionPayloadEvent
-	require.NoError(t, json.Unmarshal(input, &res))
+func TestExecutionPayloadEventBuilderIndexType(t *testing.T) {
+	for _, event := range []any{api.ExecutionPayloadEvent{}, api.ExecutionPayloadGossipEvent{}} {
+		field, ok := reflect.TypeOf(event).FieldByName("BuilderIndex")
+		require.True(t, ok)
+		require.Equal(t, reflect.TypeOf(gloas.BuilderIndex(0)), field.Type)
+	}
+}
 
-	assert.Equal(t, uint64(91894), uint64(res.Slot))
-	assert.Equal(t, uint64(18446744073709551615), res.BuilderIndex)
-	assert.Equal(t, "0x716b390040980aa80e891c4881b5f266812ca1fdbf14efc4ef048145b8d0edb6", res.BlockHash.String())
-	assert.Equal(t, "0x957251f4a7a2b9713520a3f44d008a7814efaf5c63ff2cfe2ff908f28d09866f", res.BlockRoot.String())
-	assert.True(t, res.ExecutionOptimistic)
+func TestExecutionPayloadEventSelfBuild(t *testing.T) {
+	const input = `{"slot":"16342","builder_index":"18446744073709551615","block_hash":"0x3e901234567890abcdef1234567890abcdef1234567890abcdef1234567890ab","block_root":"0x9ac61234567890abcdef1234567890abcdef1234567890abcdef1234567890ab","execution_optimistic":false}`
+	for _, event := range []json.Unmarshaler{&api.ExecutionPayloadEvent{}, &api.ExecutionPayloadGossipEvent{}} {
+		require.NoError(t, event.UnmarshalJSON([]byte(input)))
+		field := reflect.ValueOf(event).Elem().FieldByName("BuilderIndex")
+		require.Equal(t, gloas.BuilderIndexSelfBuild, field.Interface())
+		require.Equal(t, uint64(math.MaxUint64), uint64(gloas.BuilderIndexSelfBuild))
+	}
+}
+
+func TestExecutionPayloadEventsIgnoreNimbusStateRoot(t *testing.T) {
+	const input = `{"slot":"10","builder_index":"42","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef","block_root":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","state_root":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
+	for _, event := range []json.Unmarshaler{&api.ExecutionPayloadEvent{}, &api.ExecutionPayloadGossipEvent{}} {
+		require.NoError(t, event.UnmarshalJSON([]byte(input)))
+		_, exists := reflect.TypeOf(event).Elem().FieldByName("StateRoot")
+		require.False(t, exists)
+		encoded, err := json.Marshal(event)
+		require.NoError(t, err)
+		require.NotContains(t, string(encoded), "state_root")
+	}
 }

@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2023 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -273,3 +273,11 @@ func (a *AggregateAndProof) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*AggregateAndProof)(nil)
+	_ viewer        = (*AggregateAndProof)(nil)
+	_ fromViewer    = (*AggregateAndProof)(nil)
+	_ versionSetter = (*AggregateAndProof)(nil)
+)

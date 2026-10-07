@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,26 +16,17 @@ package gloas
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
-	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
 
-// beaconBlockYAML is the spec representation of the struct.
-type beaconBlockYAML struct {
-	Slot          uint64           `yaml:"slot"`
-	ProposerIndex uint64           `yaml:"proposer_index"`
-	ParentRoot    phase0.Root      `yaml:"parent_root"`
-	StateRoot     phase0.Root      `yaml:"state_root"`
-	Body          *BeaconBlockBody `yaml:"body"`
-}
-
 // MarshalYAML implements yaml.Marshaler.
 func (b *BeaconBlock) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&beaconBlockYAML{
-		Slot:          uint64(b.Slot),
-		ProposerIndex: uint64(b.ProposerIndex),
+	yamlBytes, err := yaml.MarshalWithOptions(&beaconBlockJSON{
+		Slot:          fmt.Sprintf("%d", b.Slot),
+		ProposerIndex: fmt.Sprintf("%d", b.ProposerIndex),
 		ParentRoot:    b.ParentRoot,
 		StateRoot:     b.StateRoot,
 		Body:          b.Body,

@@ -1,4 +1,4 @@
-// Copyright © 2024 Attestant Limited.
+// Copyright © 2024 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -37,8 +37,8 @@ type VersionedIndexedAttestation struct {
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedIndexedAttestation) IsEmpty() bool {
-	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil &&
+		v.Capella == nil && v.Deneb == nil && v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
 }
 
 // AttestingIndices returns the attesting indices of the indexed attestation.

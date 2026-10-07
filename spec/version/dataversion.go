@@ -1,4 +1,4 @@
-// Copyright © 2021 - 2023 Attestant Limited.
+// Copyright © 2021 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -70,8 +70,10 @@ var dataVersionMap = map[string]DataVersion{
 }
 
 // MarshalJSON implements json.Marshaler.
+// The string comes from String() so the bounds check lives in one place;
+// indexing dataVersionStrings here would panic on a version it has no entry for.
 func (d *DataVersion) MarshalJSON() ([]byte, error) {
-	return fmt.Appendf(nil, "%q", dataVersionStrings[*d]), nil
+	return fmt.Appendf(nil, "%q", d.String()), nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -90,7 +92,9 @@ func (d *DataVersion) UnmarshalJSON(input []byte) error {
 
 // String returns a string representation of the struct.
 func (d DataVersion) String() string {
-	if int(d) >= len(dataVersionStrings) {
+	// uint64, not int: int(d) wraps negative at 1<<63 and would slip past into
+	// an out-of-range index.
+	if uint64(d) >= uint64(len(dataVersionStrings)) {
 		return "unknown"
 	}
 

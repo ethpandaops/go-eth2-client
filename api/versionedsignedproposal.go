@@ -1,4 +1,4 @@
-// Copyright © 2023, 2024 Attestant Limited.
+// Copyright © 2023 - 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -60,6 +60,8 @@ type VersionedSignedProposal struct {
 
 // AssertPresent throws an error if the expected proposal
 // given the version and blinded fields is not present.
+//
+//nolint:gocyclo // one arm per fork, and per blinded variant within it
 func (v *VersionedSignedProposal) AssertPresent() error {
 	switch v.Version {
 	case spec.DataVersionPhase0:
@@ -111,10 +113,18 @@ func (v *VersionedSignedProposal) AssertPresent() error {
 			return errors.New("blinded fulu proposal not present")
 		}
 	case spec.DataVersionGloas:
+		if v.Blinded {
+			return errors.New("gloas proposals are never blinded")
+		}
+
 		if v.Gloas == nil {
 			return errors.New("gloas proposal not present")
 		}
 	case spec.DataVersionHeze:
+		if v.Blinded {
+			return errors.New("heze proposals are never blinded")
+		}
+
 		if v.Heze == nil {
 			return errors.New("heze proposal not present")
 		}
@@ -264,6 +274,9 @@ func (v *VersionedSignedProposal) ExecutionBlockHash() (phase0.Hash32, error) {
 
 		return v.Fulu.SignedBlock.Message.Body.ExecutionPayload.BlockHash, nil
 	case spec.DataVersionGloas:
+		// No blinded arm: there is no blinded proposal post-Gloas.  The bid the
+		// proposer committed to stands in for the payload and the payload header
+		// the earlier arms read.
 		return v.Gloas.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
@@ -546,6 +559,8 @@ func (v *VersionedSignedProposal) assertExecutionPayloadPresent() error {
 			}
 		}
 	case spec.DataVersionGloas:
+		// The chain runs one field deeper than assertMessagePresent's Gloas arm
+		// because the execution block hash lives in the bid.
 		if v.Gloas == nil ||
 			v.Gloas.Message == nil ||
 			v.Gloas.Message.Body == nil ||

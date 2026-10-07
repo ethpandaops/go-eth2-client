@@ -45,25 +45,19 @@ type SubmitExecutionPayloadEnvelopeOpts struct {
 	BroadcastValidation *apiv2.BroadcastValidation
 }
 
-// SubmitAgnosticExecutionPayloadEnvelopeOpts are the options for submitting
-// execution payload envelopes supplied as a fork-agnostic
-// *all.SignedExecutionPayloadEnvelope. See
-// SubmitExecutionPayloadEnvelopeOpts for the request form semantics.
+// SubmitAgnosticExecutionPayloadEnvelopeOpts are the options for submitting a fork-agnostic execution payload envelope.
 type SubmitAgnosticExecutionPayloadEnvelopeOpts struct {
 	Common CommonOpts
 
-	// SignedExecutionPayloadEnvelope is the signed envelope to publish.
-	// Its Version selects the wire schema and the consensus version header.
+	// SignedExecutionPayloadEnvelope is the fork-agnostic signed execution payload envelope to submit.
 	SignedExecutionPayloadEnvelope *all.SignedExecutionPayloadEnvelope
 
-	// KZGProofs are the cell KZG proofs for the blobs committed to by the
-	// envelope's payload.
+	// KZGProofs are the KZG proofs for the blobs in the envelope.
 	KZGProofs []deneb.KZGProof
 
-	// Blobs are the blobs committed to by the envelope's payload.
+	// Blobs are the blobs in the envelope.
 	Blobs []deneb.Blob
 
-	// BroadcastValidation is the validation required of the consensus node
-	// before broadcasting the envelope.
+	// BroadcastValidation is the validation level to apply before broadcasting.
 	BroadcastValidation *apiv2.BroadcastValidation
 }

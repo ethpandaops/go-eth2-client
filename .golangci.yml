@@ -41,6 +41,7 @@ linters:
     - err113           # Disable error 113 check
     - exhaustive       # Disable exhaustive check
     - exhaustruct      # Disable exhaustruct check
+    - exhaustruct_v5   # Disable exhaustruct check
     - forcetypeassert  # Disable force type assert check
     - funlen           # Disable function length check
     - gochecknoglobals # Disable global variable check
@@ -48,6 +49,7 @@ linters:
     - gocognit         # Disable cognitive complexity check
     - goconst          # Disable constant check
     - gocyclo          # Disable gocyclo (redundant with cyclop; version-dispatch switches legitimately exceed default thresholds)
+    - gomodguard       # Superseded by gomodguard_v2, which default: all enables
     - intrange         # Disable integer range check
     - ireturn          # Disable return check
     - lll              # Disable line length check
@@ -140,18 +142,6 @@ linters:
         - all
         - -ST1000
 
-    # tagalign: Struct tag alignment and ordering
-    tagalign:
-      # Don't column-align tags; alignment padding would push the SSZ tag lines
-      # past the revive line-length-limit (160). Single-space separation is used.
-      align: false
-      # Enforce tag key ordering. ssz-index stays first (it defines the field
-      # position for EIP-7688 progressive containers); remaining keys follow
-      # alphabetically.
-      sort: true
-      order:
-        - ssz-index
-
     # tagliatelle: Struct tag naming conventions
     tagliatelle:
       case:
@@ -169,7 +159,7 @@ linters:
           # HIGH PRIORITY
           enable_no_pkg_logger: false
           enable_enum_iota: true
-          enable_current_year: false
+          enable_current_year: true
           # MEDIUM PRIORITY
           enable_capital_comment: false
           enable_func_opts: true
@@ -194,6 +184,24 @@ linters:
       - third_party$ # Exclude third party code
       - builtin$ # Exclude builtin code
       - examples$ # Exclude example code
+    # Rule-based exclusions
+    rules:
+      # gloas ePBS type definitions carry long dynssz size-expression struct
+      # tags and require ssz-index tags for correct SSZ generation (removing
+      # them changes the generated SSZ). gofmt aligns these tags past the
+      # 132-char limit and struct tags cannot be wrapped, so exempt only the
+      # line-length checks for the gloas type packages.
+      - path: (spec|api/v1)/gloas/
+        text: "line is [0-9]+ characters"
+        linters:
+          - revive
+      # The http package is named after the API it wraps.  revive reports the
+      # clash with net/http once per package on an arbitrary file, so a merge
+      # that adds files to the package would otherwise fail the new-lines check.
+      - path: ^http/
+        text: 'package-naming: don''t use "http"'
+        linters:
+          - revive
 # Formatters: Code formatting tools
 formatters:
   enable:

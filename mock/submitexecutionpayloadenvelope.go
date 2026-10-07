@@ -19,12 +19,14 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 )
 
-// SubmitExecutionPayloadEnvelope submits an execution payload envelope.
+// SubmitExecutionPayloadEnvelope submits a signed execution payload envelope.
 func (*Service) SubmitExecutionPayloadEnvelope(_ context.Context, _ *api.SubmitExecutionPayloadEnvelopeOpts) error {
 	return nil
 }
 
 // SubmitAgnosticExecutionPayloadEnvelope submits a fork-agnostic execution payload envelope.
-func (*Service) SubmitAgnosticExecutionPayloadEnvelope(_ context.Context, _ *api.SubmitAgnosticExecutionPayloadEnvelopeOpts) error {
+func (*Service) SubmitAgnosticExecutionPayloadEnvelope(_ context.Context,
+	_ *api.SubmitAgnosticExecutionPayloadEnvelopeOpts,
+) error {
 	return nil
 }

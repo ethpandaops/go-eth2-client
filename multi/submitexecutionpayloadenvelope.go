@@ -20,7 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 )
 
-// SubmitExecutionPayloadEnvelope submits an execution payload envelope.
+// SubmitExecutionPayloadEnvelope submits a signed execution payload envelope.
 func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SubmitExecutionPayloadEnvelopeOpts,
 ) error {

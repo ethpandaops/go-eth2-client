@@ -1,4 +1,4 @@
-// Copyright © 2025 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,23 +22,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// proposerPreferencesYAML is the spec representation of the struct.
-type proposerPreferencesYAML struct {
-	DependentRoot  string `yaml:"dependent_root"`
-	ProposalSlot   uint64 `yaml:"proposal_slot"`
-	ValidatorIndex uint64 `yaml:"validator_index"`
-	FeeRecipient   string `yaml:"fee_recipient"`
-	TargetGasLimit uint64 `yaml:"target_gas_limit"`
-}
-
 // MarshalYAML implements yaml.Marshaler.
 func (p *ProposerPreferences) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&proposerPreferencesYAML{
+	yamlBytes, err := yaml.MarshalWithOptions(&proposerPreferencesJSON{
 		DependentRoot:  fmt.Sprintf("%#x", p.DependentRoot),
-		ProposalSlot:   uint64(p.ProposalSlot),
-		ValidatorIndex: uint64(p.ValidatorIndex),
+		ProposalSlot:   fmt.Sprintf("%d", p.ProposalSlot),
+		ValidatorIndex: fmt.Sprintf("%d", p.ValidatorIndex),
 		FeeRecipient:   fmt.Sprintf("%#x", p.FeeRecipient),
-		TargetGasLimit: p.TargetGasLimit,
+		TargetGasLimit: fmt.Sprintf("%d", p.TargetGasLimit),
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err

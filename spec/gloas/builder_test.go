@@ -15,70 +15,77 @@ package gloas_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
+	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
-	"github.com/stretchr/testify/require"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	require "github.com/stretchr/testify/require"
 )
 
-func TestBuilderJSON(t *testing.T) {
-	// Beacon API JSON encodes all integers as strings.
-	input := `{"pubkey":"0xa99a76ed7796f7be22d5b7e85deeb7c5677e88e511e0b337618f8c4eb61349b4bf2d153f649f7b53359fe8b94a38e44c","version":"1","execution_address":"0x000102030405060708090a0b0c0d0e0f10111213","balance":"32000000000","deposit_epoch":"12","withdrawable_epoch":"18446744073709551615"}`
-
-	var builder gloas.Builder
-	require.NoError(t, json.Unmarshal([]byte(input), &builder))
-	require.Equal(t, uint8(1), builder.Version)
-
-	// Round-trip.
-	output, err := json.Marshal(&builder)
-	require.NoError(t, err)
-	require.JSONEq(t, input, string(output))
-}
-
-func TestBuilderJSONInvalidVersion(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		errorMsg string
-	}{
-		{
-			name:     "missing",
-			input:    `{"pubkey":"0xa99a76ed7796f7be22d5b7e85deeb7c5677e88e511e0b337618f8c4eb61349b4bf2d153f649f7b53359fe8b94a38e44c","execution_address":"0x000102030405060708090a0b0c0d0e0f10111213","balance":"32000000000","deposit_epoch":"12","withdrawable_epoch":"13"}`,
-			errorMsg: "version missing",
-		},
-		{
-			name:     "not a number",
-			input:    `{"pubkey":"0xa99a76ed7796f7be22d5b7e85deeb7c5677e88e511e0b337618f8c4eb61349b4bf2d153f649f7b53359fe8b94a38e44c","version":"banana","execution_address":"0x000102030405060708090a0b0c0d0e0f10111213","balance":"32000000000","deposit_epoch":"12","withdrawable_epoch":"13"}`,
-			errorMsg: "invalid value for version",
-		},
-		{
-			name:     "out of range for uint8",
-			input:    `{"pubkey":"0xa99a76ed7796f7be22d5b7e85deeb7c5677e88e511e0b337618f8c4eb61349b4bf2d153f649f7b53359fe8b94a38e44c","version":"256","execution_address":"0x000102030405060708090a0b0c0d0e0f10111213","balance":"32000000000","deposit_epoch":"12","withdrawable_epoch":"13"}`,
-			errorMsg: "invalid value for version",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var builder gloas.Builder
-			err := json.Unmarshal([]byte(test.input), &builder)
-			require.ErrorContains(t, err, test.errorMsg)
-		})
+// testBuilder returns a builder whose every field carries a distinctive value, so
+// a field dropped by one of the four hand-written codec literals shows up as a
+// difference rather than as a coincidentally-matching zero.
+func testBuilder() *gloas.Builder {
+	return &gloas.Builder{
+		PublicKey:         phase0.BLSPubKey{0x01},
+		Version:           1,
+		ExecutionAddress:  bellatrix.ExecutionAddress{0x02},
+		Balance:           3,
+		DepositEpoch:      4,
+		WithdrawableEpoch: 5,
 	}
 }
 
-func TestBuilderYAML(t *testing.T) {
-	input := `{"pubkey":"0xa99a76ed7796f7be22d5b7e85deeb7c5677e88e511e0b337618f8c4eb61349b4bf2d153f649f7b53359fe8b94a38e44c","version":"1","execution_address":"0x000102030405060708090a0b0c0d0e0f10111213","balance":"32000000000","deposit_epoch":"12","withdrawable_epoch":"13"}`
+// TestBuilderVersionUnmarshal verifies that a builder's version survives a JSON
+// decode. beacon-APIs types/gloas/builder.yaml lists version among Builder's
+// required properties, and the SSZ codec carries it, so a JSON decode that drops
+// it hands the caller a builder that silently claims version 0.
+//
+// The field is decoded into the intermediate JSON struct but was never copied
+// across to the target, so every builder read over JSON lost it.
+func TestBuilderVersionUnmarshal(t *testing.T) {
+	builder := testBuilder()
 
-	var builder gloas.Builder
-	require.NoError(t, json.Unmarshal([]byte(input), &builder))
+	var decoded gloas.Builder
+	require.NoError(t, json.Unmarshal([]byte(mustMarshal(t, builder)), &decoded))
+	require.Equal(t, builder, &decoded)
+}
 
-	yamlBytes, err := builder.MarshalYAML()
+// TestBuilderVersionYAML verifies that a builder's version survives a YAML
+// round-trip. The read direction is shared — UnmarshalYAML routes through the
+// same unpack helper UnmarshalJSON uses — but MarshalJSON and MarshalYAML are two
+// independent composite literals, so only the JSON one was ever populated. The
+// consensus-spec vectors would catch it, but they are absent, so this is the only
+// guard.
+//
+// The unquoted form asserted below is the current shape, not an endorsement of it:
+// whether a spec Uint8 should be a quoted string here is a separate open question.
+func TestBuilderVersionYAML(t *testing.T) {
+	builder := testBuilder()
+
+	data, err := builder.MarshalYAML()
 	require.NoError(t, err)
-	// The consensus spec vectors write version as a bare integer in YAML.
-	require.Contains(t, string(yamlBytes), "version: 1")
+	require.Contains(t, string(data), "version: 1")
 
-	var roundTripped gloas.Builder
-	require.NoError(t, roundTripped.UnmarshalYAML(yamlBytes))
-	require.Equal(t, builder, roundTripped)
+	var decoded gloas.Builder
+	require.NoError(t, decoded.UnmarshalYAML(data))
+	require.Equal(t, builder, &decoded)
+}
+
+// TestBuilderVersionUnmarshalString verifies that a quoted version, which is how
+// Lighthouse serves the field in a Gloas BeaconState, decodes the same as the bare
+// number this package writes.
+func TestBuilderVersionUnmarshalString(t *testing.T) {
+	builder := testBuilder()
+
+	quoted := strings.Replace(mustMarshal(t, builder), `"version":1`, `"version":"1"`, 1)
+	require.Contains(t, quoted, `"version":"1"`)
+
+	var decoded gloas.Builder
+	require.NoError(t, json.Unmarshal([]byte(quoted), &decoded))
+	require.Equal(t, builder, &decoded)
+
+	require.Error(t, json.Unmarshal([]byte(`{"pubkey":"0x00","version":"x"}`), &decoded))
 }

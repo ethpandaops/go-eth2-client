@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,19 +22,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// payloadAttestationDataYAML is the spec representation of the struct.
-type payloadAttestationDataYAML struct {
-	BeaconBlockRoot   string `yaml:"beacon_block_root"`
-	Slot              uint64 `yaml:"slot"`
-	PayloadPresent    bool   `yaml:"payload_present"`
-	BlobDataAvailable bool   `yaml:"blob_data_available"`
-}
-
 // MarshalYAML implements yaml.Marshaler.
 func (p *PayloadAttestationData) MarshalYAML() ([]byte, error) {
-	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationDataYAML{
+	yamlBytes, err := yaml.MarshalWithOptions(&payloadAttestationDataJSON{
 		BeaconBlockRoot:   fmt.Sprintf("%#x", p.BeaconBlockRoot),
-		Slot:              uint64(p.Slot),
+		Slot:              fmt.Sprintf("%d", p.Slot),
 		PayloadPresent:    p.PayloadPresent,
 		BlobDataAvailable: p.BlobDataAvailable,
 	}, yaml.Flow(true))

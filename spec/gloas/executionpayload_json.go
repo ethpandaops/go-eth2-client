@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -55,8 +55,10 @@ type executionPayloadJSON struct {
 func (e *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	transactions := make([]string, len(e.Transactions))
 	for i := range e.Transactions {
-		// %#x renders an empty transaction as "", while the spec writes "0x".
-		transactions[i] = "0x" + hex.EncodeToString(e.Transactions[i])
+		transactions[i] = "0x"
+		if len(e.Transactions[i]) > 0 {
+			transactions[i] = fmt.Sprintf("%#x", e.Transactions[i])
+		}
 	}
 
 	extraData := "0x"
@@ -67,6 +69,13 @@ func (e *ExecutionPayload) MarshalJSON() ([]byte, error) {
 	blockAccessList := "0x"
 	if len(e.BlockAccessList) > 0 {
 		blockAccessList = fmt.Sprintf("%#x", e.BlockAccessList)
+	}
+
+	// BaseFeePerGas is a nilable *uint256.Int; guard the nil case as the SSZ
+	// marshaler does so a zero-value payload does not panic on .Dec().
+	baseFeePerGas := e.BaseFeePerGas
+	if baseFeePerGas == nil {
+		baseFeePerGas = new(uint256.Int)
 	}
 
 	return json.Marshal(&executionPayloadJSON{
@@ -81,7 +90,7 @@ func (e *ExecutionPayload) MarshalJSON() ([]byte, error) {
 		GasUsed:         strconv.FormatUint(e.GasUsed, 10),
 		Timestamp:       strconv.FormatUint(e.Timestamp, 10),
 		ExtraData:       extraData,
-		BaseFeePerGas:   e.BaseFeePerGas.Dec(),
+		BaseFeePerGas:   baseFeePerGas.Dec(),
 		BlockHash:       e.BlockHash,
 		Transactions:    transactions,
 		Withdrawals:     e.Withdrawals,
@@ -240,17 +249,10 @@ func (e *ExecutionPayload) UnmarshalJSON(input []byte) error {
 
 	e.Transactions = make([]bellatrix.Transaction, len(transactions))
 	for i := range transactions {
-		if len(transactions[i]) == 0 {
-			return fmt.Errorf("transaction %d: missing", i)
-		}
-
-		// Since Gloas a transaction is a ProgressiveByteList, which the spec
-		// writes as "0x" when it is empty.
-		if bytes.Equal(transactions[i], []byte{'"', '"'}) ||
-			bytes.Equal(transactions[i], []byte{'"', '0', 'x', '"'}) {
-			e.Transactions[i] = bellatrix.Transaction{}
-
-			continue
+		// "0x" is a valid empty transaction. Shorter values cannot carry
+		// the prefix and would underflow the allocation below.
+		if len(transactions[i]) < 4 {
+			return fmt.Errorf("transaction %d: missing or malformed", i)
 		}
 
 		e.Transactions[i] = make([]byte, (len(transactions[i])-4)/2)

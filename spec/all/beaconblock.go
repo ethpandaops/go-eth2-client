@@ -295,3 +295,11 @@ func (b *BeaconBlock) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*BeaconBlock)(nil)
+	_ viewer        = (*BeaconBlock)(nil)
+	_ fromViewer    = (*BeaconBlock)(nil)
+	_ versionSetter = (*BeaconBlock)(nil)
+)

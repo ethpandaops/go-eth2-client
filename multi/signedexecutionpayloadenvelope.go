@@ -1,4 +1,4 @@
-// Copyright © 2021 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -30,12 +30,12 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	error,
 ) {
 	res, err := s.doCall(ctx, func(ctx context.Context, client consensusclient.Service) (any, error) {
-		block, err := client.(consensusclient.ExecutionPayloadProvider).SignedExecutionPayloadEnvelope(ctx, opts)
+		envelope, err := client.(consensusclient.ExecutionPayloadProvider).SignedExecutionPayloadEnvelope(ctx, opts)
 		if err != nil {
 			return nil, err
 		}
 
-		return block, nil
+		return envelope, nil
 	}, nil)
 	if err != nil {
 		return nil, err
@@ -49,8 +49,7 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	return response, nil
 }
 
-// AgnosticSignedExecutionPayloadEnvelope fetches a signed execution payload
-// envelope as a fork-agnostic *all.SignedExecutionPayloadEnvelope.
+// AgnosticSignedExecutionPayloadEnvelope provides a fork-agnostic signed execution payload envelope.
 func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SignedExecutionPayloadEnvelopeOpts,
 ) (

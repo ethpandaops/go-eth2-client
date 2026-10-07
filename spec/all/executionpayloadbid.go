@@ -257,3 +257,11 @@ func (e *ExecutionPayloadBid) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*ExecutionPayloadBid)(nil)
+	_ viewer        = (*ExecutionPayloadBid)(nil)
+	_ fromViewer    = (*ExecutionPayloadBid)(nil)
+	_ versionSetter = (*ExecutionPayloadBid)(nil)
+)

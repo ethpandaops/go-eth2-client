@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,17 +16,10 @@ package gloas
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
-
-// signedBeaconBlockYAML is the spec representation of the struct.
-type signedBeaconBlockYAML struct {
-	Message   *BeaconBlock `yaml:"message"`
-	Signature string       `yaml:"signature"`
-}
 
 // MarshalYAML implements yaml.Marshaler.
 func (s *SignedBeaconBlock) MarshalYAML() ([]byte, error) {
@@ -34,14 +27,14 @@ func (s *SignedBeaconBlock) MarshalYAML() ([]byte, error) {
 		return nil, nil
 	}
 
-	// Going through the JSON encoding would render every number as a string,
-	// which is the JSON representation but not the spec's YAML one.
-	yamlBytes, err := yaml.MarshalWithOptions(&signedBeaconBlockYAML{
-		Message:   s.Message,
-		Signature: fmt.Sprintf("%#x", s.Signature),
-	}, yaml.Flow(true))
+	data, err := json.Marshal(s)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to marshal JSON")
+	}
+
+	yamlBytes, err := yaml.JSONToYAML(data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert JSON to YAML")
 	}
 
 	return bytes.ReplaceAll(yamlBytes, []byte(`"`), []byte(`'`)), nil

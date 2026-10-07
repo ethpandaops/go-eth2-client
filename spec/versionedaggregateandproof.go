@@ -17,6 +17,7 @@ import (
 	"errors"
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
+	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 )
 
@@ -30,8 +31,11 @@ type VersionedAggregateAndProof struct {
 	Deneb     *phase0.AggregateAndProof
 	Electra   *electra.AggregateAndProof
 	Fulu      *electra.AggregateAndProof
-	Gloas     *electra.AggregateAndProof
-	Heze      *electra.AggregateAndProof
+	// Gloas has its own container because gloas.Attestation merkleizes its aggregation bits as a
+	// progressive bitlist, giving a different hash tree root (and so a different signing root)
+	// from the electra container.
+	Gloas *gloas.AggregateAndProof
+	Heze  *gloas.AggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -160,8 +164,8 @@ func (v *VersionedAggregateAndProof) HashTreeRoot() ([32]byte, error) {
 
 // IsEmpty returns true if there is no aggregate and proof.
 func (v *VersionedAggregateAndProof) IsEmpty() bool {
-	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil &&
+		v.Capella == nil && v.Deneb == nil && v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
 }
 
 // String returns a string version of the structure.

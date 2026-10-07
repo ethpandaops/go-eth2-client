@@ -1,4 +1,4 @@
-// Copyright © 2023 Attestant Limited.
+// Copyright © 2026 Attestant Limited.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -313,6 +313,9 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "invalid latest block hash")
 	}
+	if len(latestBlockHash) != phase0.Hash32Length {
+		return errors.New("incorrect length for latest block hash")
+	}
 	copy(b.LatestBlockHash[:], latestBlockHash)
 
 	if err := b.NextWithdrawalIndex.UnmarshalJSON(raw["next_withdrawal_index"]); err != nil {
@@ -401,6 +404,9 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "next_withdrawal_builder_index")
 	}
 
+	// A Bitvector arrives as a single hex string, exactly like justification_bits
+	// above. Decoding it straight into the []uint8 field would instead get
+	// encoding/json's []byte special case, which reads base64.
 	executionPayloadAvailability := string(bytes.TrimPrefix(bytes.Trim(raw["execution_payload_availability"], `"`), []byte{'0', 'x'}))
 	if b.ExecutionPayloadAvailability, err = hex.DecodeString(executionPayloadAvailability); err != nil {
 		return errors.Wrap(err, "execution_payload_availability")
@@ -438,11 +444,25 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		}
 	}
 
-	// The beacon API convention quotes uint64 values, but lighthouse serves the
-	// ptc_window indices as bare JSON numbers — accept either form.
+	// The indices are read as raw values because Lighthouse serves them as bare JSON
+	// numbers where the spec quotes them; the quotes are stripped before parsing.
 	ptcWindowRaw := make([][]json.RawMessage, 0)
 	if err := json.Unmarshal(raw["ptc_window"], &ptcWindowRaw); err != nil {
-		return errors.Wrap(err, "ptc_window")
+		// Prysm wraps each inner vector in an object carrying validator_indices,
+		// because proto3 cannot express a nested repeated field without an
+		// intermediate message.  The spec shape is tried first and is the only one
+		// marshalled, so the deviation is absorbed where it arrives rather than
+		// propagated; on failure of both the spec shape's error is the one reported.
+		wrapped := make([]struct {
+			ValidatorIndices []json.RawMessage `json:"validator_indices"`
+		}, 0)
+		if wrappedErr := json.Unmarshal(raw["ptc_window"], &wrapped); wrappedErr != nil {
+			return errors.Wrap(err, "ptc_window")
+		}
+		ptcWindowRaw = make([][]json.RawMessage, len(wrapped))
+		for i := range wrapped {
+			ptcWindowRaw[i] = wrapped[i].ValidatorIndices
+		}
 	}
 	b.PTCWindow = make([][]phase0.ValidatorIndex, len(ptcWindowRaw))
 	for i := range ptcWindowRaw {

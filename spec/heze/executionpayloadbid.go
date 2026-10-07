@@ -36,9 +36,9 @@ type ExecutionPayloadBid struct {
 	Slot                  phase0.Slot                `ssz-index:"7"`
 	Value                 phase0.Gwei                `ssz-index:"8"`
 	ExecutionPayment      phase0.Gwei                `ssz-index:"9"`
-	BlobKZGCommitments    []deneb.KZGCommitment      `ssz-index:"10" ssz-type:"progressive-list"`
+	BlobKZGCommitments    []deneb.KZGCommitment      `ssz-index:"10"                                ssz-type:"progressive-list"`
 	ExecutionRequestsRoot phase0.Root                `ssz-index:"11"`
-	InclusionListBits     []byte                     `ssz-index:"12" dynssz-size:"INCLUSION_LIST_COMMITTEE_SIZE/8" ssz-size:"2"`
+	InclusionListBits     []byte                     `dynssz-size:"INCLUSION_LIST_COMMITTEE_SIZE/8" ssz-index:"12"              ssz-size:"2"`
 }
 
 // String returns a string version of the structure.

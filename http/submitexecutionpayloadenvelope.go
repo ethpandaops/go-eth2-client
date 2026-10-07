@@ -16,7 +16,6 @@ package http
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -33,10 +32,10 @@ import (
 // SubmitExecutionPayloadEnvelope submits a signed execution payload envelope
 // using the stateless request form: a SignedExecutionPayloadEnvelopeContents
 // body (signed envelope plus blobs and KZG proofs) with the
-// Eth-Blob-Data-Included header set to true. The stateful form (bare
-// envelope, header false) only works when the beacon node cached the blobs
-// and KZG proofs from its own block production, so builders publishing
-// externally-built payloads must use the stateless form.
+// Eth-Blob-Data-Included header set to true. The stateful form (blob data not
+// included) only works when the beacon node cached the full envelope from its
+// own block production, so builders publishing externally-built payloads must
+// use the stateless form.
 func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SubmitExecutionPayloadEnvelopeOpts,
 ) error {
@@ -54,20 +53,8 @@ func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 
 	versioned := opts.SignedExecutionPayloadEnvelope
 
-	var contents any
-
 	switch versioned.Version {
 	case spec.DataVersionGloas, spec.DataVersionHeze:
-		// All current envelope-bearing forks (Gloas, Heze) reuse the gloas schema.
-		if versioned.Gloas == nil {
-			return errors.Join(errors.New("no gloas envelope supplied"), client.ErrInvalidOptions)
-		}
-
-		contents = &apiv1gloas.SignedExecutionPayloadEnvelopeContents{
-			SignedExecutionPayloadEnvelope: versioned.Gloas,
-			KZGProofs:                      nonNilKZGProofs(opts.KZGProofs),
-			Blobs:                          nonNilBlobs(opts.Blobs),
-		}
 	default:
 		return errors.Join(
 			fmt.Errorf("unsupported envelope version %s", versioned.Version),
@@ -75,7 +62,23 @@ func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 		)
 	}
 
-	body, contentType, err := s.submitExecutionPayloadEnvelopeData(ctx, contents)
+	if versioned.Gloas == nil {
+		return errors.Join(errors.New("no gloas envelope supplied"), client.ErrInvalidOptions)
+	}
+
+	contents := &apiv1gloas.SignedExecutionPayloadEnvelopeContents{
+		SignedExecutionPayloadEnvelope: versioned.Gloas,
+		KZGProofs:                      opts.KZGProofs,
+		Blobs:                          opts.Blobs,
+	}
+	if contents.KZGProofs == nil {
+		contents.KZGProofs = []deneb.KZGProof{}
+	}
+	if contents.Blobs == nil {
+		contents.Blobs = []deneb.Blob{}
+	}
+
+	body, contentType, err := s.marshalRequestBody(ctx, contents)
 	if err != nil {
 		return err
 	}
@@ -84,9 +87,7 @@ func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 		opts.BroadcastValidation, body, contentType)
 }
 
-// SubmitAgnosticExecutionPayloadEnvelope submits a signed execution payload
-// envelope supplied as a fork-agnostic *all.SignedExecutionPayloadEnvelope,
-// using the same stateless request form as SubmitExecutionPayloadEnvelope.
+// SubmitAgnosticExecutionPayloadEnvelope submits a fork-agnostic execution payload envelope.
 func (s *Service) SubmitAgnosticExecutionPayloadEnvelope(ctx context.Context,
 	opts *api.SubmitAgnosticExecutionPayloadEnvelopeOpts,
 ) error {
@@ -105,11 +106,17 @@ func (s *Service) SubmitAgnosticExecutionPayloadEnvelope(ctx context.Context,
 	contents := &apiv1all.SignedExecutionPayloadEnvelopeContents{
 		Version:                        opts.SignedExecutionPayloadEnvelope.Version,
 		SignedExecutionPayloadEnvelope: opts.SignedExecutionPayloadEnvelope,
-		KZGProofs:                      nonNilKZGProofs(opts.KZGProofs),
-		Blobs:                          nonNilBlobs(opts.Blobs),
+		KZGProofs:                      opts.KZGProofs,
+		Blobs:                          opts.Blobs,
+	}
+	if contents.KZGProofs == nil {
+		contents.KZGProofs = []deneb.KZGProof{}
+	}
+	if contents.Blobs == nil {
+		contents.Blobs = []deneb.Blob{}
 	}
 
-	body, contentType, err := s.submitExecutionPayloadEnvelopeData(ctx, contents)
+	body, contentType, err := s.marshalRequestBody(ctx, contents)
 	if err != nil {
 		return err
 	}
@@ -118,8 +125,8 @@ func (s *Service) SubmitAgnosticExecutionPayloadEnvelope(ctx context.Context,
 		opts.BroadcastValidation, body, contentType)
 }
 
-// postExecutionPayloadEnvelope performs the POST shared by both submit
-// variants, setting the consensus version and stateless-form headers.
+// postExecutionPayloadEnvelope performs the POST, setting the consensus
+// version and stateless-form headers.
 func (s *Service) postExecutionPayloadEnvelope(ctx context.Context,
 	common *api.CommonOpts,
 	consensusVersion spec.DataVersion,
@@ -136,12 +143,13 @@ func (s *Service) postExecutionPayloadEnvelope(ctx context.Context,
 
 	headers := make(map[string]string)
 	headers["Eth-Consensus-Version"] = strings.ToLower(consensusVersion.String())
-	// Always the stateless form: Eth-Blob-Data-Included "true" selects the
-	// Contents body schema (beacon-APIs#624); strict consensus clients reject
-	// the request when the header is missing. The pre-#624 discriminator
-	// (Eth-Execution-Payload-Blinded "false" = Contents) is still sent for
-	// beacon nodes that have not adopted the rename yet.
+	// Always the stateless form: header "true" selects the Contents body
+	// schema (signed envelope with its blobs and KZG proofs). Strict consensus
+	// clients reject the request when the header is missing.
 	headers["Eth-Blob-Data-Included"] = "true"
+	// The pre-beacon-APIs#624 discriminator (Eth-Execution-Payload-Blinded "false"
+	// selects the Contents body) is still sent for beacon nodes that have not
+	// adopted the rename yet.
 	headers["Eth-Execution-Payload-Blinded"] = "false"
 
 	if _, err := s.post(ctx, endpoint, query, common, bytes.NewBuffer(body), contentType, headers); err != nil {
@@ -149,57 +157,4 @@ func (s *Service) postExecutionPayloadEnvelope(ctx context.Context,
 	}
 
 	return nil
-}
-
-// submitExecutionPayloadEnvelopeData marshals the envelope contents to the
-// negotiated content type (SSZ unless JSON is enforced).
-func (s *Service) submitExecutionPayloadEnvelopeData(ctx context.Context,
-	contents any,
-) (
-	[]byte,
-	ContentType,
-	error,
-) {
-	if s.enforceJSON {
-		body, err := json.Marshal(contents)
-		if err != nil {
-			return nil, ContentTypeUnknown, errors.Join(errors.New("failed to marshal JSON"), err)
-		}
-
-		return body, ContentTypeJSON, nil
-	}
-
-	ds, err := s.dynSSZForRequest(ctx)
-	if err != nil {
-		return nil, ContentTypeUnknown, err
-	}
-
-	body, err := ds.MarshalSSZ(contents)
-	if err != nil {
-		return nil, ContentTypeUnknown, errors.Join(errors.New("failed to marshal SSZ"), err)
-	}
-
-	return body, ContentTypeSSZ, nil
-}
-
-// nonNilKZGProofs normalises a nil KZG proof slice to an empty one: the
-// beacon-API schema requires kzg_proofs to be present (as an empty array
-// when the payload carries no blobs).
-func nonNilKZGProofs(proofs []deneb.KZGProof) []deneb.KZGProof {
-	if proofs == nil {
-		return []deneb.KZGProof{}
-	}
-
-	return proofs
-}
-
-// nonNilBlobs normalises a nil blob slice to an empty one: the beacon-API
-// schema requires blobs to be present (as an empty array when the payload
-// carries no blobs).
-func nonNilBlobs(blobs []deneb.Blob) []deneb.Blob {
-	if blobs == nil {
-		return []deneb.Blob{}
-	}
-
-	return blobs
 }
