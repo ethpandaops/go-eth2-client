@@ -145,6 +145,9 @@ func (d *ForkChoiceNodeValidity) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
+// Unlike fork choice node decoding, which keeps an unrecognised validity in
+// the node's ExtraData, a lone validity has nowhere to keep the original
+// value, so an unrecognised one is an error rather than silently unknown.
 func (d *ForkChoiceNodeValidity) UnmarshalJSON(input []byte) error {
 	var err error
 
@@ -272,9 +275,11 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 
 	// Clients report validities beyond the spec's (e.g. Lighthouse's
 	// not_yet_revealed for a Gloas block whose payload has not been revealed);
-	// those decode as unknown rather than failing the whole fork choice.
+	// those decode as unknown, keeping the original in ExtraData, rather than
+	// failing the whole fork choice.
 	validity, err := ForkChoiceNodeValidityFromString(forkChoiceNodeJSON.Validity)
-	if err != nil {
+	unrecognisedValidity := err != nil
+	if unrecognisedValidity {
 		validity = ForkChoiceNodeValidityUnknown
 	}
 
@@ -292,6 +297,9 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 	copy(f.ExecutionBlockHash[:], executionBlockHash)
 
 	f.ExtraData = forkChoiceNodeJSON.ExtraData
+	if unrecognisedValidity {
+		f.ExtraData = keepUnrecognisedValidity(f.ExtraData, forkChoiceNodeJSON.Validity)
+	}
 
 	return nil
 }
@@ -304,4 +312,26 @@ func (f *ForkChoiceNode) String() string {
 	}
 
 	return string(data)
+}
+
+// keepUnrecognisedValidity records a node validity the spec does not define,
+// which decodes as unknown, under extraData["validity"] (unless the client
+// already uses that key), so callers can still tell values such as
+// Lighthouse's not_yet_revealed apart and re-encoding keeps them.
+func keepUnrecognisedValidity(extraData map[string]any, validity string) map[string]any {
+	if validity == "" {
+		return extraData
+	}
+
+	if _, exists := extraData["validity"]; exists {
+		return extraData
+	}
+
+	if extraData == nil {
+		extraData = make(map[string]any)
+	}
+
+	extraData["validity"] = validity
+
+	return extraData
 }

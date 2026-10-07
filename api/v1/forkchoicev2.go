@@ -337,9 +337,12 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 	if nodeJSON.Validity == "" {
 		return errors.New("validity missing")
 	}
-	// Validities beyond the spec's decode as unknown, as for v1 nodes.
+	// Validities beyond the spec's decode as unknown, keeping the original in
+	// ExtraData, as for v1 nodes.
+	unrecognisedValidity := false
 	if f.Validity, err = ForkChoiceNodeValidityFromString(nodeJSON.Validity); err != nil {
 		f.Validity = ForkChoiceNodeValidityUnknown
+		unrecognisedValidity = true
 	}
 
 	if nodeJSON.ExecutionBlockHash == "" {
@@ -361,6 +364,10 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 
 	if f.ExtraData, err = foldUnknownFields(input, forkChoiceNodeV2Fields, nodeJSON.ExtraData); err != nil {
 		return err
+	}
+
+	if unrecognisedValidity {
+		f.ExtraData = keepUnrecognisedValidity(f.ExtraData, nodeJSON.Validity)
 	}
 
 	return nil

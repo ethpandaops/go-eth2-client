@@ -167,7 +167,12 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 		{
 			name:     "ValidityNotYetRevealed",
 			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"not_yet_revealed","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"not_yet_revealed"}}`,
+		},
+		{
+			name:     "ValidityUnrecognisedExtraDataKeyTaken",
+			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"not_yet_revealed","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"client"}}`),
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"client"}}`,
 		},
 		{
 			name:  "WeightInvalid",
