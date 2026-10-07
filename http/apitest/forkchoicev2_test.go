@@ -15,6 +15,7 @@ package apitest_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	nethttp "net/http"
 	"net/http/httptest"
@@ -154,6 +155,32 @@ func TestForkChoiceV2Clients(t *testing.T) {
 			test.check(t, data)
 		})
 	}
+}
+
+// TestForkChoiceV2DataNull ensures a wrapped response without data is an
+// error rather than a nil fork choice.
+func TestForkChoiceV2DataNull(t *testing.T) {
+	provider := forkChoiceV2Service(t, nethttp.StatusOK, []byte(`{"data":null}`))
+	_, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+	require.EqualError(t, err, "fork choice data missing")
+}
+
+// TestForkChoiceV2Metadata ensures fields beside data are kept as metadata.
+func TestForkChoiceV2Metadata(t *testing.T) {
+	body, err := os.ReadFile("testdata/forkchoicev2_teku.json")
+	require.NoError(t, err)
+
+	var wrapped map[string]any
+	require.NoError(t, json.Unmarshal(body, &wrapped))
+	wrapped["execution_optimistic"] = false
+	body, err = json.Marshal(wrapped)
+	require.NoError(t, err)
+
+	provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
+	response, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+	require.NoError(t, err)
+	require.Len(t, response.Data.ForkChoiceNodes, 3)
+	require.Equal(t, map[string]any{"execution_optimistic": false}, response.Metadata)
 }
 
 // TestForkChoiceV2Unsupported ensures that clients without the endpoint surface their status code,

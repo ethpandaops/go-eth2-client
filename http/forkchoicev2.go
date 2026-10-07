@@ -14,10 +14,10 @@
 package http
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	client "github.com/ethpandaops/go-eth2-client"
 	"github.com/ethpandaops/go-eth2-client/api"
@@ -52,10 +52,29 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 		return nil, errors.Join(errors.New("failed to parse fork choice"), err)
 	}
 
-	if _, wrapped := fields["data"]; wrapped {
-		data, metadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), new(apiv1.ForkChoiceV2))
-		if err != nil {
+	if raw, wrapped := fields["data"]; wrapped {
+		var data *apiv1.ForkChoiceV2
+		if err := json.Unmarshal(raw, &data); err != nil {
 			return nil, errors.Join(errors.New("failed to parse fork choice"), err)
+		}
+
+		if data == nil {
+			return nil, errors.New("fork choice data missing")
+		}
+
+		metadata := make(map[string]any)
+
+		for k, v := range fields {
+			if k == "data" {
+				continue
+			}
+
+			var value any
+			if err := json.Unmarshal(v, &value); err != nil {
+				return nil, errors.Join(fmt.Errorf("failed to parse fork choice metadata %s", k), err)
+			}
+
+			metadata[k] = value
 		}
 
 		return &api.Response[*apiv1.ForkChoiceV2]{

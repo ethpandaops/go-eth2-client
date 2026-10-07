@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
@@ -46,7 +47,9 @@ var ForkChoicePayloadStatusStrings = [...]string{
 
 // ForkChoicePayloadStatusFromString converts a string input to a fork choice payload status.
 func ForkChoicePayloadStatusFromString(input string) (ForkChoicePayloadStatus, error) {
-	switch input {
+	switch strings.ToLower(input) {
+	case "unknown":
+		return ForkChoicePayloadStatusUnknown, nil
 	case "empty":
 		return ForkChoicePayloadStatusEmpty, nil
 	case "full":
@@ -107,10 +110,15 @@ func (f ForkChoiceV2) MarshalJSON() ([]byte, error) {
 		extraData = map[string]any{}
 	}
 
+	nodes := f.ForkChoiceNodes
+	if nodes == nil {
+		nodes = []*ForkChoiceNodeV2{}
+	}
+
 	return json.Marshal(&forkChoiceV2JSON{
 		JustifiedCheckpoint: &f.JustifiedCheckpoint,
 		FinalizedCheckpoint: &f.FinalizedCheckpoint,
-		ForkChoiceNodes:     f.ForkChoiceNodes,
+		ForkChoiceNodes:     nodes,
 		ExtraData:           extraData,
 	})
 }
@@ -329,8 +337,9 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 	if nodeJSON.Validity == "" {
 		return errors.New("validity missing")
 	}
+	// Validities beyond the spec's decode as unknown, as for v1 nodes.
 	if f.Validity, err = ForkChoiceNodeValidityFromString(nodeJSON.Validity); err != nil {
-		return errors.Wrap(err, fmt.Sprintf("invalid value for validity: %s", nodeJSON.Validity))
+		f.Validity = ForkChoiceNodeValidityUnknown
 	}
 
 	if nodeJSON.ExecutionBlockHash == "" {
@@ -393,25 +402,33 @@ func formatOptionalUint64(input *uint64) string {
 }
 
 // foldUnknownFields returns extraData with any fields of the input object that are not in known added to it.
-// Fields already present in extraData take precedence.
+// Fields already present in extraData take precedence. Only the values of unknown fields are decoded, so the
+// (large) known fields such as fork_choice_nodes are not decoded a second time.
 func foldUnknownFields(input []byte, known map[string]struct{}, extraData map[string]any) (map[string]any, error) {
-	var fields map[string]any
+	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(input, &fields); err != nil {
 		return nil, errors.Wrap(err, "invalid JSON")
 	}
 
-	for k, v := range fields {
+	for k, raw := range fields {
 		if _, isKnown := known[k]; isKnown {
 			continue
+		}
+
+		if _, exists := extraData[k]; exists {
+			continue
+		}
+
+		var value any
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("invalid value for %s", k))
 		}
 
 		if extraData == nil {
 			extraData = make(map[string]any)
 		}
 
-		if _, exists := extraData[k]; !exists {
-			extraData[k] = v
-		}
+		extraData[k] = value
 	}
 
 	return extraData, nil

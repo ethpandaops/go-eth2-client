@@ -150,14 +150,24 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			err:   "payload status missing",
 		},
 		{
+			name:     "PayloadStatusUppercase",
+			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"FULL","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"Pending","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"pending","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+		},
+		{
 			name:  "PayloadStatusInvalid",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"FULL","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "unrecognised fork choice payload status: FULL",
+			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"bad","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			err:   "unrecognised fork choice payload status: bad",
 		},
 		{
 			name:  "ParentPayloadStatusInvalid",
 			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"bad","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
 			err:   "invalid value for parent payload status: unrecognised fork choice payload status: bad",
+		},
+		{
+			name:     "ValidityNotYetRevealed",
+			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"not_yet_revealed","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
+			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
 		},
 		{
 			name:  "WeightInvalid",
@@ -196,4 +206,14 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			assert.Equal(t, string(rt), node.String())
 		})
 	}
+}
+
+// A zero value, as the mock returns, marshals to JSON that decodes again.
+func TestForkChoiceV2ZeroValueRoundTrip(t *testing.T) {
+	encoded, err := json.Marshal(&api.ForkChoiceV2{})
+	require.NoError(t, err)
+
+	var decoded api.ForkChoiceV2
+	require.NoError(t, json.Unmarshal(encoded, &decoded))
+	require.Empty(t, decoded.ForkChoiceNodes)
 }

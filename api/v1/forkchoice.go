@@ -126,6 +126,8 @@ var ForkChoiceNodeValidityStrings = [...]string{
 // ForkChoiceNodeValidityFromString converts a string input to a fork choice.
 func ForkChoiceNodeValidityFromString(input string) (ForkChoiceNodeValidity, error) {
 	switch strings.ToLower(input) {
+	case "unknown":
+		return ForkChoiceNodeValidityUnknown, nil
 	case "invalid":
 		return ForkChoiceNodeValidityInvalid, nil
 	case "valid":
@@ -268,9 +270,12 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 
 	f.Weight = weight
 
+	// Clients report validities beyond the spec's (e.g. Lighthouse's
+	// not_yet_revealed for a Gloas block whose payload has not been revealed);
+	// those decode as unknown rather than failing the whole fork choice.
 	validity, err := ForkChoiceNodeValidityFromString(forkChoiceNodeJSON.Validity)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("invalid value for validity: %s", forkChoiceNodeJSON.Validity))
+		validity = ForkChoiceNodeValidityUnknown
 	}
 
 	f.Validity = validity
