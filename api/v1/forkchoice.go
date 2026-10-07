@@ -32,6 +32,8 @@ type ForkChoice struct {
 	FinalizedCheckpoint phase0.Checkpoint
 	// ForkChoiceNodes contains the fork choice nodes.
 	ForkChoiceNodes []*ForkChoiceNode
+	// ExtraData is the optional, client-specific extra data of the fork choice store.
+	ExtraData map[string]any
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -40,6 +42,7 @@ func (f *ForkChoice) MarshalJSON() ([]byte, error) {
 		JustifiedCheckpoint: &f.JustifiedCheckpoint,
 		FinalizedCheckpoint: &f.FinalizedCheckpoint,
 		ForkChoiceNodes:     f.ForkChoiceNodes,
+		ExtraData:           f.ExtraData,
 	})
 }
 
@@ -75,6 +78,7 @@ func (f *ForkChoice) UnmarshalJSON(input []byte) error {
 	}
 
 	f.ForkChoiceNodes = forkChoiceJSON.ForkChoiceNodes
+	f.ExtraData = forkChoiceJSON.ExtraData
 
 	return nil
 }
@@ -94,6 +98,7 @@ type forkChoiceJSON struct {
 	JustifiedCheckpoint *phase0.Checkpoint `json:"justified_checkpoint"`
 	FinalizedCheckpoint *phase0.Checkpoint `json:"finalized_checkpoint"`
 	ForkChoiceNodes     []*ForkChoiceNode  `json:"fork_choice_nodes"`
+	ExtraData           map[string]any     `json:"extra_data,omitempty"`
 }
 
 // ForkChoiceNodeValidity represents the validity of a fork choice node.
