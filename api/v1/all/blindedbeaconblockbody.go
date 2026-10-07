@@ -278,3 +278,11 @@ func (b *BlindedBeaconBlockBody) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*BlindedBeaconBlockBody)(nil)
+	_ viewer        = (*BlindedBeaconBlockBody)(nil)
+	_ fromViewer    = (*BlindedBeaconBlockBody)(nil)
+	_ versionSetter = (*BlindedBeaconBlockBody)(nil)
+)

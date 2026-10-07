@@ -274,3 +274,11 @@ func (a *Attestation) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*Attestation)(nil)
+	_ viewer        = (*Attestation)(nil)
+	_ fromViewer    = (*Attestation)(nil)
+	_ versionSetter = (*Attestation)(nil)
+)

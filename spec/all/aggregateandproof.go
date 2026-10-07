@@ -273,3 +273,11 @@ func (a *AggregateAndProof) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*AggregateAndProof)(nil)
+	_ viewer        = (*AggregateAndProof)(nil)
+	_ fromViewer    = (*AggregateAndProof)(nil)
+	_ versionSetter = (*AggregateAndProof)(nil)
+)

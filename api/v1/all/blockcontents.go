@@ -273,3 +273,11 @@ func (b *BlockContents) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*BlockContents)(nil)
+	_ viewer        = (*BlockContents)(nil)
+	_ fromViewer    = (*BlockContents)(nil)
+	_ versionSetter = (*BlockContents)(nil)
+)

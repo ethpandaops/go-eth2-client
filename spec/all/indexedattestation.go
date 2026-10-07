@@ -269,3 +269,11 @@ func (i *IndexedAttestation) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*IndexedAttestation)(nil)
+	_ viewer        = (*IndexedAttestation)(nil)
+	_ fromViewer    = (*IndexedAttestation)(nil)
+	_ versionSetter = (*IndexedAttestation)(nil)
+)

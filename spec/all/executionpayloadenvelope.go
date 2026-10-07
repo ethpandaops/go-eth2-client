@@ -268,3 +268,11 @@ func (e *ExecutionPayloadEnvelope) ToVersioned() (*spec.VersionedExecutionPayloa
 func (e *ExecutionPayloadEnvelope) FromVersioned(src *spec.VersionedExecutionPayloadEnvelope) error {
 	return fromVersioned(e, src)
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*ExecutionPayloadEnvelope)(nil)
+	_ viewer        = (*ExecutionPayloadEnvelope)(nil)
+	_ fromViewer    = (*ExecutionPayloadEnvelope)(nil)
+	_ versionSetter = (*ExecutionPayloadEnvelope)(nil)
+)

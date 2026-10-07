@@ -260,3 +260,11 @@ func (s *SignedExecutionPayloadBid) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*SignedExecutionPayloadBid)(nil)
+	_ viewer        = (*SignedExecutionPayloadBid)(nil)
+	_ fromViewer    = (*SignedExecutionPayloadBid)(nil)
+	_ versionSetter = (*SignedExecutionPayloadBid)(nil)
+)

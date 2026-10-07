@@ -252,3 +252,11 @@ func (s *SignedExecutionPayloadEnvelopeContents) UnmarshalYAML(data []byte) erro
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*SignedExecutionPayloadEnvelopeContents)(nil)
+	_ viewer        = (*SignedExecutionPayloadEnvelopeContents)(nil)
+	_ fromViewer    = (*SignedExecutionPayloadEnvelopeContents)(nil)
+	_ versionSetter = (*SignedExecutionPayloadEnvelopeContents)(nil)
+)

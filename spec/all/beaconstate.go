@@ -346,3 +346,11 @@ func (b *BeaconState) UnmarshalYAML(data []byte) error {
 
 	return nil
 }
+
+// Compile-time checks of the view conversions the struct takes part in.
+var (
+	_ viewProvider  = (*BeaconState)(nil)
+	_ viewer        = (*BeaconState)(nil)
+	_ fromViewer    = (*BeaconState)(nil)
+	_ versionSetter = (*BeaconState)(nil)
+)
