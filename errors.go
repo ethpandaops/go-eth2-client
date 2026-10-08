@@ -26,4 +26,7 @@ var (
 	ErrInvalidOptions = errors.New("invalid options")
 	// ErrInconsistentResult is returned when a request returns with data at odds to that requested.
 	ErrInconsistentResult = errors.New("inconsistent result")
+	// ErrInvalidResponse is returned when a beacon node's response does not follow the beacon API
+	// specification, for example because it lacks a required field.
+	ErrInvalidResponse = errors.New("invalid response")
 )

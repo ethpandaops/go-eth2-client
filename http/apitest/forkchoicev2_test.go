@@ -139,6 +139,7 @@ func TestForkChoiceV2Clients(t *testing.T) {
 
 			provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
 			_, err = provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+			require.ErrorIs(t, err, consensusclient.ErrInvalidResponse)
 			require.ErrorContains(t, err, test.err)
 		})
 	}
@@ -149,7 +150,8 @@ func TestForkChoiceV2Clients(t *testing.T) {
 func TestForkChoiceV2DataNull(t *testing.T) {
 	provider := forkChoiceV2Service(t, nethttp.StatusOK, []byte(`{"data":null}`))
 	_, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
-	require.EqualError(t, err, "fork choice data missing")
+	require.ErrorIs(t, err, consensusclient.ErrInvalidResponse)
+	require.EqualError(t, err, "invalid response: fork choice data missing")
 }
 
 // TestForkChoiceV2Metadata ensures fields beside data are kept as metadata.

@@ -26,8 +26,9 @@ import (
 // ForkChoiceV2 fetches all current fork choice context, with one node per (block root, payload status) pair.
 //
 // Not every client implements the endpoint yet, and those that do not answer with an error status
-// (Lighthouse 400, Nimbus 404) rather than failing over. Such clients are skipped, without being
-// deactivated, in favour of the next client. If no client returns a fork choice and any of them
+// (Lighthouse 400, Nimbus 404) rather than failing over. Such clients, and clients whose response
+// does not follow the spec (client.ErrInvalidResponse), are skipped without being deactivated in
+// favour of the next client: they still serve other endpoints. If no client returns a fork choice and any of them
 // lacked the endpoint, the error returned is (or, alongside the other clients' error, wraps) the
 // last of those errors, so callers can fall back to GET /eth/v1/debug/fork_choice, which the
 // clients without the v2 endpoint can serve.
@@ -54,6 +55,10 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 			}
 			otherErr = err
 
+			if errors.Is(err, consensusclient.ErrInvalidResponse) {
+				return nil, nil //nolint:nilnil
+			}
+
 			return nil, err
 		}
 
@@ -61,8 +66,12 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 	}, nil)
 	if err != nil {
 		switch {
-		case unsupportedErr == nil, errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 			return nil, err
+		case unsupportedErr == nil && otherErr == nil:
+			return nil, err
+		case unsupportedErr == nil:
+			return nil, otherErr
 		case otherErr == nil:
 			return nil, unsupportedErr
 		default:

@@ -257,6 +257,12 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, fmt.Sprintf("invalid value for parent root: %s", forkChoiceNodeJSON.ParentRoot))
 	}
 
+	// A null parent root, which some clients return for the oldest retained
+	// node, decodes as the zero root.
+	if len(parentRoot) != 0 && len(parentRoot) != rootLength {
+		return fmt.Errorf("incorrect length %d for parent root", len(parentRoot))
+	}
+
 	f.ParentRoot = phase0.Root{}
 	copy(f.ParentRoot[:], parentRoot)
 
@@ -281,10 +287,9 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 
 	f.Weight = weight
 
-	// Clients report validities beyond the spec's (e.g. Lighthouse's
-	// not_yet_revealed for a Gloas block whose payload has not been revealed);
-	// those decode as unknown, keeping the original in ExtraData, rather than
-	// failing the whole fork choice.
+	// Validities this package does not recognise (e.g. a value a client adds
+	// in future) decode as unknown, keeping the original in ExtraData, rather
+	// than failing the whole fork choice.
 	if forkChoiceNodeJSON.Validity == "" {
 		return errors.New("validity missing")
 	}
@@ -325,10 +330,9 @@ func (f *ForkChoiceNode) String() string {
 	return string(data)
 }
 
-// keepUnrecognisedValue records a value the spec does not define, which decodes
-// as unknown or nil, under extraData[key] (unless the client already uses that
-// key), so callers can still tell values such as Lighthouse's not_yet_revealed
-// validity apart and re-encoding keeps them.
+// keepUnrecognisedValue records a value this package does not recognise, which
+// decodes as unknown, under extraData[key] (unless the client already uses that
+// key), so callers can still tell such values apart and re-encoding keeps them.
 func keepUnrecognisedValue(extraData map[string]any, key string, value string) map[string]any {
 	if value == "" {
 		return extraData

@@ -220,6 +220,16 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			err:   "invalid value for validity: unknown",
 		},
 		{
+			name:  "ValidityWrongCase",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"VALID","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for validity: VALID",
+		},
+		{
+			name:  "ValidityWrongCaseOptimistic",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"Optimistic","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for validity: Optimistic",
+		},
+		{
 			name:  "ExecutionBlockHashMissing",
 			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 			err:   "execution block hash missing",

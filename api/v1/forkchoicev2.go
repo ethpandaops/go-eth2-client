@@ -250,11 +250,11 @@ type forkChoiceNodeV2JSON struct {
 	ExtraData                       map[string]any     `json:"extra_data"`
 }
 
-// forkChoiceNodeV2Validities are the execution validities the v2 node defines.
-var forkChoiceNodeV2Validities = map[ForkChoiceNodeValidity]bool{
-	ForkChoiceNodeValidityValid:      true,
-	ForkChoiceNodeValidityInvalid:    true,
-	ForkChoiceNodeValidityOptimistic: true,
+// forkChoiceNodeV2Validities are the execution validities the v2 node defines, matched exactly.
+var forkChoiceNodeV2Validities = map[string]ForkChoiceNodeValidity{
+	"valid":      ForkChoiceNodeValidityValid,
+	"invalid":    ForkChoiceNodeValidityInvalid,
+	"optimistic": ForkChoiceNodeValidityOptimistic,
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -389,10 +389,11 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 	if nodeJSON.Validity == "" {
 		return errors.New("validity missing")
 	}
-	f.Validity, err = ForkChoiceNodeValidityFromString(nodeJSON.Validity)
-	if err != nil || !forkChoiceNodeV2Validities[f.Validity] {
+	validity, known := forkChoiceNodeV2Validities[nodeJSON.Validity]
+	if !known {
 		return fmt.Errorf("invalid value for validity: %s", nodeJSON.Validity)
 	}
+	f.Validity = validity
 
 	if nodeJSON.ExecutionBlockHash == "" {
 		return errors.New("execution block hash missing")

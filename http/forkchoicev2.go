@@ -16,7 +16,6 @@ package http
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	client "github.com/ethpandaops/go-eth2-client"
@@ -46,23 +45,25 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 		return nil, err
 	}
 
+	// Responses that do not follow the spec are client.ErrInvalidResponse, so that callers can
+	// tell them apart from a failing beacon node.
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(httpResponse.body, &fields); err != nil {
-		return nil, errors.Join(errors.New("failed to parse fork choice"), err)
+		return nil, fmt.Errorf("%w: failed to parse fork choice: %w", client.ErrInvalidResponse, err)
 	}
 
 	raw, wrapped := fields["data"]
 	if !wrapped {
-		return nil, errors.New("fork choice data missing")
+		return nil, fmt.Errorf("%w: fork choice data missing", client.ErrInvalidResponse)
 	}
 
 	var data *apiv1.ForkChoiceV2
 	if err := json.Unmarshal(raw, &data); err != nil {
-		return nil, errors.Join(errors.New("failed to parse fork choice"), err)
+		return nil, fmt.Errorf("%w: failed to parse fork choice: %w", client.ErrInvalidResponse, err)
 	}
 
 	if data == nil {
-		return nil, errors.New("fork choice data missing")
+		return nil, fmt.Errorf("%w: fork choice data missing", client.ErrInvalidResponse)
 	}
 
 	metadata := make(map[string]any)
@@ -74,7 +75,7 @@ func (s *Service) ForkChoiceV2(ctx context.Context,
 
 		var value any
 		if err := json.Unmarshal(v, &value); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to parse fork choice metadata %s", k), err)
+			return nil, fmt.Errorf("%w: failed to parse fork choice metadata %s: %w", client.ErrInvalidResponse, k, err)
 		}
 
 		metadata[k] = value
