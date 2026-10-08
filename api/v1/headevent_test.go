@@ -109,7 +109,7 @@ func TestHeadEventJSON(t *testing.T) {
 		},
 		{
 			name:  "CurrentDutyDependentRootMissing",
-			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"previous_duty_dependent_root":"0x935569bdc1aaad65dbeb532a125390d039058924ea81799238ed53e4e4639a11"}`),
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"previous_duty_dependent_root":"0x935569bdc1aaad65dbeb532a125390d039058924ea81799238ed53e4e4639a11","execution_optimistic":false}`),
 		},
 		{
 			name:  "CurrentDutyDependentRootWrongType",
@@ -133,7 +133,7 @@ func TestHeadEventJSON(t *testing.T) {
 		},
 		{
 			name:  "PreviousDutyDependentRootMissing",
-			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"current_duty_dependent_root":"0x907a3462a2905e3df2624869aa7f9a8635eb35bdcf9ce68a26fab691f9dada61"}`),
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"current_duty_dependent_root":"0x907a3462a2905e3df2624869aa7f9a8635eb35bdcf9ce68a26fab691f9dada61","execution_optimistic":false}`),
 		},
 		{
 			name:  "PreviousDutyDependentRootWrongType",
@@ -157,7 +157,7 @@ func TestHeadEventJSON(t *testing.T) {
 		},
 		{
 			name:  "Good",
-			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"current_duty_dependent_root":"0x907a3462a2905e3df2624869aa7f9a8635eb35bdcf9ce68a26fab691f9dada61","previous_duty_dependent_root":"0x935569bdc1aaad65dbeb532a125390d039058924ea81799238ed53e4e4639a11"}`),
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"current_duty_dependent_root":"0x907a3462a2905e3df2624869aa7f9a8635eb35bdcf9ce68a26fab691f9dada61","previous_duty_dependent_root":"0x935569bdc1aaad65dbeb532a125390d039058924ea81799238ed53e4e4639a11","execution_optimistic":true}`),
 		},
 	}
 
@@ -176,4 +176,15 @@ func TestHeadEventJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestHeadEventExecutionOptimisticAbsent checks that a head event without
+// execution_optimistic decodes as not optimistic.
+func TestHeadEventExecutionOptimisticAbsent(t *testing.T) {
+	var res api.HeadEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false,"execution_optimistic":true}`), &res))
+	assert.True(t, res.ExecutionOptimistic)
+
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","state":"0x749a95b1355828b758864ea601c007e69aabed7b34a0f2084c43c26242f77e28","epoch_transition":false}`), &res))
+	assert.False(t, res.ExecutionOptimistic)
 }

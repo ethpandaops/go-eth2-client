@@ -90,6 +90,29 @@ func TestBlockEventJSON(t *testing.T) {
 			name:  "Optimistic",
 			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":true}`),
 		},
+		{
+			name:  "BuilderIndexInvalid",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"-1","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+			err:   "invalid value for builder index: strconv.ParseUint: parsing \"-1\": invalid syntax",
+		},
+		{
+			name:  "BlockHashInvalid",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"invalid"}`),
+			err:   "invalid value for block hash: encoding/hex: invalid byte: U+0069 'i'",
+		},
+		{
+			name:  "BlockHashShort",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"0x34567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+			err:   "incorrect length 31 for block hash",
+		},
+		{
+			name:  "GoodGloas",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+		},
+		{
+			name:  "GoodGloasSelfBuild",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"18446744073709551615","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+		},
 	}
 
 	for _, test := range tests {
@@ -107,4 +130,19 @@ func TestBlockEventJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBlockEventGloasFields(t *testing.T) {
+	var res api.BlockEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","execution_optimistic":false,"builder_index":"42","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`), &res))
+	require.NotNil(t, res.BuilderIndex)
+	assert.Equal(t, uint64(42), *res.BuilderIndex)
+	require.NotNil(t, res.BlockHash)
+	assert.Equal(t, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", res.BlockHash.String())
+
+	// Decoding a pre-Gloas event into the same struct must not keep the
+	// previous Gloas values.
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"11","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","execution_optimistic":false}`), &res))
+	assert.Nil(t, res.BuilderIndex)
+	assert.Nil(t, res.BlockHash)
 }
