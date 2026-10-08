@@ -86,6 +86,8 @@ var (
 	_ consensusclient.FinalityProvider                      = (*Sleepy)(nil)
 	_ consensusclient.ForkChoiceProvider                    = (*Erroring)(nil)
 	_ consensusclient.ForkChoiceProvider                    = (*Sleepy)(nil)
+	_ consensusclient.ForkChoiceV2Provider                  = (*Erroring)(nil)
+	_ consensusclient.ForkChoiceV2Provider                  = (*Sleepy)(nil)
 	_ consensusclient.ForkProvider                          = (*Erroring)(nil)
 	_ consensusclient.ForkProvider                          = (*Sleepy)(nil)
 	_ consensusclient.ForkScheduleProvider                  = (*Erroring)(nil)

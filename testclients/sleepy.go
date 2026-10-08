@@ -710,6 +710,23 @@ func (s *Sleepy) ForkChoice(ctx context.Context,
 	return next.ForkChoice(ctx, opts)
 }
 
+// ForkChoiceV2 fetches the node's current fork choice context, with one node per (block root, payload status) pair.
+func (s *Sleepy) ForkChoiceV2(ctx context.Context,
+	opts *api.ForkChoiceOpts,
+) (
+	*api.Response[*apiv1.ForkChoiceV2],
+	error,
+) {
+	s.sleep(ctx)
+
+	next, isNext := s.next.(consensusclient.ForkChoiceV2Provider)
+	if !isNext {
+		return nil, errors.New("next does not support this call")
+	}
+
+	return next.ForkChoiceV2(ctx, opts)
+}
+
 // Blobs fetches the blobs given a block ID.
 func (s *Sleepy) Blobs(ctx context.Context,
 	opts *api.BlobsOpts,

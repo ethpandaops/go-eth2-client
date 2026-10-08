@@ -57,6 +57,7 @@ var (
 	_ consensusclient.EventsProvider                        = (*Service)(nil)
 	_ consensusclient.FinalityProvider                      = (*Service)(nil)
 	_ consensusclient.ForkChoiceProvider                    = (*Service)(nil)
+	_ consensusclient.ForkChoiceV2Provider                  = (*Service)(nil)
 	_ consensusclient.ForkProvider                          = (*Service)(nil)
 	_ consensusclient.ForkScheduleProvider                  = (*Service)(nil)
 	_ consensusclient.GenesisProvider                       = (*Service)(nil)
