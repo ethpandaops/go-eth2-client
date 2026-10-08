@@ -28,20 +28,29 @@ import (
 type FastConfirmationEvent struct {
 	Slot  phase0.Slot
 	Block phase0.Root
+	// CurrentSlot is the wall-clock slot at which the algorithm was executed.
+	// Beacon nodes that predate the field leave it unset (zero).
+	CurrentSlot phase0.Slot
 }
 
 // fastConfirmationEventJSON is the spec representation of the struct.
 type fastConfirmationEventJSON struct {
-	Slot  string `json:"slot"`
-	Block string `json:"block"`
+	Block       string `json:"block"`
+	Slot        string `json:"slot"`
+	CurrentSlot string `json:"current_slot,omitempty"`
 }
 
 // MarshalJSON implements json.Marshaler.
 func (e *FastConfirmationEvent) MarshalJSON() ([]byte, error) {
-	return json.Marshal(&fastConfirmationEventJSON{
-		Slot:  fmt.Sprintf("%d", e.Slot),
+	data := &fastConfirmationEventJSON{
 		Block: fmt.Sprintf("%#x", e.Block),
-	})
+		Slot:  fmt.Sprintf("%d", e.Slot),
+	}
+	if e.CurrentSlot != 0 {
+		data.CurrentSlot = fmt.Sprintf("%d", e.CurrentSlot)
+	}
+
+	return json.Marshal(data)
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -76,6 +85,15 @@ func (e *FastConfirmationEvent) UnmarshalJSON(input []byte) error {
 	}
 
 	copy(e.Block[:], block)
+
+	if data.CurrentSlot != "" {
+		currentSlot, err := strconv.ParseUint(data.CurrentSlot, 10, 64)
+		if err != nil {
+			return errors.Wrap(err, "invalid value for current slot")
+		}
+
+		e.CurrentSlot = phase0.Slot(currentSlot)
+	}
 
 	return nil
 }

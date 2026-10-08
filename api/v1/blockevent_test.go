@@ -90,6 +90,29 @@ func TestBlockEventJSON(t *testing.T) {
 			name:  "Optimistic",
 			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":true}`),
 		},
+		{
+			name:  "BuilderIndexInvalid",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"-1","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+			err:   "invalid value for builder index: strconv.ParseUint: parsing \"-1\": invalid syntax",
+		},
+		{
+			name:  "BlockHashInvalid",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"invalid"}`),
+			err:   "invalid value for block hash: encoding/hex: invalid byte: U+0069 'i'",
+		},
+		{
+			name:  "BlockHashShort",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"0x34567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+			err:   "incorrect length 31 for block hash",
+		},
+		{
+			name:  "GoodGloas",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"42","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+		},
+		{
+			name:  "GoodGloasSelfBuild",
+			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","execution_optimistic":false,"builder_index":"18446744073709551615","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`),
+		},
 	}
 
 	for _, test := range tests {

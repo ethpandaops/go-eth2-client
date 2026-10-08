@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	api "github.com/ethpandaops/go-eth2-client/api/v1"
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/stretchr/testify/assert"
 	require "github.com/stretchr/testify/require"
 )
@@ -201,7 +202,7 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 		},
 		{
 			name:  "GoodPayloadAttributesV4",
-			input: []byte(`{"version":"gloas","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000"}}}`),
+			input: []byte(`{"version":"gloas","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","safe_block_hash":"0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505","finalized_block_hash":"0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000"}}}`),
 		},
 		{
 			name:  "SlotNumberMissingV4",
@@ -230,11 +231,11 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 		},
 		{
 			name:  "GoodPayloadAttributesV5",
-			input: []byte(`{"version":"heze","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000","inclusion_list_transactions":["0x02f870","0x01"]}}}`),
+			input: []byte(`{"version":"heze","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","safe_block_hash":"0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505","finalized_block_hash":"0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000","inclusion_list_transactions":["0x02f870","0x01"]}}}`),
 		},
 		{
 			name:  "GoodPayloadAttributesV5EmptyInclusionList",
-			input: []byte(`{"version":"heze","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000","inclusion_list_transactions":[]}}}`),
+			input: []byte(`{"version":"heze","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","safe_block_hash":"0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505","finalized_block_hash":"0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616","payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[{"index":"5","validator_index":"10","address":"0x0000000000000000000000000000000000000000","amount":"15640"}],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000","inclusion_list_transactions":[]}}}`),
 		},
 		{
 			name:  "InclusionListTransactionsMissingV5",
@@ -264,6 +265,30 @@ func TestPayloadAttributesEventJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestPayloadAttributesEventForkchoiceHashesGloas checks that the safe and
+// finalized block hashes are read from Gloas onwards, and that beacon nodes
+// which do not send them yet are tolerated.
+func TestPayloadAttributesEventForkchoiceHashesGloas(t *testing.T) {
+	const attrs = `"payload_attributes":{"timestamp":"123456","prev_randao":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","suggested_fee_recipient":"0x0000000000000000000000000000000000000000","withdrawals":[],"parent_beacon_block_root":"0xba4d784293df28bab771a14df58cdbed9d8d64afd0ddf1c52dff3e25fcdd51df","slot_number":"10","target_gas_limit":"60000000"}`
+	const prefix = `{"version":"gloas","data":{"proposer_index":"123","proposal_slot":"10","parent_block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","parent_block_hash":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf",`
+
+	var res api.PayloadAttributesEvent
+	require.NoError(t, json.Unmarshal([]byte(prefix+`"safe_block_hash":"0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505","finalized_block_hash":"0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616",`+attrs+`}}`), &res))
+	assert.Equal(t, "0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505", res.Data.SafeBlockHash.String())
+	assert.Equal(t, "0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616", res.Data.FinalizedBlockHash.String())
+
+	var missing api.PayloadAttributesEvent
+	require.NoError(t, json.Unmarshal([]byte(prefix+attrs+`}}`), &missing))
+	assert.Equal(t, phase0.Hash32{}, missing.Data.SafeBlockHash)
+	assert.Equal(t, phase0.Hash32{}, missing.Data.FinalizedBlockHash)
+
+	var short api.PayloadAttributesEvent
+	require.EqualError(t, json.Unmarshal([]byte(prefix+`"safe_block_hash":"0x66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505",`+attrs+`}}`), &short), "incorrect length for safe block hash")
+
+	var invalid api.PayloadAttributesEvent
+	require.EqualError(t, json.Unmarshal([]byte(prefix+`"finalized_block_hash":"invalid",`+attrs+`}}`), &invalid), "invalid value for finalized block hash: encoding/hex: invalid byte: U+0069 'i'")
 }
 
 // TestPayloadAttributesEventParentBlockNumberGloas checks that a parent block number
