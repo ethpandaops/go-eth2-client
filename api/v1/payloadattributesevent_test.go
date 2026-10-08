@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	api "github.com/ethpandaops/go-eth2-client/api/v1"
-	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/stretchr/testify/assert"
 	require "github.com/stretchr/testify/require"
 )
@@ -276,13 +275,21 @@ func TestPayloadAttributesEventForkchoiceHashesGloas(t *testing.T) {
 
 	var res api.PayloadAttributesEvent
 	require.NoError(t, json.Unmarshal([]byte(prefix+`"safe_block_hash":"0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505","finalized_block_hash":"0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616",`+attrs+`}}`), &res))
+	require.NotNil(t, res.Data.SafeBlockHash)
+	require.NotNil(t, res.Data.FinalizedBlockHash)
 	assert.Equal(t, "0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505", res.Data.SafeBlockHash.String())
 	assert.Equal(t, "0x2c77bd2fc774dacd6a6a957e7fd16456ce019feb84f781bf999eb52bf2826616", res.Data.FinalizedBlockHash.String())
 
 	var missing api.PayloadAttributesEvent
-	require.NoError(t, json.Unmarshal([]byte(prefix+attrs+`}}`), &missing))
-	assert.Equal(t, phase0.Hash32{}, missing.Data.SafeBlockHash)
-	assert.Equal(t, phase0.Hash32{}, missing.Data.FinalizedBlockHash)
+	missingInput := []byte(prefix + attrs + `}}`)
+	require.NoError(t, json.Unmarshal(missingInput, &missing))
+	assert.Nil(t, missing.Data.SafeBlockHash)
+	assert.Nil(t, missing.Data.FinalizedBlockHash)
+
+	// Absent hashes must not be re-emitted as zero hashes.
+	rt, err := json.Marshal(&missing)
+	require.NoError(t, err)
+	assert.Equal(t, string(missingInput), string(rt))
 
 	var short api.PayloadAttributesEvent
 	require.EqualError(t, json.Unmarshal([]byte(prefix+`"safe_block_hash":"0x66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505",`+attrs+`}}`), &short), "incorrect length for safe block hash")

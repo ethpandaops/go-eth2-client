@@ -59,6 +59,10 @@ func TestFastConfirmationEventJSON(t *testing.T) {
 			input: []byte(`{"block":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","current_slot":"2"}`),
 		},
 		{
+			name:  "GoodCurrentSlotZero",
+			input: []byte(`{"block":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"0","current_slot":"0"}`),
+		},
+		{
 			// Beacon nodes that predate current_slot omit it.
 			name:  "GoodCurrentSlotMissing",
 			input: []byte(`{"block":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1"}`),
@@ -86,5 +90,11 @@ func TestFastConfirmationEventCurrentSlot(t *testing.T) {
 	var res api.FastConfirmationEvent
 	require.NoError(t, json.Unmarshal([]byte(`{"block":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"11307428","current_slot":"11307429"}`), &res))
 	assert.Equal(t, phase0.Slot(11307428), res.Slot)
-	assert.Equal(t, phase0.Slot(11307429), res.CurrentSlot)
+	require.NotNil(t, res.CurrentSlot)
+	assert.Equal(t, phase0.Slot(11307429), *res.CurrentSlot)
+
+	// Decoding an event without current_slot into the same struct must not keep
+	// the previous value.
+	require.NoError(t, json.Unmarshal([]byte(`{"block":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"11307429"}`), &res))
+	assert.Nil(t, res.CurrentSlot)
 }

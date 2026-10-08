@@ -131,3 +131,18 @@ func TestBlockEventJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestBlockEventGloasFields(t *testing.T) {
+	var res api.BlockEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"10","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","execution_optimistic":false,"builder_index":"42","block_hash":"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"}`), &res))
+	require.NotNil(t, res.BuilderIndex)
+	assert.Equal(t, uint64(42), *res.BuilderIndex)
+	require.NotNil(t, res.BlockHash)
+	assert.Equal(t, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", res.BlockHash.String())
+
+	// Decoding a pre-Gloas event into the same struct must not keep the
+	// previous Gloas values.
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"11","block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","execution_optimistic":false}`), &res))
+	assert.Nil(t, res.BuilderIndex)
+	assert.Nil(t, res.BlockHash)
+}

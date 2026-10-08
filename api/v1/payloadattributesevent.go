@@ -50,11 +50,13 @@ type PayloadAttributesData struct {
 	// ParentBlockHash is the hash of the parent block.
 	ParentBlockHash phase0.Hash32
 	// SafeBlockHash is the execution block hash the node would pass as
-	// safeBlockHash in engine_forkchoiceUpdated. Part of the event from Gloas onwards.
-	SafeBlockHash phase0.Hash32
+	// safeBlockHash in engine_forkchoiceUpdated. Part of the event from Gloas
+	// onwards; nil when the beacon node does not send it.
+	SafeBlockHash *phase0.Hash32
 	// FinalizedBlockHash is the execution block hash the node would pass as
-	// finalizedBlockHash in engine_forkchoiceUpdated. Part of the event from Gloas onwards.
-	FinalizedBlockHash phase0.Hash32
+	// finalizedBlockHash in engine_forkchoiceUpdated. Part of the event from
+	// Gloas onwards; nil when the beacon node does not send it.
+	FinalizedBlockHash *phase0.Hash32
 	// V1 is the v1 payload attributes (Bellatrix).
 	V1 *PayloadAttributesV1
 	// V2 is the v2 payload attributes (Capella).
@@ -617,13 +619,17 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 		PayloadAttributes: payloadAttributes,
 	}
 
-	// The parent block number is not part of the event from Gloas onwards, and
-	// the safe and finalized block hashes are only part of it from Gloas onwards.
+	// The parent block number is not part of the event from Gloas onwards.
 	if e.Version < spec.DataVersionGloas {
 		data.ParentBlockNumber = strconv.FormatUint(e.Data.ParentBlockNumber, 10)
-	} else {
-		data.SafeBlockHash = fmt.Sprintf("%#x", e.Data.SafeBlockHash)
-		data.FinalizedBlockHash = fmt.Sprintf("%#x", e.Data.FinalizedBlockHash)
+	}
+
+	if e.Data.SafeBlockHash != nil {
+		data.SafeBlockHash = fmt.Sprintf("%#x", *e.Data.SafeBlockHash)
+	}
+
+	if e.Data.FinalizedBlockHash != nil {
+		data.FinalizedBlockHash = fmt.Sprintf("%#x", *e.Data.FinalizedBlockHash)
 	}
 
 	return json.Marshal(&payloadAttributesEventJSON{
@@ -738,7 +744,9 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 			return errors.New("incorrect length for safe block hash")
 		}
 
-		copy(e.Data.SafeBlockHash[:], safeBlockHash)
+		var hash phase0.Hash32
+		copy(hash[:], safeBlockHash)
+		e.Data.SafeBlockHash = &hash
 	}
 
 	if data.Data.FinalizedBlockHash != "" {
@@ -751,7 +759,9 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 			return errors.New("incorrect length for finalized block hash")
 		}
 
-		copy(e.Data.FinalizedBlockHash[:], finalizedBlockHash)
+		var hash phase0.Hash32
+		copy(hash[:], finalizedBlockHash)
+		e.Data.FinalizedBlockHash = &hash
 	}
 
 	if data.Data.PayloadAttributes == nil {

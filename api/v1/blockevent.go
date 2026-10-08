@@ -30,8 +30,9 @@ type BlockEvent struct {
 	Block               phase0.Root
 	ExecutionOptimistic bool
 	// BuilderIndex and BlockHash come from the block's
-	// signed_execution_payload_bid.message. They are only present from Gloas
-	// onwards, and nil before.
+	// signed_execution_payload_bid.message. They are only sent from Gloas
+	// onwards, and are nil when the beacon node does not send them. A pointer
+	// is used because 0 is a valid builder index.
 	BuilderIndex *uint64
 	BlockHash    *phase0.Hash32
 }
@@ -99,6 +100,7 @@ func (e *BlockEvent) UnmarshalJSON(input []byte) error {
 	copy(e.Block[:], block)
 	e.ExecutionOptimistic = blockEventJSON.ExecutionOptimistic
 
+	e.BuilderIndex = nil
 	if blockEventJSON.BuilderIndex != "" {
 		builderIndex, err := strconv.ParseUint(blockEventJSON.BuilderIndex, 10, 64)
 		if err != nil {
@@ -108,19 +110,14 @@ func (e *BlockEvent) UnmarshalJSON(input []byte) error {
 		e.BuilderIndex = &builderIndex
 	}
 
+	e.BlockHash = nil
 	if blockEventJSON.BlockHash != "" {
-		blockHash, err := hex.DecodeString(strings.TrimPrefix(blockEventJSON.BlockHash, "0x"))
-		if err != nil {
-			return errors.Wrap(err, "invalid value for block hash")
+		var blockHash phase0.Hash32
+		if err := decodeFixedBytes(blockHash[:], blockEventJSON.BlockHash, phase0.Hash32Length, "block hash"); err != nil {
+			return err
 		}
 
-		if len(blockHash) != phase0.Hash32Length {
-			return fmt.Errorf("incorrect length %d for block hash", len(blockHash))
-		}
-
-		var hash phase0.Hash32
-		copy(hash[:], blockHash)
-		e.BlockHash = &hash
+		e.BlockHash = &blockHash
 	}
 
 	return nil
