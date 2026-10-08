@@ -25,10 +25,9 @@ import (
 
 func TestForkChoiceV2JSON(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected string
-		err      string
+		name  string
+		input []byte
+		err   string
 	}{
 		{
 			name: "Empty",
@@ -41,37 +40,46 @@ func TestForkChoiceV2JSON(t *testing.T) {
 		},
 		{
 			name:  "Good",
-			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"full","justified_epoch":"3","finalized_epoch":"2","weight":"128000000000","validity":"valid","execution_block_hash":"0xaa00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"16","payload_availability_yes_count":"16","payload_data_availability_yes_count":"16","extra_data":{}}],"extra_data":{"head_root":"0xb000000000000000000000000000000000000000000000000000000000000000"}}`),
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}],"extra_data":{}}`),
 		},
 		{
-			name:     "ExtraDataMissing",
-			input:    []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[]}`),
-			expected: `{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[],"extra_data":{}}`,
-		},
-		{
-			name:     "UnknownFieldFolded",
-			input:    []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[],"head_root":"0xb000000000000000000000000000000000000000000000000000000000000000"}`),
-			expected: `{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[],"extra_data":{"head_root":"0xb000000000000000000000000000000000000000000000000000000000000000"}}`,
+			name:  "GoodExtraData",
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}],"extra_data":{"client":"teku"}}`),
 		},
 		{
 			name:  "JustifiedCheckpointMissing",
-			input: []byte(`{"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[]}`),
+			input: []byte(`{"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}],"extra_data":{}}`),
 			err:   "justified checkpoint missing",
 		},
 		{
 			name:  "FinalizedCheckpointMissing",
-			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[]}`),
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}],"extra_data":{}}`),
 			err:   "finalized checkpoint missing",
 		},
 		{
 			name:  "ForkChoiceNodesMissing",
-			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"}}`),
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"extra_data":{}}`),
+			err:   "fork choice nodes missing",
+		},
+		{
+			name:  "ForkChoiceNodesEmpty",
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[],"extra_data":{}}`),
 			err:   "fork choice nodes missing",
 		},
 		{
 			name:  "ForkChoiceNodeNull",
-			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xa000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x9000000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[null]}`),
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[null],"extra_data":{}}`),
 			err:   "fork choice node entry 0 missing",
+		},
+		{
+			name:  "ExtraDataMissing",
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}]}`),
+			err:   "extra data missing",
+		},
+		{
+			name:  "NodeInvalid",
+			input: []byte(`{"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"fork_choice_nodes":[{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}],"extra_data":{}}`),
+			err:   "invalid value for fork_choice_nodes: justified checkpoint missing",
 		},
 	}
 
@@ -87,11 +95,7 @@ func TestForkChoiceV2JSON(t *testing.T) {
 			require.NoError(t, err)
 			rt, err := json.Marshal(&fc)
 			require.NoError(t, err)
-			expected := test.expected
-			if expected == "" {
-				expected = string(test.input)
-			}
-			assert.Equal(t, expected, string(rt))
+			assert.Equal(t, string(test.input), string(rt))
 			assert.Equal(t, string(rt), fc.String())
 		})
 	}
@@ -99,10 +103,9 @@ func TestForkChoiceV2JSON(t *testing.T) {
 
 func TestForkChoiceNodeV2JSON(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []byte
-		expected string
-		err      string
+		name  string
+		input []byte
+		err   string
 	}{
 		{
 			name: "Empty",
@@ -114,101 +117,132 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			err:   "invalid JSON: not an object",
 		},
 		{
+			name:  "GoodFull",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+		},
+		{
 			name:  "GoodPending",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"full","justified_epoch":"3","finalized_epoch":"2","weight":"128000000000","validity":"valid","execution_block_hash":"0xaa00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"16","payload_availability_yes_count":"15","payload_data_availability_yes_count":"14","extra_data":{"state_root":"0xc000000000000000000000000000000000000000000000000000000000000000"}}`),
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"pending","parent_root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","parent_payload_status":"full","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 		},
 		{
 			name:  "GoodEmpty",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"empty","parent_root":"0xb000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"pending","justified_epoch":"3","finalized_epoch":"2","weight":"64000000000","validity":"valid","execution_block_hash":"0xaa00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"16","payload_availability_yes_count":"15","payload_data_availability_yes_count":"14","extra_data":{}}`),
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"empty","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 		},
 		{
-			name:  "ParentPayloadStatusNull",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"128000000000","validity":"optimistic","execution_block_hash":"0xaa00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
+			name:  "GoodParentNotRetained",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":null,"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 		},
 		{
-			name:     "OptionalFieldsMissing",
-			input:    []byte(`{"payload_status":"full","slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+			name:  "GoodOptimistic",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"optimistic","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 		},
 		{
-			name:     "ParentRootNull",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0x0000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+			name:  "GoodInvalid",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"invalid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 		},
 		{
-			name:     "UnknownFieldsFolded",
-			input:    []byte(`{"payload_status":"full","slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","unrealised_justified_epoch":"4","state_root":"0xc000000000000000000000000000000000000000000000000000000000000000","extra_data":{"state_root":"0xd000000000000000000000000000000000000000000000000000000000000000"}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"state_root":"0xd000000000000000000000000000000000000000000000000000000000000000","unrealised_justified_epoch":"4"}}`,
+			name:  "GoodExtraData",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{"balance":"32"}}`),
 		},
 		{
 			name:  "SlotMissing",
-			input: []byte(`{"block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			input: []byte(`{"block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 			err:   "slot missing",
+		},
+		{
+			name:  "SlotInvalid",
+			input: []byte(`{"slot":"x","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for slot: x: strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
+		{
+			name:  "BlockRootMissing",
+			input: []byte(`{"slot":"29","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "block root missing",
 		},
 		{
 			name:  "PayloadStatusMissing",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
 			err:   "payload status missing",
 		},
 		{
-			name:     "PayloadStatusUppercase",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"FULL","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"Pending","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"pending","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+			name:  "PayloadStatusUnknown",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"unknown","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "unrecognised fork choice payload status: unknown",
 		},
 		{
-			name:  "FieldCaseMismatch",
-			input: []byte(`{"Slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "slot missing",
+			name:  "ParentRootMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "parent root missing",
 		},
 		{
-			name:  "SeveralFieldsInvalid",
-			input: []byte(`{"slot":1,"block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":2,"validity":3,"execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "invalid value for slot: json: cannot unmarshal number into Go value of type string",
+			name:  "ParentRootNull",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":null,"parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "parent root missing",
 		},
 		{
-			name:  "PayloadStatusInvalid",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"bad","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "unrecognised fork choice payload status: bad",
+			name:  "ParentPayloadStatusMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "parent payload status missing",
 		},
 		{
-			name:     "ParentPayloadStatusUnrecognised",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"bad","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"parent_payload_status":"bad"}}`,
+			name:  "ParentPayloadStatusInvalid",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"bad","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for parent payload status: unrecognised fork choice payload status: bad",
 		},
 		{
-			name:  "ParentPayloadStatusWrongType",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":1,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "invalid value for parent_payload_status: json: cannot unmarshal number into Go value of type string",
+			name:  "JustifiedCheckpointMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "justified checkpoint missing",
 		},
 		{
-			name:     "ParentRootNull",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0x0000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`,
+			name:  "FinalizedCheckpointMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "finalized checkpoint missing",
 		},
 		{
-			name:     "ValidityNotYetRevealed",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"not_yet_revealed","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"not_yet_revealed"}}`,
+			name:  "WeightMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "weight missing",
 		},
 		{
-			name:     "ValidityUnrecognisedExtraDataKeyTaken",
-			input:    []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"not_yet_revealed","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"client"}}`),
-			expected: `{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":null,"weight":"0","validity":"unknown","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","extra_data":{"validity":"client"}}`,
+			name:  "ValidityMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "validity missing",
 		},
 		{
-			name:  "WeightInvalid",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"-1","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000"}`),
-			err:   "invalid value for weight: -1: strconv.ParseUint: parsing \"-1\": invalid syntax",
+			name:  "ValidityNotYetRevealed",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"not_yet_revealed","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for validity: not_yet_revealed",
 		},
 		{
-			name:  "PayloadAttesterCountInvalid",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"x"}`),
-			err:   "invalid value for payload attester count: x: strconv.ParseUint: parsing \"x\": invalid syntax",
+			name:  "ValidityUnknown",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"unknown","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "invalid value for validity: unknown",
 		},
 		{
-			name:  "ExecutionBlockHashShort",
-			input: []byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"full","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","weight":"0","validity":"valid","execution_block_hash":"0xbb"}`),
-			err:   "incorrect length 1 for execution block hash",
+			name:  "ExecutionBlockHashMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "execution block hash missing",
+		},
+		{
+			name:  "PayloadAttesterCountMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "payload attester count missing",
+		},
+		{
+			name:  "PayloadAvailabilityYesCountMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_data_availability_yes_count":"509","extra_data":{}}`),
+			err:   "payload availability yes count missing",
+		},
+		{
+			name:  "PayloadDataAvailabilityYesCountMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","extra_data":{}}`),
+			err:   "payload data availability yes count missing",
+		},
+		{
+			name:  "ExtraDataMissing",
+			input: []byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509"}`),
+			err:   "extra data missing",
 		},
 	}
 
@@ -224,29 +258,42 @@ func TestForkChoiceNodeV2JSON(t *testing.T) {
 			require.NoError(t, err)
 			rt, err := json.Marshal(&node)
 			require.NoError(t, err)
-			expected := test.expected
-			if expected == "" {
-				expected = string(test.input)
-			}
-			assert.Equal(t, expected, string(rt))
+			assert.Equal(t, string(test.input), string(rt))
 			assert.Equal(t, string(rt), node.String())
 		})
 	}
 }
 
-// A zero value, as the mock returns, marshals to JSON that decodes again.
-func TestForkChoiceV2ZeroValueRoundTrip(t *testing.T) {
+func TestForkChoiceNodeV2Values(t *testing.T) {
+	var node api.ForkChoiceNodeV2
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}`), &node))
+
+	assert.Equal(t, phase0.Slot(29), node.Slot)
+	assert.Equal(t, api.ForkChoicePayloadStatusFull, node.PayloadStatus)
+	require.NotNil(t, node.ParentPayloadStatus)
+	assert.Equal(t, api.ForkChoicePayloadStatusPending, *node.ParentPayloadStatus)
+	assert.Equal(t, phase0.Epoch(3), node.JustifiedCheckpoint.Epoch)
+	assert.Equal(t, phase0.Root{0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa}, node.JustifiedCheckpoint.Root)
+	assert.Equal(t, phase0.Epoch(2), node.FinalizedCheckpoint.Epoch)
+	assert.Equal(t, phase0.Gwei(32000000000), node.Weight)
+	assert.Equal(t, api.ForkChoiceNodeValidityValid, node.Validity)
+	assert.Equal(t, uint64(512), node.PayloadAttesterCount)
+	assert.Equal(t, uint64(510), node.PayloadAvailabilityYesCount)
+	assert.Equal(t, uint64(509), node.PayloadDataAvailabilityYesCount)
+	assert.Empty(t, node.ExtraData)
+}
+
+// The spec requires at least one fork choice node, so a zero value, as the mock returns, does not decode.
+func TestForkChoiceV2ZeroValue(t *testing.T) {
 	encoded, err := json.Marshal(&api.ForkChoiceV2{})
 	require.NoError(t, err)
 
 	var decoded api.ForkChoiceV2
-	require.NoError(t, json.Unmarshal(encoded, &decoded))
-	require.Empty(t, decoded.ForkChoiceNodes)
+	require.EqualError(t, json.Unmarshal(encoded, &decoded), "fork choice nodes missing")
 }
 
 func TestForkChoicePayloadStatusJSON(t *testing.T) {
 	for _, status := range []api.ForkChoicePayloadStatus{
-		api.ForkChoicePayloadStatusUnknown,
 		api.ForkChoicePayloadStatusEmpty,
 		api.ForkChoicePayloadStatusFull,
 		api.ForkChoicePayloadStatusPending,
@@ -262,20 +309,21 @@ func TestForkChoicePayloadStatusJSON(t *testing.T) {
 
 	var decoded api.ForkChoicePayloadStatus
 	require.EqualError(t, json.Unmarshal([]byte(`"bad"`), &decoded), "unrecognised fork choice payload status: bad")
+	require.EqualError(t, json.Unmarshal([]byte(`"unknown"`), &decoded), "unrecognised fork choice payload status: unknown")
+	require.EqualError(t, json.Unmarshal([]byte(`"FULL"`), &decoded), "unrecognised fork choice payload status: FULL")
 }
 
 // TestForkChoiceNodeV2JSONReuse ensures that decoding into an existing node, as encoding/json does when decoding into
-// a non-empty slice of nodes, leaves no optional values from the previous node behind.
+// a non-empty slice of nodes, leaves nothing from the previous node behind.
 func TestForkChoiceNodeV2JSONReuse(t *testing.T) {
 	node := new(api.ForkChoiceNodeV2)
-	require.NoError(t, json.Unmarshal([]byte(`{"slot":"29","block_root":"0xb000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":"0xa000000000000000000000000000000000000000000000000000000000000000","parent_payload_status":"full","justified_epoch":"3","weight":"0","validity":"valid","execution_block_hash":"0xbb00000000000000000000000000000000000000000000000000000000000000","payload_attester_count":"16","extra_data":{"state_root":"0xc0"}}`), node))
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"29","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":"pending","justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{"x":"1"}}`), node))
+	require.NotNil(t, node.ParentPayloadStatus)
 
 	nodes := []*api.ForkChoiceNodeV2{node}
-	require.NoError(t, json.Unmarshal([]byte(`[{"slot":"30","block_root":"0xc000000000000000000000000000000000000000000000000000000000000000","payload_status":"pending","parent_root":null,"weight":"0","validity":"valid","execution_block_hash":"0xcc00000000000000000000000000000000000000000000000000000000000000"}]`), &nodes))
+	require.NoError(t, json.Unmarshal([]byte(`[{"slot":"30","block_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","payload_status":"full","parent_root":"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","parent_payload_status":null,"justified_checkpoint":{"epoch":"3","root":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"finalized_checkpoint":{"epoch":"2","root":"0x9999999999999999999999999999999999999999999999999999999999999999"},"weight":"32000000000","validity":"valid","execution_block_hash":"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","payload_attester_count":"512","payload_availability_yes_count":"510","payload_data_availability_yes_count":"509","extra_data":{}}]`), &nodes))
 	require.Same(t, node, nodes[0])
-	require.Equal(t, phase0.Root{}, node.ParentRoot)
+	require.Equal(t, phase0.Slot(30), node.Slot)
 	require.Nil(t, node.ParentPayloadStatus)
-	require.Nil(t, node.JustifiedEpoch)
-	require.Nil(t, node.PayloadAttesterCount)
-	require.Nil(t, node.ExtraData)
+	require.Empty(t, node.ExtraData)
 }

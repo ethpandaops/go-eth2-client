@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
@@ -47,10 +46,9 @@ var ForkChoicePayloadStatusStrings = [...]string{
 }
 
 // ForkChoicePayloadStatusFromString converts a string input to a fork choice payload status.
+// Only the values the beacon API defines (pending, empty, full) are accepted.
 func ForkChoicePayloadStatusFromString(input string) (ForkChoicePayloadStatus, error) {
-	switch strings.ToLower(input) {
-	case "unknown":
-		return ForkChoicePayloadStatusUnknown, nil
+	switch input {
 	case "empty":
 		return ForkChoicePayloadStatusEmpty, nil
 	case "full":
@@ -68,9 +66,6 @@ func (s ForkChoicePayloadStatus) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-// Unlike fork choice node decoding, which keeps an unrecognised parent payload
-// status in the node's ExtraData, a lone payload status has nowhere to keep the
-// original value, so an unrecognised one is an error rather than silently unknown.
 func (s *ForkChoicePayloadStatus) UnmarshalJSON(input []byte) error {
 	var inputString string
 	if err := json.Unmarshal(input, &inputString); err != nil {
@@ -96,11 +91,11 @@ func (s ForkChoicePayloadStatus) String() string {
 }
 
 // ForkChoiceV2 is the data regarding the node's current fork choice context, as returned by
-// GET /eth/v2/debug/fork_choice. It contains one node per (block root, payload status) pair.
+// GET /eth/v2/debug/fork_choice (ethereum/beacon-APIs#615). It contains one node per
+// (block root, payload status) pair.
 //
-// The endpoint is not yet finalised (ethereum/beacon-APIs#615) and client implementations differ,
-// so decoding is lenient: fields that not every client provides are optional, and unrecognised
-// fields are folded into ExtraData rather than discarded.
+// Decoding follows the spec: every field it requires must be present, and enumerations only
+// accept the values it defines.
 type ForkChoiceV2 struct {
 	// JustifiedCheckpoint is the current justified checkpoint.
 	JustifiedCheckpoint phase0.Checkpoint
@@ -108,7 +103,8 @@ type ForkChoiceV2 struct {
 	FinalizedCheckpoint phase0.Checkpoint
 	// ForkChoiceNodes contains the fork choice nodes.
 	ForkChoiceNodes []*ForkChoiceNodeV2
-	// ExtraData is the client-specific extra data of the fork choice store.
+	// ExtraData is the client-specific extra data of the fork choice store; empty if the
+	// client provides none.
 	ExtraData map[string]any
 }
 
@@ -148,17 +144,18 @@ func (f *ForkChoiceV2) UnmarshalJSON(input []byte) error {
 	}
 
 	var forkChoiceJSON forkChoiceV2JSON
-	if err := takeField(fields, "justified_checkpoint", &forkChoiceJSON.JustifiedCheckpoint); err != nil {
-		return err
-	}
-	if err := takeField(fields, "finalized_checkpoint", &forkChoiceJSON.FinalizedCheckpoint); err != nil {
-		return err
-	}
-	if err := takeField(fields, "fork_choice_nodes", &forkChoiceJSON.ForkChoiceNodes); err != nil {
-		return err
-	}
-	if err := takeField(fields, "extra_data", &forkChoiceJSON.ExtraData); err != nil {
-		return err
+	for _, field := range [...]struct {
+		key string
+		dst any
+	}{
+		{"justified_checkpoint", &forkChoiceJSON.JustifiedCheckpoint},
+		{"finalized_checkpoint", &forkChoiceJSON.FinalizedCheckpoint},
+		{"fork_choice_nodes", &forkChoiceJSON.ForkChoiceNodes},
+		{"extra_data", &forkChoiceJSON.ExtraData},
+	} {
+		if err := takeField(fields, field.key, field.dst); err != nil {
+			return err
+		}
 	}
 
 	if forkChoiceJSON.JustifiedCheckpoint == nil {
@@ -171,7 +168,7 @@ func (f *ForkChoiceV2) UnmarshalJSON(input []byte) error {
 	}
 	f.FinalizedCheckpoint = *forkChoiceJSON.FinalizedCheckpoint
 
-	if forkChoiceJSON.ForkChoiceNodes == nil {
+	if len(forkChoiceJSON.ForkChoiceNodes) == 0 {
 		return errors.New("fork choice nodes missing")
 	}
 	for i := range forkChoiceJSON.ForkChoiceNodes {
@@ -181,11 +178,10 @@ func (f *ForkChoiceV2) UnmarshalJSON(input []byte) error {
 	}
 	f.ForkChoiceNodes = forkChoiceJSON.ForkChoiceNodes
 
-	extraData, err := foldUnknownFields(fields, forkChoiceJSON.ExtraData)
-	if err != nil {
-		return err
+	if forkChoiceJSON.ExtraData == nil {
+		return errors.New("extra data missing")
 	}
-	f.ExtraData = extraData
+	f.ExtraData = forkChoiceJSON.ExtraData
 
 	return nil
 }
@@ -208,51 +204,57 @@ type ForkChoiceNodeV2 struct {
 	BlockRoot phase0.Root
 	// PayloadStatus is the payload status of the node.
 	PayloadStatus ForkChoicePayloadStatus
-	// ParentRoot is the block root of the parent fork choice node.
-	// For Gloas empty and full nodes this is the node's own block root, pointing at its pending node,
-	// although not every client implements this yet.
-	// A zero root means none: some clients return a null parent root for the oldest retained node.
+	// ParentRoot is the block root of the parent fork choice node. For Gloas empty and full nodes
+	// this is the node's own block root, pointing at its pending node; otherwise it is the beacon
+	// block's parent root.
 	ParentRoot phase0.Root
-	// ParentPayloadStatus is the payload status of the parent fork choice node.
-	// Nil if the parent is not retained in the fork choice tree, or if the client does not provide it.
-	// An unrecognised value is also nil, with the original kept in ExtraData["parent_payload_status"].
+	// ParentPayloadStatus is the payload status of the parent fork choice node, nil if the parent is
+	// not retained in the fork choice tree.
 	ParentPayloadStatus *ForkChoicePayloadStatus
-	// JustifiedEpoch is the justified epoch of the node, if provided.
-	JustifiedEpoch *phase0.Epoch
-	// FinalizedEpoch is the finalized epoch of the node, if provided.
-	FinalizedEpoch *phase0.Epoch
+	// JustifiedCheckpoint is the justified checkpoint recorded for the node.
+	JustifiedCheckpoint phase0.Checkpoint
+	// FinalizedCheckpoint is the finalized checkpoint recorded for the node.
+	FinalizedCheckpoint phase0.Checkpoint
 	// Weight is the raw stored weight of the node in Gwei.
-	Weight uint64
+	Weight phase0.Gwei
 	// Validity is the execution validity of the chain ending at ExecutionBlockHash.
 	Validity ForkChoiceNodeValidity
-	// ExecutionBlockHash is the execution block hash of the node.
+	// ExecutionBlockHash is the execution payload hash for full nodes, and the bid's parent block hash
+	// for Gloas pending and empty nodes.
 	ExecutionBlockHash phase0.Hash32
-	// PayloadAttesterCount is the number of PTC positions with a recorded vote, if provided.
-	PayloadAttesterCount *uint64
-	// PayloadAvailabilityYesCount is the number of PTC positions voting that the payload was received on time, if provided.
-	PayloadAvailabilityYesCount *uint64
-	// PayloadDataAvailabilityYesCount is the number of PTC positions voting that the blob data is available, if provided.
-	PayloadDataAvailabilityYesCount *uint64
-	// ExtraData is the client-specific extra data of the node.
+	// PayloadAttesterCount is the number of PTC positions with a recorded vote.
+	PayloadAttesterCount uint64
+	// PayloadAvailabilityYesCount is the number of PTC positions voting that the payload was received on time.
+	PayloadAvailabilityYesCount uint64
+	// PayloadDataAvailabilityYesCount is the number of PTC positions voting that the blob data is available.
+	PayloadDataAvailabilityYesCount uint64
+	// ExtraData is the client-specific extra data of the node; empty if the client provides none.
 	ExtraData map[string]any
 }
 
 // forkChoiceNodeV2JSON is the json representation of the struct.
 type forkChoiceNodeV2JSON struct {
-	Slot                            string         `json:"slot"`
-	BlockRoot                       string         `json:"block_root"`
-	PayloadStatus                   string         `json:"payload_status"`
-	ParentRoot                      string         `json:"parent_root"`
-	ParentPayloadStatus             *string        `json:"parent_payload_status"`
-	JustifiedEpoch                  string         `json:"justified_epoch,omitempty"`
-	FinalizedEpoch                  string         `json:"finalized_epoch,omitempty"`
-	Weight                          string         `json:"weight"`
-	Validity                        string         `json:"validity"`
-	ExecutionBlockHash              string         `json:"execution_block_hash"`
-	PayloadAttesterCount            string         `json:"payload_attester_count,omitempty"`
-	PayloadAvailabilityYesCount     string         `json:"payload_availability_yes_count,omitempty"`
-	PayloadDataAvailabilityYesCount string         `json:"payload_data_availability_yes_count,omitempty"`
-	ExtraData                       map[string]any `json:"extra_data"`
+	Slot                            string             `json:"slot"`
+	BlockRoot                       string             `json:"block_root"`
+	PayloadStatus                   string             `json:"payload_status"`
+	ParentRoot                      string             `json:"parent_root"`
+	ParentPayloadStatus             *string            `json:"parent_payload_status"`
+	JustifiedCheckpoint             *phase0.Checkpoint `json:"justified_checkpoint"`
+	FinalizedCheckpoint             *phase0.Checkpoint `json:"finalized_checkpoint"`
+	Weight                          string             `json:"weight"`
+	Validity                        string             `json:"validity"`
+	ExecutionBlockHash              string             `json:"execution_block_hash"`
+	PayloadAttesterCount            string             `json:"payload_attester_count"`
+	PayloadAvailabilityYesCount     string             `json:"payload_availability_yes_count"`
+	PayloadDataAvailabilityYesCount string             `json:"payload_data_availability_yes_count"`
+	ExtraData                       map[string]any     `json:"extra_data"`
+}
+
+// forkChoiceNodeV2Validities are the execution validities the v2 node defines.
+var forkChoiceNodeV2Validities = map[ForkChoiceNodeValidity]bool{
+	ForkChoiceNodeValidityValid:      true,
+	ForkChoiceNodeValidityInvalid:    true,
+	ForkChoiceNodeValidityOptimistic: true,
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -262,15 +264,14 @@ func (f ForkChoiceNodeV2) MarshalJSON() ([]byte, error) {
 		BlockRoot:                       fmt.Sprintf("%#x", f.BlockRoot),
 		PayloadStatus:                   f.PayloadStatus.String(),
 		ParentRoot:                      fmt.Sprintf("%#x", f.ParentRoot),
-		ParentPayloadStatus:             nil,
-		JustifiedEpoch:                  formatOptionalUint64((*uint64)(f.JustifiedEpoch)),
-		FinalizedEpoch:                  formatOptionalUint64((*uint64)(f.FinalizedEpoch)),
-		Weight:                          strconv.FormatUint(f.Weight, 10),
+		JustifiedCheckpoint:             &f.JustifiedCheckpoint,
+		FinalizedCheckpoint:             &f.FinalizedCheckpoint,
+		Weight:                          fmt.Sprintf("%d", f.Weight),
 		Validity:                        f.Validity.String(),
 		ExecutionBlockHash:              fmt.Sprintf("%#x", f.ExecutionBlockHash),
-		PayloadAttesterCount:            formatOptionalUint64(f.PayloadAttesterCount),
-		PayloadAvailabilityYesCount:     formatOptionalUint64(f.PayloadAvailabilityYesCount),
-		PayloadDataAvailabilityYesCount: formatOptionalUint64(f.PayloadDataAvailabilityYesCount),
+		PayloadAttesterCount:            strconv.FormatUint(f.PayloadAttesterCount, 10),
+		PayloadAvailabilityYesCount:     strconv.FormatUint(f.PayloadAvailabilityYesCount, 10),
+		PayloadDataAvailabilityYesCount: strconv.FormatUint(f.PayloadDataAvailabilityYesCount, 10),
 		ExtraData:                       f.ExtraData,
 	}
 
@@ -293,9 +294,9 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
-	// Optional fields are only set when present, so clear any left from decoding into an existing node.
-	f.ParentRoot = phase0.Root{}
-	f.ParentPayloadStatus = nil
+	// parent_payload_status is required but nullable, so its presence is checked separately from
+	// its value.
+	_, hasParentPayloadStatus := fields["parent_payload_status"]
 
 	// Fields are taken in a fixed order, so that the first of several invalid fields is always the one
 	// reported.
@@ -309,8 +310,8 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		{"payload_status", &nodeJSON.PayloadStatus},
 		{"parent_root", &nodeJSON.ParentRoot},
 		{"parent_payload_status", &nodeJSON.ParentPayloadStatus},
-		{"justified_epoch", &nodeJSON.JustifiedEpoch},
-		{"finalized_epoch", &nodeJSON.FinalizedEpoch},
+		{"justified_checkpoint", &nodeJSON.JustifiedCheckpoint},
+		{"finalized_checkpoint", &nodeJSON.FinalizedCheckpoint},
 		{"weight", &nodeJSON.Weight},
 		{"validity", &nodeJSON.Validity},
 		{"execution_block_hash", &nodeJSON.ExecutionBlockHash},
@@ -347,52 +348,50 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
-	// The parent root is null for the oldest retained node on some clients.
-	if nodeJSON.ParentRoot != "" {
-		if err := decodeFixedBytes(f.ParentRoot[:], nodeJSON.ParentRoot, rootLength, "parent root"); err != nil {
-			return err
-		}
+	if nodeJSON.ParentRoot == "" {
+		return errors.New("parent root missing")
+	}
+	if err := decodeFixedBytes(f.ParentRoot[:], nodeJSON.ParentRoot, rootLength, "parent root"); err != nil {
+		return err
 	}
 
-	// Unlike the payload status, which identifies the node, an unrecognised parent payload status
-	// is left nil, keeping the original in ExtraData, so that it does not fail the whole response.
-	unrecognisedParentPayloadStatus := false
+	if !hasParentPayloadStatus {
+		return errors.New("parent payload status missing")
+	}
+	f.ParentPayloadStatus = nil
 	if nodeJSON.ParentPayloadStatus != nil {
 		parentPayloadStatus, err := ForkChoicePayloadStatusFromString(*nodeJSON.ParentPayloadStatus)
-		if err == nil {
-			f.ParentPayloadStatus = &parentPayloadStatus
-		} else {
-			unrecognisedParentPayloadStatus = true
+		if err != nil {
+			return errors.Wrap(err, "invalid value for parent payload status")
 		}
+		f.ParentPayloadStatus = &parentPayloadStatus
 	}
 
-	var justifiedEpoch, finalizedEpoch *uint64
-	if err := parseOptionalUint64(&justifiedEpoch, nodeJSON.JustifiedEpoch, "justified epoch"); err != nil {
-		return err
+	if nodeJSON.JustifiedCheckpoint == nil {
+		return errors.New("justified checkpoint missing")
 	}
-	f.JustifiedEpoch = (*phase0.Epoch)(justifiedEpoch)
+	f.JustifiedCheckpoint = *nodeJSON.JustifiedCheckpoint
 
-	if err := parseOptionalUint64(&finalizedEpoch, nodeJSON.FinalizedEpoch, "finalized epoch"); err != nil {
-		return err
+	if nodeJSON.FinalizedCheckpoint == nil {
+		return errors.New("finalized checkpoint missing")
 	}
-	f.FinalizedEpoch = (*phase0.Epoch)(finalizedEpoch)
+	f.FinalizedCheckpoint = *nodeJSON.FinalizedCheckpoint
 
 	if nodeJSON.Weight == "" {
 		return errors.New("weight missing")
 	}
-	if f.Weight, err = strconv.ParseUint(nodeJSON.Weight, 10, 64); err != nil {
+	weight, err := strconv.ParseUint(nodeJSON.Weight, 10, 64)
+	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("invalid value for weight: %s", nodeJSON.Weight))
 	}
+	f.Weight = phase0.Gwei(weight)
 
 	if nodeJSON.Validity == "" {
 		return errors.New("validity missing")
 	}
-	// Validities beyond the spec's decode as unknown, keeping the original in
-	// ExtraData, as for v1 nodes.
-	unrecognisedValidity := false
-	if f.Validity, err = ForkChoiceNodeValidityFromString(nodeJSON.Validity); err != nil {
-		f.Validity = ForkChoiceNodeValidityUnknown
-		unrecognisedValidity = true
+	f.Validity, err = ForkChoiceNodeValidityFromString(nodeJSON.Validity)
+	if err != nil || !forkChoiceNodeV2Validities[f.Validity] {
+		return fmt.Errorf("invalid value for validity: %s", nodeJSON.Validity)
 	}
 
 	if nodeJSON.ExecutionBlockHash == "" {
@@ -402,26 +401,27 @@ func (f *ForkChoiceNodeV2) UnmarshalJSON(input []byte) error {
 		return err
 	}
 
-	if err := parseOptionalUint64(&f.PayloadAttesterCount, nodeJSON.PayloadAttesterCount, "payload attester count"); err != nil {
-		return err
-	}
-	if err := parseOptionalUint64(&f.PayloadAvailabilityYesCount, nodeJSON.PayloadAvailabilityYesCount, "payload availability yes count"); err != nil {
-		return err
-	}
-	if err := parseOptionalUint64(&f.PayloadDataAvailabilityYesCount, nodeJSON.PayloadDataAvailabilityYesCount, "payload data availability yes count"); err != nil {
-		return err
+	for _, count := range [...]struct {
+		input string
+		dst   *uint64
+		name  string
+	}{
+		{nodeJSON.PayloadAttesterCount, &f.PayloadAttesterCount, "payload attester count"},
+		{nodeJSON.PayloadAvailabilityYesCount, &f.PayloadAvailabilityYesCount, "payload availability yes count"},
+		{nodeJSON.PayloadDataAvailabilityYesCount, &f.PayloadDataAvailabilityYesCount, "payload data availability yes count"},
+	} {
+		if count.input == "" {
+			return fmt.Errorf("%s missing", count.name)
+		}
+		if *count.dst, err = strconv.ParseUint(count.input, 10, 64); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("invalid value for %s: %s", count.name, count.input))
+		}
 	}
 
-	if f.ExtraData, err = foldUnknownFields(fields, nodeJSON.ExtraData); err != nil {
-		return err
+	if nodeJSON.ExtraData == nil {
+		return errors.New("extra data missing")
 	}
-
-	if unrecognisedValidity {
-		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "validity", nodeJSON.Validity)
-	}
-	if unrecognisedParentPayloadStatus {
-		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "parent_payload_status", *nodeJSON.ParentPayloadStatus)
-	}
+	f.ExtraData = nodeJSON.ExtraData
 
 	return nil
 }
@@ -434,31 +434,6 @@ func (f *ForkChoiceNodeV2) String() string {
 	}
 
 	return string(data)
-}
-
-// parseOptionalUint64 parses a decimal string into dst, leaving dst nil if the string is empty.
-func parseOptionalUint64(dst **uint64, input string, name string) error {
-	*dst = nil
-	if input == "" {
-		return nil
-	}
-
-	val, err := strconv.ParseUint(input, 10, 64)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("invalid value for %s: %s", name, input))
-	}
-	*dst = &val
-
-	return nil
-}
-
-// formatOptionalUint64 formats a value as a decimal string, returning an empty string if it is nil.
-func formatOptionalUint64(input *uint64) string {
-	if input == nil {
-		return ""
-	}
-
-	return strconv.FormatUint(*input, 10)
 }
 
 // decodeObject decodes a JSON object into its fields, leaving their values undecoded.
@@ -475,42 +450,17 @@ func decodeObject(input []byte) (map[string]json.RawMessage, error) {
 	return fields, nil
 }
 
-// takeField decodes the field key, if present, into dst and removes it from fields, so that only
-// unknown fields remain. Unlike encoding/json's struct decoding, keys match exactly rather than
-// ignoring case: the API's keys are snake_case, and a differently cased key is an unknown field.
+// takeField decodes the field key, if present, into dst. Unlike encoding/json's struct decoding,
+// keys match exactly rather than ignoring case: the API's keys are snake_case.
 func takeField(fields map[string]json.RawMessage, key string, dst any) error {
 	raw, exists := fields[key]
 	if !exists {
 		return nil
 	}
-	delete(fields, key)
 
 	if err := json.Unmarshal(raw, dst); err != nil {
 		return errors.Wrap(err, fmt.Sprintf("invalid value for %s", key))
 	}
 
 	return nil
-}
-
-// foldUnknownFields returns extraData with the remaining, unknown, fields added to it. Fields already
-// present in extraData take precedence.
-func foldUnknownFields(fields map[string]json.RawMessage, extraData map[string]any) (map[string]any, error) {
-	for k, raw := range fields {
-		if _, exists := extraData[k]; exists {
-			continue
-		}
-
-		var value any
-		if err := json.Unmarshal(raw, &value); err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("invalid value for %s", k))
-		}
-
-		if extraData == nil {
-			extraData = make(map[string]any)
-		}
-
-		extraData[k] = value
-	}
-
-	return extraData, nil
 }

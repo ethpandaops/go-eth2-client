@@ -65,61 +65,70 @@ func forkChoiceV2Service(t *testing.T, statusCode int, body []byte) consensuscli
 	return provider
 }
 
-// TestForkChoiceV2Clients decodes responses captured from Sepolia beacon nodes after the Gloas fork.
+// TestForkChoiceV2Spec decodes a response in the shape ethereum/beacon-APIs#615 defines: one pending,
+// empty and full node for a Gloas block, the parent of whose pending node is not retained.
+func TestForkChoiceV2Spec(t *testing.T) {
+	body, err := os.ReadFile("testdata/forkchoicev2_spec.json")
+	require.NoError(t, err)
+
+	provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
+	response, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+	require.NoError(t, err)
+	require.NotNil(t, response.Data)
+	require.Empty(t, response.Metadata)
+
+	data := response.Data
+	require.Equal(t, phase0.Epoch(353123), data.JustifiedCheckpoint.Epoch)
+	require.Equal(t, phase0.Epoch(353122), data.FinalizedCheckpoint.Epoch)
+	require.Len(t, data.ForkChoiceNodes, 3)
+
+	pending, empty, full := data.ForkChoiceNodes[0], data.ForkChoiceNodes[1], data.ForkChoiceNodes[2]
+	require.Equal(t, apiv1.ForkChoicePayloadStatusPending, pending.PayloadStatus)
+	require.Nil(t, pending.ParentPayloadStatus)
+
+	for _, node := range []*apiv1.ForkChoiceNodeV2{empty, full} {
+		require.Equal(t, pending.BlockRoot, node.ParentRoot, "empty and full nodes point at their pending node")
+		require.NotNil(t, node.ParentPayloadStatus)
+		require.Equal(t, apiv1.ForkChoicePayloadStatusPending, *node.ParentPayloadStatus)
+	}
+	require.Equal(t, apiv1.ForkChoicePayloadStatusEmpty, empty.PayloadStatus)
+	require.Equal(t, apiv1.ForkChoicePayloadStatusFull, full.PayloadStatus)
+
+	for _, node := range data.ForkChoiceNodes {
+		require.Equal(t, phase0.Epoch(353123), node.JustifiedCheckpoint.Epoch)
+		require.Equal(t, phase0.Epoch(353122), node.FinalizedCheckpoint.Epoch)
+		require.Equal(t, uint64(512), node.PayloadAttesterCount)
+		require.Equal(t, uint64(510), node.PayloadAvailabilityYesCount)
+		require.Equal(t, uint64(508), node.PayloadDataAvailabilityYesCount)
+	}
+}
+
+// TestForkChoiceV2Clients documents how responses captured from Sepolia beacon nodes after the Gloas
+// fork fall short of the spec: none decode until the clients implement ethereum/beacon-APIs#615.
 func TestForkChoiceV2Clients(t *testing.T) {
 	tests := []struct {
 		name    string
 		fixture string
-		check   func(t *testing.T, data *apiv1.ForkChoiceV2)
+		err     string
 	}{
 		{
-			// Teku wraps the response in data, has PTC counts on every node and emits non-spec
-			// fields at the top level of each node.
+			// Teku wraps the response in data, but its nodes have no parent_payload_status (nor
+			// per-node checkpoints).
 			name:    "Teku",
 			fixture: "testdata/forkchoicev2_teku.json",
-			check: func(t *testing.T, data *apiv1.ForkChoiceV2) {
-				t.Helper()
-
-				for _, node := range data.ForkChoiceNodes {
-					require.NotNil(t, node.PayloadAttesterCount)
-					require.NotNil(t, node.PayloadAvailabilityYesCount)
-					require.NotNil(t, node.PayloadDataAvailabilityYesCount)
-					require.Contains(t, node.ExtraData, "unrealised_justified_epoch")
-					require.Contains(t, node.ExtraData, "unrealized_justified_root")
-					require.Contains(t, node.ExtraData, "state_root")
-				}
-			},
+			err:     "parent payload status missing",
 		},
 		{
-			// Prysm returns the response unwrapped, with checkpoint epochs and PTC counts in the
-			// extra data of the pending node only.
+			// Prysm returns the response without the data wrapper.
 			name:    "Prysm",
 			fixture: "testdata/forkchoicev2_prysm.json",
-			check: func(t *testing.T, data *apiv1.ForkChoiceV2) {
-				t.Helper()
-
-				require.Contains(t, data.ExtraData, "unrealized_justified_checkpoint")
-				pending := data.ForkChoiceNodes[0]
-				require.Nil(t, pending.PayloadAttesterCount)
-				require.Contains(t, pending.ExtraData, "payload_attester_count")
-				require.Contains(t, pending.ExtraData, "unrealized_justified_epoch")
-			},
+			err:     "fork choice data missing",
 		},
 		{
-			// Lodestar returns the response unwrapped, with checkpoint epochs and PTC counts in the
-			// extra data of every node.
+			// Lodestar returns the response without the data wrapper.
 			name:    "Lodestar",
 			fixture: "testdata/forkchoicev2_lodestar.json",
-			check: func(t *testing.T, data *apiv1.ForkChoiceV2) {
-				t.Helper()
-
-				require.Contains(t, data.ExtraData, "unrealized_justified_checkpoint")
-				for _, node := range data.ForkChoiceNodes {
-					require.Nil(t, node.PayloadAttesterCount)
-					require.Contains(t, node.ExtraData, "payload_attester_count")
-					require.Contains(t, node.ExtraData, "unrealized_justified_epoch")
-				}
-			},
+			err:     "fork choice data missing",
 		},
 	}
 
@@ -129,30 +138,8 @@ func TestForkChoiceV2Clients(t *testing.T) {
 			require.NoError(t, err)
 
 			provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
-			response, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
-			require.NoError(t, err)
-			require.NotNil(t, response.Data)
-
-			data := response.Data
-			require.Equal(t, phase0.Epoch(353123), data.JustifiedCheckpoint.Epoch)
-			require.Equal(t, phase0.Epoch(353122), data.FinalizedCheckpoint.Epoch)
-			require.Len(t, data.ForkChoiceNodes, 3)
-
-			statuses := make([]apiv1.ForkChoicePayloadStatus, 0, len(data.ForkChoiceNodes))
-			for _, node := range data.ForkChoiceNodes {
-				require.Equal(t, data.ForkChoiceNodes[0].BlockRoot, node.BlockRoot)
-				require.Nil(t, node.ParentPayloadStatus)
-				require.Nil(t, node.JustifiedEpoch)
-				require.Nil(t, node.FinalizedEpoch)
-				statuses = append(statuses, node.PayloadStatus)
-			}
-			require.Equal(t, []apiv1.ForkChoicePayloadStatus{
-				apiv1.ForkChoicePayloadStatusPending,
-				apiv1.ForkChoicePayloadStatusEmpty,
-				apiv1.ForkChoicePayloadStatusFull,
-			}, statuses)
-
-			test.check(t, data)
+			_, err = provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
+			require.ErrorContains(t, err, test.err)
 		})
 	}
 }
@@ -167,7 +154,7 @@ func TestForkChoiceV2DataNull(t *testing.T) {
 
 // TestForkChoiceV2Metadata ensures fields beside data are kept as metadata.
 func TestForkChoiceV2Metadata(t *testing.T) {
-	body, err := os.ReadFile("testdata/forkchoicev2_teku.json")
+	body, err := os.ReadFile("testdata/forkchoicev2_spec.json")
 	require.NoError(t, err)
 
 	var wrapped map[string]any
@@ -181,28 +168,6 @@ func TestForkChoiceV2Metadata(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, response.Data.ForkChoiceNodes, 3)
 	require.Equal(t, map[string]any{"execution_optimistic": false}, response.Metadata)
-}
-
-// TestForkChoiceV2UnwrappedMetadata ensures response metadata of an unwrapped response is kept as
-// metadata, as for wrapped responses, rather than as fork choice extra data.
-func TestForkChoiceV2UnwrappedMetadata(t *testing.T) {
-	body, err := os.ReadFile("testdata/forkchoicev2_prysm.json")
-	require.NoError(t, err)
-
-	var unwrapped map[string]any
-	require.NoError(t, json.Unmarshal(body, &unwrapped))
-	unwrapped["execution_optimistic"] = false
-	unwrapped["unknown_field"] = "kept"
-	body, err = json.Marshal(unwrapped)
-	require.NoError(t, err)
-
-	provider := forkChoiceV2Service(t, nethttp.StatusOK, body)
-	response, err := provider.ForkChoiceV2(context.Background(), &api.ForkChoiceOpts{})
-	require.NoError(t, err)
-	require.Equal(t, map[string]any{"execution_optimistic": false}, response.Metadata)
-	require.NotContains(t, response.Data.ExtraData, "execution_optimistic")
-	require.Equal(t, "kept", response.Data.ExtraData["unknown_field"])
-	require.Contains(t, response.Data.ExtraData, "unrealized_justified_checkpoint")
 }
 
 // TestForkChoiceV2Unsupported ensures that clients without the endpoint surface their status code,
