@@ -32,18 +32,14 @@ import (
 
 // beaconStateJSON is the spec representation of the struct.
 type beaconStateJSON struct {
-	GenesisTime           string                    `json:"genesis_time"`
-	GenesisValidatorsRoot phase0.Root               `json:"genesis_validators_root"`
-	Slot                  phase0.Slot               `json:"slot"`
-	Fork                  *phase0.Fork              `json:"fork"`
-	LatestBlockHeader     *phase0.BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots            []phase0.Root             `json:"block_roots"`
-	StateRoots            []phase0.Root             `json:"state_roots"`
-	HistoricalRoots       []phase0.Root             `json:"historical_roots"`
-	ETH1Data              *phase0.ETH1Data          `json:"eth1_data"`
-	//nolint:staticcheck
-	ETH1DataVotes                 []*phase0.ETH1Data                  `json:"eth1_data_votes,allowempty"`
-	ETH1DepositIndex              string                              `json:"eth1_deposit_index"`
+	GenesisTime                   string                              `json:"genesis_time"`
+	GenesisValidatorsRoot         phase0.Root                         `json:"genesis_validators_root"`
+	Slot                          phase0.Slot                         `json:"slot"`
+	Fork                          *phase0.Fork                        `json:"fork"`
+	LatestBlockHeader             *phase0.BeaconBlockHeader           `json:"latest_block_header"`
+	BlockRoots                    []phase0.Root                       `json:"block_roots"`
+	StateRoots                    []phase0.Root                       `json:"state_roots"`
+	HistoricalRoots               []phase0.Root                       `json:"historical_roots"`
 	Validators                    []*phase0.Validator                 `json:"validators"`
 	Balances                      []string                            `json:"balances"`
 	RANDAOMixes                   []string                            `json:"randao_mixes"`
@@ -61,7 +57,6 @@ type beaconStateJSON struct {
 	NextWithdrawalIndex           string                              `json:"next_withdrawal_index"`
 	NextWithdrawalValidatorIndex  string                              `json:"next_withdrawal_validator_index"`
 	HistoricalSummaries           []*capella.HistoricalSummary        `json:"historical_summaries"`
-	DepositRequestsStartIndex     string                              `json:"deposit_requests_start_index"`
 	DepositBalanceToConsume       phase0.Gwei                         `json:"deposit_balance_to_consume"`
 	ExitBalanceToConsume          phase0.Gwei                         `json:"exit_balance_to_consume"`
 	EarliestExitEpoch             phase0.Epoch                        `json:"earliest_exit_epoch"`
@@ -73,7 +68,7 @@ type beaconStateJSON struct {
 	ProposerLookahead             []string                            `json:"proposer_lookahead"`
 	Builders                      []*gloas.Builder                    `json:"builders"`
 	NextWithdrawalBuilderIndex    string                              `json:"next_withdrawal_builder_index"`
-	ExecutionPayloadAvailability  []string                            `json:"execution_payload_availability"`
+	ExecutionPayloadAvailability  string                              `json:"execution_payload_availability"`
 	BuilderPendingPayments        []*gloas.BuilderPendingPayment      `json:"builder_pending_payments"`
 	BuilderPendingWithdrawals     []*gloas.BuilderPendingWithdrawal   `json:"builder_pending_withdrawals"`
 	LatestExecutionPayloadBid     *ExecutionPayloadBid                `json:"latest_execution_payload_bid"`
@@ -111,10 +106,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 	for i := range b.ProposerLookahead {
 		proposerLookahead[i] = fmt.Sprintf("%d", b.ProposerLookahead[i])
 	}
-	executionPayloadAvailability := make([]string, len(b.ExecutionPayloadAvailability))
-	for i := range b.ExecutionPayloadAvailability {
-		executionPayloadAvailability[i] = fmt.Sprintf("%d", b.ExecutionPayloadAvailability[i])
-	}
 	ptcWindow := make([][]string, len(b.PTCWindow))
 	for i := range b.PTCWindow {
 		ptcWindow[i] = make([]string, len(b.PTCWindow[i]))
@@ -132,9 +123,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		BlockRoots:                    b.BlockRoots,
 		StateRoots:                    b.StateRoots,
 		HistoricalRoots:               b.HistoricalRoots,
-		ETH1Data:                      b.ETH1Data,
-		ETH1DataVotes:                 b.ETH1DataVotes,
-		ETH1DepositIndex:              strconv.FormatUint(b.ETH1DepositIndex, 10),
 		Validators:                    b.Validators,
 		Balances:                      balances,
 		RANDAOMixes:                   randaoMixes,
@@ -152,7 +140,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		NextWithdrawalIndex:           fmt.Sprintf("%d", b.NextWithdrawalIndex),
 		NextWithdrawalValidatorIndex:  fmt.Sprintf("%d", b.NextWithdrawalValidatorIndex),
 		HistoricalSummaries:           b.HistoricalSummaries,
-		DepositRequestsStartIndex:     fmt.Sprintf("%d", b.DepositRequestsStartIndex),
 		DepositBalanceToConsume:       b.DepositBalanceToConsume,
 		ExitBalanceToConsume:          b.ExitBalanceToConsume,
 		EarliestExitEpoch:             b.EarliestExitEpoch,
@@ -164,7 +151,7 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		ProposerLookahead:             proposerLookahead,
 		Builders:                      b.Builders,
 		NextWithdrawalBuilderIndex:    fmt.Sprintf("%d", b.NextWithdrawalBuilderIndex),
-		ExecutionPayloadAvailability:  executionPayloadAvailability,
+		ExecutionPayloadAvailability:  fmt.Sprintf("%#x", b.ExecutionPayloadAvailability),
 		BuilderPendingPayments:        b.BuilderPendingPayments,
 		BuilderPendingWithdrawals:     b.BuilderPendingWithdrawals,
 		LatestExecutionPayloadBid:     b.LatestExecutionPayloadBid,
@@ -215,25 +202,6 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 
 	if err := json.Unmarshal(raw["historical_roots"], &b.HistoricalRoots); err != nil {
 		return errors.Wrap(err, "historical_roots")
-	}
-
-	b.ETH1Data = &phase0.ETH1Data{}
-	if err := b.ETH1Data.UnmarshalJSON(raw["eth1_data"]); err != nil {
-		return errors.Wrap(err, "eth1_data")
-	}
-
-	if err := json.Unmarshal(raw["eth1_data_votes"], &b.ETH1DataVotes); err != nil {
-		return errors.Wrap(err, "eth1_data_votes")
-	}
-	for i := range b.ETH1DataVotes {
-		if b.ETH1DataVotes[i] == nil {
-			return fmt.Errorf("eth1 data votes entry %d missing", i)
-		}
-	}
-
-	eth1DepositIndex := string(bytes.Trim(raw["eth1_deposit_index"], `"`))
-	if b.ETH1DepositIndex, err = strconv.ParseUint(eth1DepositIndex, 10, 64); err != nil {
-		return errors.Wrap(err, "eth1_deposit_index")
 	}
 
 	if err := json.Unmarshal(raw["validators"], &b.Validators); err != nil {
@@ -337,11 +305,6 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		}
 	}
 
-	depositRequestsStartIndex := string(bytes.Trim(raw["deposit_requests_start_index"], `"`))
-	if b.DepositRequestsStartIndex, err = strconv.ParseUint(depositRequestsStartIndex, 10, 64); err != nil {
-		return errors.Wrap(err, "deposit_requests_start_index")
-	}
-
 	if err := b.DepositBalanceToConsume.UnmarshalJSON(raw["deposit_balance_to_consume"]); err != nil {
 		return errors.Wrap(err, "deposit_balance_to_consume")
 	}
@@ -406,7 +369,8 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "next_withdrawal_builder_index")
 	}
 
-	if err := json.Unmarshal(raw["execution_payload_availability"], &b.ExecutionPayloadAvailability); err != nil {
+	executionPayloadAvailability := string(bytes.TrimPrefix(bytes.Trim(raw["execution_payload_availability"], `"`), []byte{'0', 'x'}))
+	if b.ExecutionPayloadAvailability, err = hex.DecodeString(executionPayloadAvailability); err != nil {
 		return errors.Wrap(err, "execution_payload_availability")
 	}
 

@@ -37,9 +37,6 @@ type beaconStateYAML struct {
 	BlockRoots                    []phase0.Root                       `yaml:"block_roots"`
 	StateRoots                    []phase0.Root                       `yaml:"state_roots"`
 	HistoricalRoots               []phase0.Root                       `yaml:"historical_roots"`
-	ETH1Data                      *phase0.ETH1Data                    `yaml:"eth1_data"`
-	ETH1DataVotes                 []*phase0.ETH1Data                  `yaml:"eth1_data_votes"`
-	ETH1DepositIndex              uint64                              `yaml:"eth1_deposit_index"`
 	Validators                    []*phase0.Validator                 `yaml:"validators"`
 	Balances                      []phase0.Gwei                       `yaml:"balances"`
 	RANDAOMixes                   []phase0.Root                       `yaml:"randao_mixes"`
@@ -57,7 +54,6 @@ type beaconStateYAML struct {
 	NextWithdrawalIndex           capella.WithdrawalIndex             `yaml:"next_withdrawal_index"`
 	NextWithdrawalValidatorIndex  phase0.ValidatorIndex               `yaml:"next_withdrawal_validator_index"`
 	HistoricalSummaries           []*capella.HistoricalSummary        `yaml:"historical_summaries"`
-	DepositRequestsStartIndex     uint64                              `yaml:"deposit_requests_start_index"`
 	DepositBalanceToConsume       phase0.Gwei                         `yaml:"deposit_balance_to_consume"`
 	ExitBalanceToConsume          phase0.Gwei                         `yaml:"exit_balance_to_consume"`
 	EarliestExitEpoch             phase0.Epoch                        `yaml:"earliest_exit_epoch"`
@@ -88,9 +84,6 @@ func (b *BeaconState) MarshalYAML() ([]byte, error) {
 		BlockRoots:                    b.BlockRoots,
 		StateRoots:                    b.StateRoots,
 		HistoricalRoots:               b.HistoricalRoots,
-		ETH1Data:                      b.ETH1Data,
-		ETH1DataVotes:                 b.ETH1DataVotes,
-		ETH1DepositIndex:              b.ETH1DepositIndex,
 		Validators:                    b.Validators,
 		Balances:                      b.Balances,
 		RANDAOMixes:                   b.RANDAOMixes,
@@ -108,7 +101,6 @@ func (b *BeaconState) MarshalYAML() ([]byte, error) {
 		NextWithdrawalIndex:           b.NextWithdrawalIndex,
 		NextWithdrawalValidatorIndex:  b.NextWithdrawalValidatorIndex,
 		HistoricalSummaries:           b.HistoricalSummaries,
-		DepositRequestsStartIndex:     b.DepositRequestsStartIndex,
 		DepositBalanceToConsume:       b.DepositBalanceToConsume,
 		ExitBalanceToConsume:          b.ExitBalanceToConsume,
 		EarliestExitEpoch:             b.EarliestExitEpoch,

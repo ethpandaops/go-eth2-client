@@ -897,11 +897,7 @@ func (v *VersionedSignedBeaconBlock) ETH1Data() (*phase0.ETH1Data, error) {
 
 		return v.Gloas.Message.Body.ETH1Data, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil || v.Heze.Message.Body == nil {
-			return nil, errors.New("no heze block")
-		}
-
-		return v.Heze.Message.Body.ETH1Data, nil
+		return nil, errors.New("no eth1 data in heze")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -959,11 +955,7 @@ func (v *VersionedSignedBeaconBlock) Deposits() ([]*phase0.Deposit, error) {
 
 		return v.Gloas.Message.Body.Deposits, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil || v.Heze.Message.Body == nil {
-			return nil, errors.New("no heze block")
-		}
-
-		return v.Heze.Message.Body.Deposits, nil
+		return nil, errors.New("no deposits in heze")
 	default:
 		return nil, errors.New("unknown version")
 	}

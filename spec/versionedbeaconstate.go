@@ -306,11 +306,7 @@ func (v *VersionedBeaconState) DepositRequestsStartIndex() (uint64, error) {
 
 		return v.Gloas.DepositRequestsStartIndex, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
-			return 0, errors.New("no Heze state")
-		}
-
-		return v.Heze.DepositRequestsStartIndex, nil
+		return 0, errors.New("state does not provide deposit requests start index")
 	default:
 		return 0, errors.New("unknown version")
 	}
