@@ -547,6 +547,17 @@ type ForkChoiceProvider interface {
 	)
 }
 
+// ForkChoiceV2Provider is the interface for providing Gloas-aware fork choice information.
+type ForkChoiceV2Provider interface {
+	// ForkChoiceV2 fetches all current fork choice context, with one node per (block root, payload status) pair.
+	ForkChoiceV2(ctx context.Context,
+		opts *api.ForkChoiceOpts,
+	) (
+		*api.Response[*apiv1.ForkChoiceV2],
+		error,
+	)
+}
+
 // ForkProvider is the interface for providing fork information.
 type ForkProvider interface {
 	// Fork fetches fork information for the given state.

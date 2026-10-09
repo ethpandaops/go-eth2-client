@@ -32,6 +32,8 @@ type ForkChoice struct {
 	FinalizedCheckpoint phase0.Checkpoint
 	// ForkChoiceNodes contains the fork choice nodes.
 	ForkChoiceNodes []*ForkChoiceNode
+	// ExtraData is the optional, client-specific extra data of the fork choice store.
+	ExtraData map[string]any
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -40,6 +42,7 @@ func (f *ForkChoice) MarshalJSON() ([]byte, error) {
 		JustifiedCheckpoint: &f.JustifiedCheckpoint,
 		FinalizedCheckpoint: &f.FinalizedCheckpoint,
 		ForkChoiceNodes:     f.ForkChoiceNodes,
+		ExtraData:           f.ExtraData,
 	})
 }
 
@@ -75,6 +78,7 @@ func (f *ForkChoice) UnmarshalJSON(input []byte) error {
 	}
 
 	f.ForkChoiceNodes = forkChoiceJSON.ForkChoiceNodes
+	f.ExtraData = forkChoiceJSON.ExtraData
 
 	return nil
 }
@@ -94,6 +98,7 @@ type forkChoiceJSON struct {
 	JustifiedCheckpoint *phase0.Checkpoint `json:"justified_checkpoint"`
 	FinalizedCheckpoint *phase0.Checkpoint `json:"finalized_checkpoint"`
 	ForkChoiceNodes     []*ForkChoiceNode  `json:"fork_choice_nodes"`
+	ExtraData           map[string]any     `json:"extra_data,omitempty"`
 }
 
 // ForkChoiceNodeValidity represents the validity of a fork choice node.
@@ -125,6 +130,8 @@ var ForkChoiceNodeValidityStrings = [...]string{
 // ForkChoiceNodeValidityFromString converts a string input to a fork choice.
 func ForkChoiceNodeValidityFromString(input string) (ForkChoiceNodeValidity, error) {
 	switch strings.ToLower(input) {
+	case "unknown":
+		return ForkChoiceNodeValidityUnknown, nil
 	case "invalid":
 		return ForkChoiceNodeValidityInvalid, nil
 	case "valid":
@@ -144,6 +151,9 @@ func (d *ForkChoiceNodeValidity) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
+// Unlike fork choice node decoding, which keeps an unrecognised validity in
+// the node's ExtraData, a lone validity has nowhere to keep the original
+// value, so an unrecognised one is an error rather than silently unknown.
 func (d *ForkChoiceNodeValidity) UnmarshalJSON(input []byte) error {
 	var err error
 
@@ -171,6 +181,7 @@ type ForkChoiceNode struct {
 	// BlockRoot is the block root of the node.
 	BlockRoot phase0.Root
 	// ParentRoot is the parent root of the node.
+	// A zero root means none: some clients return a null parent root for the oldest retained node.
 	ParentRoot phase0.Root
 	// JustifiedEpcoh is the justified epoch of the node.
 	JustifiedEpoch phase0.Epoch
@@ -246,6 +257,13 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, fmt.Sprintf("invalid value for parent root: %s", forkChoiceNodeJSON.ParentRoot))
 	}
 
+	// A null parent root, which some clients return for the oldest retained
+	// node, decodes as the zero root.
+	if len(parentRoot) != 0 && len(parentRoot) != rootLength {
+		return fmt.Errorf("incorrect length %d for parent root", len(parentRoot))
+	}
+
+	f.ParentRoot = phase0.Root{}
 	copy(f.ParentRoot[:], parentRoot)
 
 	justifiedEpoch, err := strconv.ParseUint(forkChoiceNodeJSON.JustifiedEpoch, 10, 64)
@@ -269,9 +287,16 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 
 	f.Weight = weight
 
+	// Validities this package does not recognise (e.g. a value a client adds
+	// in future) decode as unknown, keeping the original in ExtraData, rather
+	// than failing the whole fork choice.
+	if forkChoiceNodeJSON.Validity == "" {
+		return errors.New("validity missing")
+	}
 	validity, err := ForkChoiceNodeValidityFromString(forkChoiceNodeJSON.Validity)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("invalid value for validity: %s", forkChoiceNodeJSON.Validity))
+	unrecognisedValidity := err != nil
+	if unrecognisedValidity {
+		validity = ForkChoiceNodeValidityUnknown
 	}
 
 	f.Validity = validity
@@ -288,6 +313,9 @@ func (f *ForkChoiceNode) UnmarshalJSON(input []byte) error {
 	copy(f.ExecutionBlockHash[:], executionBlockHash)
 
 	f.ExtraData = forkChoiceNodeJSON.ExtraData
+	if unrecognisedValidity {
+		f.ExtraData = keepUnrecognisedValue(f.ExtraData, "validity", forkChoiceNodeJSON.Validity)
+	}
 
 	return nil
 }
@@ -300,4 +328,25 @@ func (f *ForkChoiceNode) String() string {
 	}
 
 	return string(data)
+}
+
+// keepUnrecognisedValue records a value this package does not recognise, which
+// decodes as unknown, under extraData[key] (unless the client already uses that
+// key), so callers can still tell such values apart and re-encoding keeps them.
+func keepUnrecognisedValue(extraData map[string]any, key string, value string) map[string]any {
+	if value == "" {
+		return extraData
+	}
+
+	if _, exists := extraData[key]; exists {
+		return extraData
+	}
+
+	if extraData == nil {
+		extraData = make(map[string]any)
+	}
+
+	extraData[key] = value
+
+	return extraData
 }

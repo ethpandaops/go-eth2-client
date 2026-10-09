@@ -33,4 +33,7 @@ var (
 	ErrNoExecutionPayloadEnvelope = errors.New("no execution payload envelope available")
 	// ErrNoPayloadAttestationData is returned when the node has no payload attestation data for a slot.
 	ErrNoPayloadAttestationData = errors.New("no payload attestation data available")
+	// ErrInvalidResponse is returned when a beacon node's response does not follow the beacon API
+	// specification, for example because it lacks a required field.
+	ErrInvalidResponse = errors.New("invalid response")
 )

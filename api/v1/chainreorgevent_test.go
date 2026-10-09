@@ -26,7 +26,9 @@ func TestChainReorgEventJSON(t *testing.T) {
 	tests := []struct {
 		name  string
 		input []byte
-		err   string
+		// expected is the re-marshaled form when it differs from input.
+		expected []byte
+		err      string
 	}{
 		{
 			name: "Empty",
@@ -168,9 +170,23 @@ func TestChainReorgEventJSON(t *testing.T) {
 			err:   "incorrect length 33 for new head state",
 		},
 		{
-			name:  "EpochMissing",
-			input: []byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522"}`),
-			err:   "epoch missing",
+			// epoch is optional (Nimbus omits it) and left at zero.
+			name:     "EpochMissing",
+			input:    []byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522"}`),
+			expected: []byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522","epoch":"0","execution_optimistic":false}`),
+		},
+		{
+			// Verbatim Nimbus v26.9.x payload from a glamsterdam-devnet-8 sentry
+			// log ("Failed to parse chain reorg event ... epoch missing"): no epoch.
+			name:     "NimbusNoEpoch",
+			input:    []byte(`{"slot":"343871","depth":"2","old_head_block":"0x9af8248c506f8635c5eb734d45508854ef8a1668fcece9813c0a8e2a1ace4b73","new_head_block":"0x0fec5a8fb2e9a13b5393db10bd9df1caaef2774e0b3083a19e5784402c8baa25","old_head_state":"0x405653c3ebba8072ef70a6ab7588f64f1b6a32495810139928c0ac1ecb6ecbc3","new_head_state":"0xc7b8f3b19ba14bdbae92a322c695583ee19dba5cb3ff466114c9c5ca8011ab56","execution_optimistic":false}`),
+			expected: []byte(`{"slot":"343871","depth":"2","old_head_block":"0x9af8248c506f8635c5eb734d45508854ef8a1668fcece9813c0a8e2a1ace4b73","new_head_block":"0x0fec5a8fb2e9a13b5393db10bd9df1caaef2774e0b3083a19e5784402c8baa25","old_head_state":"0x405653c3ebba8072ef70a6ab7588f64f1b6a32495810139928c0ac1ecb6ecbc3","new_head_state":"0xc7b8f3b19ba14bdbae92a322c695583ee19dba5cb3ff466114c9c5ca8011ab56","epoch":"0","execution_optimistic":false}`),
+		},
+		{
+			// Spec example shape (every non-Nimbus CL): epoch present.
+			name:     "SpecExample",
+			input:    []byte(`{"slot":"200", "depth":"50", "old_head_block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf", "new_head_block":"0x76262e91970d375a19bfe8a867288d7b9cde43c8635f598d93d39d041706fc76", "old_head_state":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf", "new_head_state":"0x600e852a08c1200654ddf11025f1ceacb3c2e74bdd5c630cde0838b2591b69f9", "epoch":"2", "execution_optimistic": false}`),
+			expected: []byte(`{"slot":"200","depth":"50","old_head_block":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","new_head_block":"0x76262e91970d375a19bfe8a867288d7b9cde43c8635f598d93d39d041706fc76","old_head_state":"0x9a2fefd2fdb57f74993c7780ea5b9030d2897b615b89f808011ca5aebed54eaf","new_head_state":"0x600e852a08c1200654ddf11025f1ceacb3c2e74bdd5c630cde0838b2591b69f9","epoch":"2","execution_optimistic":false}`),
 		},
 		{
 			name:  "EpochWrongType",
@@ -184,7 +200,7 @@ func TestChainReorgEventJSON(t *testing.T) {
 		},
 		{
 			name:  "Good",
-			input: []byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522","epoch":"16405"}`),
+			input: []byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522","epoch":"16405","execution_optimistic":true}`),
 		},
 	}
 
@@ -198,9 +214,25 @@ func TestChainReorgEventJSON(t *testing.T) {
 				require.NoError(t, err)
 				rt, err := json.Marshal(&res)
 				require.NoError(t, err)
-				assert.Equal(t, string(test.input), string(rt))
+				expected := test.expected
+				if expected == nil {
+					expected = test.input
+				}
+				assert.Equal(t, string(expected), string(rt))
 				assert.Equal(t, string(rt), res.String())
 			}
 		})
 	}
+}
+
+// TestChainReorgEventEpochReset checks that decoding a payload without epoch
+// into a previously populated event does not leak the old epoch.
+func TestChainReorgEventEpochReset(t *testing.T) {
+	var res api.ChainReorgEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"524986","depth":"2","old_head_block":"0x2ffc0a5b75de20f2a12853dff3e09b263e7c3cb19515134cba756b28e5ba25ee","new_head_block":"0xa3fe14d8d749318359aa3790d3588a23e12ea3b02bd879fbfbf04c3a66770df7","old_head_state":"0x97cc0a37b77fbac6fa140f330c92521ddcd5b1dfefeef99d86996a51f1993d60","new_head_state":"0x4ab800aaa51c14c786fe7e924abd1355aa2ac2e0434d7cb5ae568720ed1bf522","epoch":"16405"}`), &res))
+	require.EqualValues(t, 16405, res.Epoch)
+
+	require.NoError(t, json.Unmarshal([]byte(`{"slot":"343871","depth":"2","old_head_block":"0x9af8248c506f8635c5eb734d45508854ef8a1668fcece9813c0a8e2a1ace4b73","new_head_block":"0x0fec5a8fb2e9a13b5393db10bd9df1caaef2774e0b3083a19e5784402c8baa25","old_head_state":"0x405653c3ebba8072ef70a6ab7588f64f1b6a32495810139928c0ac1ecb6ecbc3","new_head_state":"0xc7b8f3b19ba14bdbae92a322c695583ee19dba5cb3ff466114c9c5ca8011ab56","execution_optimistic":false}`), &res))
+	require.EqualValues(t, 343871, res.Slot)
+	require.EqualValues(t, 0, res.Epoch)
 }

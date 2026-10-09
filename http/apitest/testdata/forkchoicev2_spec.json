@@ -1,0 +1,81 @@
+{
+  "data": {
+    "justified_checkpoint": {
+      "epoch": "353123",
+      "root": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "finalized_checkpoint": {
+      "epoch": "353122",
+      "root": "0x9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "fork_choice_nodes": [
+      {
+        "slot": "11299992",
+        "block_root": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "payload_status": "pending",
+        "parent_root": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "parent_payload_status": null,
+        "justified_checkpoint": {
+          "epoch": "353123",
+          "root": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "finalized_checkpoint": {
+          "epoch": "353122",
+          "root": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "weight": "1000",
+        "validity": "valid",
+        "execution_block_hash": "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "payload_attester_count": "512",
+        "payload_availability_yes_count": "510",
+        "payload_data_availability_yes_count": "508",
+        "extra_data": {}
+      },
+      {
+        "slot": "11299992",
+        "block_root": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "payload_status": "empty",
+        "parent_root": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "parent_payload_status": "pending",
+        "justified_checkpoint": {
+          "epoch": "353123",
+          "root": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "finalized_checkpoint": {
+          "epoch": "353122",
+          "root": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "weight": "1000",
+        "validity": "valid",
+        "execution_block_hash": "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "payload_attester_count": "512",
+        "payload_availability_yes_count": "510",
+        "payload_data_availability_yes_count": "508",
+        "extra_data": {}
+      },
+      {
+        "slot": "11299992",
+        "block_root": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "payload_status": "full",
+        "parent_root": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "parent_payload_status": "pending",
+        "justified_checkpoint": {
+          "epoch": "353123",
+          "root": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "finalized_checkpoint": {
+          "epoch": "353122",
+          "root": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "weight": "1000",
+        "validity": "valid",
+        "execution_block_hash": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "payload_attester_count": "512",
+        "payload_availability_yes_count": "510",
+        "payload_data_availability_yes_count": "508",
+        "extra_data": {}
+      }
+    ],
+    "extra_data": {}
+  }
+}

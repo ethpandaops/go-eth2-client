@@ -49,6 +49,14 @@ type PayloadAttributesData struct {
 	ParentBlockRoot phase0.Root
 	// ParentBlockHash is the hash of the parent block.
 	ParentBlockHash phase0.Hash32
+	// SafeBlockHash is the execution block hash the node would pass as
+	// safeBlockHash in engine_forkchoiceUpdated. Part of the event from Gloas
+	// onwards; nil when the beacon node does not send it.
+	SafeBlockHash *phase0.Hash32
+	// FinalizedBlockHash is the execution block hash the node would pass as
+	// finalizedBlockHash in engine_forkchoiceUpdated. Part of the event from
+	// Gloas onwards; nil when the beacon node does not send it.
+	FinalizedBlockHash *phase0.Hash32
 	// V1 is the v1 payload attributes (Bellatrix).
 	V1 *PayloadAttributesV1
 	// V2 is the v2 payload attributes (Capella).
@@ -143,12 +151,14 @@ type payloadAttributesEventJSON struct {
 
 // payloadAttributesDataJSON is the spec representation of the payload attributes data.
 type payloadAttributesDataJSON struct {
-	ProposerIndex     string          `json:"proposer_index"`
-	ProposalSlot      string          `json:"proposal_slot"`
-	ParentBlockNumber string          `json:"parent_block_number,omitempty"`
-	ParentBlockRoot   string          `json:"parent_block_root"`
-	ParentBlockHash   string          `json:"parent_block_hash"`
-	PayloadAttributes json.RawMessage `json:"payload_attributes"`
+	ProposerIndex      string          `json:"proposer_index"`
+	ProposalSlot       string          `json:"proposal_slot"`
+	ParentBlockNumber  string          `json:"parent_block_number,omitempty"`
+	ParentBlockRoot    string          `json:"parent_block_root"`
+	ParentBlockHash    string          `json:"parent_block_hash"`
+	SafeBlockHash      string          `json:"safe_block_hash,omitempty"`
+	FinalizedBlockHash string          `json:"finalized_block_hash,omitempty"`
+	PayloadAttributes  json.RawMessage `json:"payload_attributes"`
 }
 
 // payloadAttributesV1JSON is the spec representation of the payload attributes.
@@ -614,6 +624,14 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 		data.ParentBlockNumber = strconv.FormatUint(e.Data.ParentBlockNumber, 10)
 	}
 
+	if e.Data.SafeBlockHash != nil {
+		data.SafeBlockHash = fmt.Sprintf("%#x", *e.Data.SafeBlockHash)
+	}
+
+	if e.Data.FinalizedBlockHash != nil {
+		data.FinalizedBlockHash = fmt.Sprintf("%#x", *e.Data.FinalizedBlockHash)
+	}
+
 	return json.Marshal(&payloadAttributesEventJSON{
 		Version: e.Version,
 		Data:    &data,
@@ -713,6 +731,38 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 	}
 
 	copy(e.Data.ParentBlockHash[:], parentBlockHash)
+
+	// The safe and finalized block hashes are part of the event from Gloas
+	// onwards; beacon nodes that do not send them yet are tolerated.
+	if data.Data.SafeBlockHash != "" {
+		safeBlockHash, err := hex.DecodeString(strings.TrimPrefix(data.Data.SafeBlockHash, "0x"))
+		if err != nil {
+			return errors.Wrap(err, "invalid value for safe block hash")
+		}
+
+		if len(safeBlockHash) != phase0.Hash32Length {
+			return errors.New("incorrect length for safe block hash")
+		}
+
+		var hash phase0.Hash32
+		copy(hash[:], safeBlockHash)
+		e.Data.SafeBlockHash = &hash
+	}
+
+	if data.Data.FinalizedBlockHash != "" {
+		finalizedBlockHash, err := hex.DecodeString(strings.TrimPrefix(data.Data.FinalizedBlockHash, "0x"))
+		if err != nil {
+			return errors.Wrap(err, "invalid value for finalized block hash")
+		}
+
+		if len(finalizedBlockHash) != phase0.Hash32Length {
+			return errors.New("incorrect length for finalized block hash")
+		}
+
+		var hash phase0.Hash32
+		copy(hash[:], finalizedBlockHash)
+		e.Data.FinalizedBlockHash = &hash
+	}
 
 	if data.Data.PayloadAttributes == nil {
 		return errors.New("payload attributes missing")

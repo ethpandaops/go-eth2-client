@@ -1074,6 +1074,25 @@ func (s *Erroring) ForkChoice(ctx context.Context,
 	return next.ForkChoice(ctx, opts)
 }
 
+// ForkChoiceV2 fetches the node's current fork choice context, with one node per (block root, payload status) pair.
+func (s *Erroring) ForkChoiceV2(ctx context.Context,
+	opts *api.ForkChoiceOpts,
+) (
+	*api.Response[*apiv1.ForkChoiceV2],
+	error,
+) {
+	if err := s.maybeError(ctx); err != nil {
+		return nil, err
+	}
+
+	next, isNext := s.next.(consensusclient.ForkChoiceV2Provider)
+	if !isNext {
+		return nil, fmt.Errorf("%s@%s does not support this call", s.next.Name(), s.next.Address())
+	}
+
+	return next.ForkChoiceV2(ctx, opts)
+}
+
 // AttestationRewards provides rewards to the given validators for attesting.
 func (s *Erroring) AttestationRewards(ctx context.Context,
 	opts *api.AttestationRewardsOpts,

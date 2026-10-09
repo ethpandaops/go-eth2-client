@@ -63,6 +63,7 @@ var (
 	_ client.EventsProvider                        = (*Service)(nil)
 	_ client.FinalityProvider                      = (*Service)(nil)
 	_ client.ForkChoiceProvider                    = (*Service)(nil)
+	_ client.ForkChoiceV2Provider                  = (*Service)(nil)
 	_ client.ForkProvider                          = (*Service)(nil)
 	_ client.ForkScheduleProvider                  = (*Service)(nil)
 	_ client.GenesisProvider                       = (*Service)(nil)

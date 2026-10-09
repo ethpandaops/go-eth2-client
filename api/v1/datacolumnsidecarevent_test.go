@@ -71,10 +71,23 @@ func TestDataColumnSidecarEventJSON(t *testing.T) {
 			err:   "invalid value for index: expected integer",
 		},
 		{
-			// A Gloas node omits the field entirely (beacon-APIs #583).
-			name:     "KZGCommitmentsOmitted",
-			input:    []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`),
-			expected: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":[]}`),
+			// A Gloas node omits the field entirely (beacon-APIs #583); it stays
+			// omitted on re-marshal.
+			name:  "KZGCommitmentsOmitted",
+			input: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`),
+		},
+		{
+			// Lighthouse unstable (sigp/lighthouse#9597) shape, sent for every
+			// fork including Fulu: block_root, index, slot only.
+			name:     "LighthouseUnstableShape",
+			input:    []byte(`{"block_root":"0x9715371a695c2d994cfb0fd469aa75ed5d76ee5945ce905fed033c2121a608ab","index":"17","slot":"342952"}`),
+			expected: []byte(`{"block_root":"0x9715371a695c2d994cfb0fd469aa75ed5d76ee5945ce905fed033c2121a608ab","slot":"342952","index":"17"}`),
+		},
+		{
+			// Explicit null is treated like an omitted field.
+			name:     "KZGCommitmentsNull",
+			input:    []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":null}`),
+			expected: []byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`),
 		},
 		{
 			// A Gloas node that still sends the field leaves it empty.
@@ -118,4 +131,24 @@ func TestDataColumnSidecarEventJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestDataColumnSidecarEventKZGCommitmentsPresence checks that an omitted
+// kzg_commitments field is distinguishable from an explicitly empty one.
+func TestDataColumnSidecarEventKZGCommitmentsPresence(t *testing.T) {
+	var omitted api.DataColumnSidecarEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`), &omitted))
+	assert.Nil(t, omitted.KZGCommitments)
+
+	var empty api.DataColumnSidecarEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":[]}`), &empty))
+	assert.NotNil(t, empty.KZGCommitments)
+	assert.Empty(t, empty.KZGCommitments)
+
+	// Reusing a previously populated event must not leak old commitments.
+	var reused api.DataColumnSidecarEvent
+	require.NoError(t, json.Unmarshal([]byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1","kzg_commitments":["0xa590e760fdce951756d59c46b037bab8de815fe8ffc25e6e3a7b45e43289e1fdc942854cdfea1615385a0db63442f363"]}`), &reused))
+	require.Len(t, reused.KZGCommitments, 1)
+	require.NoError(t, json.Unmarshal([]byte(`{"block_root":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2","slot":"1","index":"1"}`), &reused))
+	assert.Nil(t, reused.KZGCommitments)
 }
