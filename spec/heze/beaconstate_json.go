@@ -69,7 +69,7 @@ type beaconStateJSON struct {
 	ProposerLookahead             []string                            `json:"proposer_lookahead"`
 	Builders                      []*gloas.Builder                    `json:"builders"`
 	NextWithdrawalBuilderIndex    string                              `json:"next_withdrawal_builder_index"`
-	ExecutionPayloadAvailability  []string                            `json:"execution_payload_availability"`
+	ExecutionPayloadAvailability  string                              `json:"execution_payload_availability"`
 	BuilderPendingPayments        []*gloas.BuilderPendingPayment      `json:"builder_pending_payments"`
 	BuilderPendingWithdrawals     []*gloas.BuilderPendingWithdrawal   `json:"builder_pending_withdrawals"`
 	LatestExecutionPayloadBid     *ExecutionPayloadBid                `json:"latest_execution_payload_bid"`
@@ -106,10 +106,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 	proposerLookahead := make([]string, len(b.ProposerLookahead))
 	for i := range b.ProposerLookahead {
 		proposerLookahead[i] = fmt.Sprintf("%d", b.ProposerLookahead[i])
-	}
-	executionPayloadAvailability := make([]string, len(b.ExecutionPayloadAvailability))
-	for i := range b.ExecutionPayloadAvailability {
-		executionPayloadAvailability[i] = fmt.Sprintf("%d", b.ExecutionPayloadAvailability[i])
 	}
 	ptcWindow := make([][]string, len(b.PTCWindow))
 	for i := range b.PTCWindow {
@@ -156,7 +152,7 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		ProposerLookahead:             proposerLookahead,
 		Builders:                      b.Builders,
 		NextWithdrawalBuilderIndex:    fmt.Sprintf("%d", b.NextWithdrawalBuilderIndex),
-		ExecutionPayloadAvailability:  executionPayloadAvailability,
+		ExecutionPayloadAvailability:  fmt.Sprintf("%#x", b.ExecutionPayloadAvailability),
 		BuilderPendingPayments:        b.BuilderPendingPayments,
 		BuilderPendingWithdrawals:     b.BuilderPendingWithdrawals,
 		LatestExecutionPayloadBid:     b.LatestExecutionPayloadBid,
@@ -374,7 +370,8 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "next_withdrawal_builder_index")
 	}
 
-	if err := json.Unmarshal(raw["execution_payload_availability"], &b.ExecutionPayloadAvailability); err != nil {
+	executionPayloadAvailability := string(bytes.TrimPrefix(bytes.Trim(raw["execution_payload_availability"], `"`), []byte{'0', 'x'}))
+	if b.ExecutionPayloadAvailability, err = hex.DecodeString(executionPayloadAvailability); err != nil {
 		return errors.Wrap(err, "execution_payload_availability")
 	}
 
