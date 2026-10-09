@@ -32,15 +32,14 @@ import (
 
 // beaconStateJSON is the spec representation of the struct.
 type beaconStateJSON struct {
-	GenesisTime           string                    `json:"genesis_time"`
-	GenesisValidatorsRoot phase0.Root               `json:"genesis_validators_root"`
-	Slot                  phase0.Slot               `json:"slot"`
-	Fork                  *phase0.Fork              `json:"fork"`
-	LatestBlockHeader     *phase0.BeaconBlockHeader `json:"latest_block_header"`
-	BlockRoots            []phase0.Root             `json:"block_roots"`
-	StateRoots            []phase0.Root             `json:"state_roots"`
-	HistoricalRoots       []phase0.Root             `json:"historical_roots"`
-	//nolint:staticcheck
+	GenesisTime                   string                              `json:"genesis_time"`
+	GenesisValidatorsRoot         phase0.Root                         `json:"genesis_validators_root"`
+	Slot                          phase0.Slot                         `json:"slot"`
+	Fork                          *phase0.Fork                        `json:"fork"`
+	LatestBlockHeader             *phase0.BeaconBlockHeader           `json:"latest_block_header"`
+	BlockRoots                    []phase0.Root                       `json:"block_roots"`
+	StateRoots                    []phase0.Root                       `json:"state_roots"`
+	HistoricalRoots               []phase0.Root                       `json:"historical_roots"`
 	Validators                    []*phase0.Validator                 `json:"validators"`
 	Balances                      []string                            `json:"balances"`
 	RANDAOMixes                   []string                            `json:"randao_mixes"`
