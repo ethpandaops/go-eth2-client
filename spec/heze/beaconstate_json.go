@@ -40,10 +40,7 @@ type beaconStateJSON struct {
 	BlockRoots            []phase0.Root             `json:"block_roots"`
 	StateRoots            []phase0.Root             `json:"state_roots"`
 	HistoricalRoots       []phase0.Root             `json:"historical_roots"`
-	ETH1Data              *phase0.ETH1Data          `json:"eth1_data"`
 	//nolint:staticcheck
-	ETH1DataVotes                 []*phase0.ETH1Data                  `json:"eth1_data_votes,allowempty"`
-	ETH1DepositIndex              string                              `json:"eth1_deposit_index"`
 	Validators                    []*phase0.Validator                 `json:"validators"`
 	Balances                      []string                            `json:"balances"`
 	RANDAOMixes                   []string                            `json:"randao_mixes"`
@@ -61,7 +58,6 @@ type beaconStateJSON struct {
 	NextWithdrawalIndex           string                              `json:"next_withdrawal_index"`
 	NextWithdrawalValidatorIndex  string                              `json:"next_withdrawal_validator_index"`
 	HistoricalSummaries           []*capella.HistoricalSummary        `json:"historical_summaries"`
-	DepositRequestsStartIndex     string                              `json:"deposit_requests_start_index"`
 	DepositBalanceToConsume       phase0.Gwei                         `json:"deposit_balance_to_consume"`
 	ExitBalanceToConsume          phase0.Gwei                         `json:"exit_balance_to_consume"`
 	EarliestExitEpoch             phase0.Epoch                        `json:"earliest_exit_epoch"`
@@ -132,9 +128,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		BlockRoots:                    b.BlockRoots,
 		StateRoots:                    b.StateRoots,
 		HistoricalRoots:               b.HistoricalRoots,
-		ETH1Data:                      b.ETH1Data,
-		ETH1DataVotes:                 b.ETH1DataVotes,
-		ETH1DepositIndex:              strconv.FormatUint(b.ETH1DepositIndex, 10),
 		Validators:                    b.Validators,
 		Balances:                      balances,
 		RANDAOMixes:                   randaoMixes,
@@ -152,7 +145,6 @@ func (b *BeaconState) MarshalJSON() ([]byte, error) {
 		NextWithdrawalIndex:           fmt.Sprintf("%d", b.NextWithdrawalIndex),
 		NextWithdrawalValidatorIndex:  fmt.Sprintf("%d", b.NextWithdrawalValidatorIndex),
 		HistoricalSummaries:           b.HistoricalSummaries,
-		DepositRequestsStartIndex:     fmt.Sprintf("%d", b.DepositRequestsStartIndex),
 		DepositBalanceToConsume:       b.DepositBalanceToConsume,
 		ExitBalanceToConsume:          b.ExitBalanceToConsume,
 		EarliestExitEpoch:             b.EarliestExitEpoch,
@@ -215,25 +207,6 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 
 	if err := json.Unmarshal(raw["historical_roots"], &b.HistoricalRoots); err != nil {
 		return errors.Wrap(err, "historical_roots")
-	}
-
-	b.ETH1Data = &phase0.ETH1Data{}
-	if err := b.ETH1Data.UnmarshalJSON(raw["eth1_data"]); err != nil {
-		return errors.Wrap(err, "eth1_data")
-	}
-
-	if err := json.Unmarshal(raw["eth1_data_votes"], &b.ETH1DataVotes); err != nil {
-		return errors.Wrap(err, "eth1_data_votes")
-	}
-	for i := range b.ETH1DataVotes {
-		if b.ETH1DataVotes[i] == nil {
-			return fmt.Errorf("eth1 data votes entry %d missing", i)
-		}
-	}
-
-	eth1DepositIndex := string(bytes.Trim(raw["eth1_deposit_index"], `"`))
-	if b.ETH1DepositIndex, err = strconv.ParseUint(eth1DepositIndex, 10, 64); err != nil {
-		return errors.Wrap(err, "eth1_deposit_index")
 	}
 
 	if err := json.Unmarshal(raw["validators"], &b.Validators); err != nil {
@@ -335,11 +308,6 @@ func (b *BeaconState) UnmarshalJSON(input []byte) error {
 		if b.HistoricalSummaries[i] == nil {
 			return fmt.Errorf("historical summaries entry %d missing", i)
 		}
-	}
-
-	depositRequestsStartIndex := string(bytes.Trim(raw["deposit_requests_start_index"], `"`))
-	if b.DepositRequestsStartIndex, err = strconv.ParseUint(depositRequestsStartIndex, 10, 64); err != nil {
-		return errors.Wrap(err, "deposit_requests_start_index")
 	}
 
 	if err := b.DepositBalanceToConsume.UnmarshalJSON(raw["deposit_balance_to_consume"]); err != nil {

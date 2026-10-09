@@ -29,12 +29,10 @@ import (
 // beaconBlockBodyJSON is the spec representation of the struct.
 type beaconBlockBodyJSON struct {
 	RANDAOReveal              string                                `json:"randao_reveal"`
-	ETH1Data                  *phase0.ETH1Data                      `json:"eth1_data"`
 	Graffiti                  string                                `json:"graffiti"`
 	ProposerSlashings         []*phase0.ProposerSlashing            `json:"proposer_slashings"`
 	AttesterSlashings         []*gloas.AttesterSlashing             `json:"attester_slashings"`
 	Attestations              []*gloas.Attestation                  `json:"attestations"`
-	Deposits                  []*phase0.Deposit                     `json:"deposits"`
 	VoluntaryExits            []*phase0.SignedVoluntaryExit         `json:"voluntary_exits"`
 	SyncAggregate             *altair.SyncAggregate                 `json:"sync_aggregate"`
 	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange `json:"bls_to_execution_changes"`
@@ -47,12 +45,10 @@ type beaconBlockBodyJSON struct {
 func (b *BeaconBlockBody) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&beaconBlockBodyJSON{
 		RANDAOReveal:              fmt.Sprintf("%#x", b.RANDAOReveal),
-		ETH1Data:                  b.ETH1Data,
 		Graffiti:                  fmt.Sprintf("%#x", b.Graffiti),
 		ProposerSlashings:         b.ProposerSlashings,
 		AttesterSlashings:         b.AttesterSlashings,
 		Attestations:              b.Attestations,
-		Deposits:                  b.Deposits,
 		VoluntaryExits:            b.VoluntaryExits,
 		SyncAggregate:             b.SyncAggregate,
 		BLSToExecutionChanges:     b.BLSToExecutionChanges,
@@ -79,8 +75,6 @@ func (b *BeaconBlockBody) UnmarshalJSON(input []byte) error {
 	}
 	copy(b.RANDAOReveal[:], randaoReveal)
 
-	b.ETH1Data = data.ETH1Data
-
 	// Graffiti
 	if data.Graffiti == "" {
 		return errors.New("graffiti missing")
@@ -94,7 +88,6 @@ func (b *BeaconBlockBody) UnmarshalJSON(input []byte) error {
 	b.ProposerSlashings = data.ProposerSlashings
 	b.AttesterSlashings = data.AttesterSlashings
 	b.Attestations = data.Attestations
-	b.Deposits = data.Deposits
 	b.VoluntaryExits = data.VoluntaryExits
 	b.SyncAggregate = data.SyncAggregate
 	b.BLSToExecutionChanges = data.BLSToExecutionChanges

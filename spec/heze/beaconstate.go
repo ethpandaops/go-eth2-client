@@ -36,9 +36,6 @@ type BeaconState struct {
 	BlockRoots                    []phase0.Root                       `ssz-index:"5" dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
 	StateRoots                    []phase0.Root                       `ssz-index:"6" dynssz-size:"SLOTS_PER_HISTORICAL_ROOT,32" ssz-size:"8192,32"`
 	HistoricalRoots               []phase0.Root                       `ssz-index:"7" ssz-max:"16777216"                         ssz-size:"?,32"`
-	ETH1Data                      *phase0.ETH1Data                    `ssz-index:"8"`
-	ETH1DataVotes                 []*phase0.ETH1Data                  `ssz-index:"9" dynssz-max:"EPOCHS_PER_ETH1_VOTING_PERIOD*SLOTS_PER_EPOCH" ssz-max:"2048"`
-	ETH1DepositIndex              uint64                              `ssz-index:"10"`
 	Validators                    []*phase0.Validator                 `ssz-index:"11" ssz-type:"progressive-list"`
 	Balances                      []phase0.Gwei                       `ssz-index:"12" ssz-type:"progressive-list"`
 	RANDAOMixes                   []phase0.Root                       `ssz-index:"13" dynssz-size:"EPOCHS_PER_HISTORICAL_VECTOR,32" ssz-size:"65536,32"`
@@ -56,7 +53,6 @@ type BeaconState struct {
 	NextWithdrawalIndex           capella.WithdrawalIndex             `ssz-index:"25"`
 	NextWithdrawalValidatorIndex  phase0.ValidatorIndex               `ssz-index:"26"`
 	HistoricalSummaries           []*capella.HistoricalSummary        `ssz-index:"27" ssz-max:"16777216"`
-	DepositRequestsStartIndex     uint64                              `ssz-index:"28"`
 	DepositBalanceToConsume       phase0.Gwei                         `ssz-index:"29"`
 	ExitBalanceToConsume          phase0.Gwei                         `ssz-index:"30"`
 	EarliestExitEpoch             phase0.Epoch                        `ssz-index:"31"`

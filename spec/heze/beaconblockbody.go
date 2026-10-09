@@ -27,12 +27,10 @@ import (
 // execution payload bid extended by EIP-7805.
 type BeaconBlockBody struct {
 	RANDAOReveal              phase0.BLSSignature                   `ssz-index:"0"`
-	ETH1Data                  *phase0.ETH1Data                      `ssz-index:"1"`
 	Graffiti                  [32]byte                              `ssz-index:"2"`
 	ProposerSlashings         []*phase0.ProposerSlashing            `ssz-index:"3"  ssz-type:"progressive-list"`
 	AttesterSlashings         []*gloas.AttesterSlashing             `ssz-index:"4"  ssz-type:"progressive-list"`
 	Attestations              []*gloas.Attestation                  `ssz-index:"5"  ssz-type:"progressive-list"`
-	Deposits                  []*phase0.Deposit                     `ssz-index:"6"  ssz-type:"progressive-list"`
 	VoluntaryExits            []*phase0.SignedVoluntaryExit         `ssz-index:"7"  ssz-type:"progressive-list"`
 	SyncAggregate             *altair.SyncAggregate                 `ssz-index:"8"`
 	BLSToExecutionChanges     []*capella.SignedBLSToExecutionChange `ssz-index:"9"  ssz-type:"progressive-list"`
