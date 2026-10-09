@@ -77,6 +77,10 @@ func TestFastConfirmationEventJSON(t *testing.T) {
 			input: []byte(`{"slot":"525277","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","current_slot":"525278"}`),
 		},
 		{
+			name:  "GoodCurrentSlotZero",
+			input: []byte(`{"slot":"0","block":"0x99e3f24aab3dd084045a0c927a33b8463eb5c7b17eeadfecdcf4e4badf7b6028","current_slot":"0"}`),
+		},
+		{
 			// current_slot was added to the spec after slot/block, so clients that do not emit
 			// it must still parse cleanly, and re-marshal without inventing a value for it.
 			name:  "GoodNoCurrentSlot",

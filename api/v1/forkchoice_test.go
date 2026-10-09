@@ -31,6 +31,10 @@ func TestForkChoiceJSON(t *testing.T) {
 			expected: `{"justified_checkpoint":{"epoch":"1","root":"0x0000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x0100000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"valid","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7"}}]}`,
 		},
 		{
+			name:  "GoodExtraData",
+			input: []byte(`{"justified_checkpoint":{"epoch":"1","root":"0x0000000000000000000000000000000000000000000000000000000000000000"},"finalized_checkpoint":{"epoch":"2","root":"0x0100000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"valid","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9"}],"extra_data":{"proposer_boost_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","unrealized_justified_checkpoint":{"epoch":"61323","root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6"}}}`),
+		},
+		{
 			name:  "JustifiedCheckpointMissing",
 			input: []byte(`{"finalized_checkpoint":{"epoch":"2","root":"0x0100000000000000000000000000000000000000000000000000000000000000"},"fork_choice_nodes":[]}`),
 			err:   "justified checkpoint missing",
@@ -124,6 +128,11 @@ func TestForkChoiceNodeJSON(t *testing.T) {
 			err:   "incorrect length 0 for block root",
 		},
 		{
+			name:  "ParentRootShort",
+			input:    []byte(`{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0x1234","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"valid","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7"}}`),
+			err:   "incorrect length 2 for parent root",
+		},
+		{
 			name:  "JustifiedEpochInvalid",
 			input: []byte(`{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":-1,"finalized_epoch":"61321","weight":"57481550000000","validity":"valid","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7"}}`),
 			err:   "invalid JSON: json: cannot unmarshal number into Go struct field forkChoiceNodeJSON.justified_epoch of type string",
@@ -139,9 +148,14 @@ func TestForkChoiceNodeJSON(t *testing.T) {
 			err:   "invalid JSON: json: cannot unmarshal number into Go struct field forkChoiceNodeJSON.weight of type string",
 		},
 		{
-			name:  "ValidityInvalid",
-			input: []byte(`{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"NOT_A_VALID_VALIDITY","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7"}}`),
-			err:   "invalid value for validity: NOT_A_VALID_VALIDITY: unrecognised fork choice validity: NOT_A_VALID_VALIDITY",
+			name:     "ValidityUnrecognised",
+			input:    []byte(`{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"NOT_A_VALID_VALIDITY","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7"}}`),
+			expected: `{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","validity":"unknown","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9","extra_data":{"justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","state_root":"0x4bcecf56081291ab95df1dba25b0f83343d38217e9cec198510b61f6f35afdb3","unrealised_finalized_epoch":"61321","unrealised_justified_epoch":"61322","unrealized_finalized_root":"0x57a41f26678190d3e319c19fe9f4ea3830c4b21710a1e1ae41adcc23d0f030a2","unrealized_justified_root":"0xdee6c83ee7dc6c0916a8d43c4e7cda93655857da0487f193a62852699e5c39f7","validity":"NOT_A_VALID_VALIDITY"}}`,
+		},
+		{
+			name:  "ValidityMissing",
+			input: []byte(`{"slot":"1962336","block_root":"0x0f61e82f7b51f41fcd552cbdc64547bd9e1ba54b8404482732927645c2e13ec6","parent_root":"0xe399a2ee74cf0570b4f980772983bdc5cfbfde1f87f3ab395f2bee96103978c7","justified_epoch":"61322","finalized_epoch":"61321","weight":"57481550000000","execution_block_hash":"0x06a0277e02eae44c332bcec82d6715c3113dddce427982014cf5f43432f479e9"}`),
+			err:   "validity missing",
 		},
 		{
 			name:  "ExecutionBlockHashInvalid",
@@ -166,7 +180,11 @@ func TestForkChoiceNodeJSON(t *testing.T) {
 				require.NoError(t, err)
 				rt, err := json.Marshal(&fc)
 				require.NoError(t, err)
-				assert.Equal(t, string(test.input), string(rt))
+				expected := test.expected
+				if expected == "" {
+					expected = string(test.input)
+				}
+				assert.Equal(t, expected, string(rt))
 				assert.Equal(t, string(rt), fc.String())
 			}
 		})

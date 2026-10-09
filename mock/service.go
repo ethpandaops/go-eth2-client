@@ -65,6 +65,7 @@ type Service struct {
 	ExecutionPayloadEnvelopeFunc               func(context.Context, *api.ExecutionPayloadEnvelopeOpts) (*api.Response[*spec.VersionedExecutionPayloadEnvelope], error)
 	FinalityFunc                               func(context.Context, *api.FinalityOpts) (*api.Response[*apiv1.Finality], error)
 	ForkChoiceFunc                             func(context.Context, *api.ForkChoiceOpts) (*api.Response[*apiv1.ForkChoice], error)
+	ForkChoiceV2Func                           func(context.Context, *api.ForkChoiceOpts) (*api.Response[*apiv1.ForkChoiceV2], error)
 	ForkFunc                                   func(context.Context, *api.ForkOpts) (*api.Response[*phase0.Fork], error)
 	ForkScheduleFunc                           func(context.Context, *api.ForkScheduleOpts) (*api.Response[[]*phase0.Fork], error)
 	GenesisFunc                                func(context.Context, *api.GenesisOpts) (*api.Response[*apiv1.Genesis], error)
