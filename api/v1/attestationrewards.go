@@ -29,13 +29,14 @@ type AttestationRewards struct {
 }
 
 // IdealAttestationRewards are the ideal attestation rewards for an attestation.
+// Head, target, source and inactivity are signed Gwei values, as in the beacon API spec.
 type IdealAttestationRewards struct {
 	EffectiveBalance phase0.Gwei
-	Head             phase0.Gwei
-	Target           phase0.Gwei
-	Source           phase0.Gwei
+	Head             int64
+	Target           int64
+	Source           int64
 	InclusionDelay   *phase0.Gwei
-	Inactivity       phase0.Gwei
+	Inactivity       int64
 }
 
 // idealAttestationRewardsJSON is the spec representation of the struct.
@@ -89,34 +90,28 @@ func (i *IdealAttestationRewards) UnmarshalJSON(input []byte) error {
 		return errors.New("head missing")
 	}
 
-	head, err := strconv.ParseUint(data.Head, 10, 64)
+	i.Head, err = strconv.ParseInt(data.Head, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for head")
 	}
-
-	i.Head = phase0.Gwei(head)
 
 	if data.Target == "" {
 		return errors.New("target missing")
 	}
 
-	target, err := strconv.ParseUint(data.Target, 10, 64)
+	i.Target, err = strconv.ParseInt(data.Target, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for target")
 	}
-
-	i.Target = phase0.Gwei(target)
 
 	if data.Source == "" {
 		return errors.New("source missing")
 	}
 
-	source, err := strconv.ParseInt(data.Source, 10, 64)
+	i.Source, err = strconv.ParseInt(data.Source, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for source")
 	}
-
-	i.Source = phase0.Gwei(source)
 
 	if data.InclusionDelay != "" {
 		inclusionDelay, err := strconv.ParseUint(data.InclusionDelay, 10, 64)
@@ -132,12 +127,10 @@ func (i *IdealAttestationRewards) UnmarshalJSON(input []byte) error {
 		return errors.New("inactivity missing")
 	}
 
-	inactivity, err := strconv.ParseUint(data.Inactivity, 10, 64)
+	i.Inactivity, err = strconv.ParseInt(data.Inactivity, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for inactivity")
 	}
-
-	i.Inactivity = phase0.Gwei(inactivity)
 
 	return nil
 }
@@ -152,16 +145,15 @@ func (i *IdealAttestationRewards) String() string {
 	return string(data)
 }
 
-// ValidatorAttestationRewards are the ideal attestation rewards for a validator.
+// ValidatorAttestationRewards are the attestation rewards for a validator.
+// Head, target, source and inactivity are signed Gwei values, as in the beacon API spec.
 type ValidatorAttestationRewards struct {
 	ValidatorIndex phase0.ValidatorIndex
-	Head           phase0.Gwei
-	// Target can be negative, so it is an int64 (but still a Gwei value).
-	Target int64
-	// Source can be negative, so it is an int64 (but still a Gwei value).
+	Head           int64
+	Target         int64
 	Source         int64
 	InclusionDelay *phase0.Gwei
-	Inactivity     phase0.Gwei
+	Inactivity     int64
 }
 
 // validatorAttestationRewardsJSON is the spec representation of the struct.
@@ -215,12 +207,10 @@ func (v *ValidatorAttestationRewards) UnmarshalJSON(input []byte) error {
 		return errors.New("head missing")
 	}
 
-	head, err := strconv.ParseUint(data.Head, 10, 64)
+	v.Head, err = strconv.ParseInt(data.Head, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for head")
 	}
-
-	v.Head = phase0.Gwei(head)
 
 	if data.Target == "" {
 		return errors.New("target missing")
@@ -254,12 +244,10 @@ func (v *ValidatorAttestationRewards) UnmarshalJSON(input []byte) error {
 		return errors.New("inactivity missing")
 	}
 
-	inactivity, err := strconv.ParseUint(data.Inactivity, 10, 64)
+	v.Inactivity, err = strconv.ParseInt(data.Inactivity, 10, 64)
 	if err != nil {
 		return errors.Wrap(err, "invalid value for inactivity")
 	}
-
-	v.Inactivity = phase0.Gwei(inactivity)
 
 	return nil
 }
