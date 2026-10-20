@@ -61,7 +61,7 @@ func (v *VersionedAttesterSlashing) Attestation1() (*VersionedIndexedAttestation
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
-			Version: DataVersionPhase0,
+			Version: DataVersionAltair,
 			Altair:  v.Altair.Attestation1,
 		}
 
@@ -72,7 +72,7 @@ func (v *VersionedAttesterSlashing) Attestation1() (*VersionedIndexedAttestation
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
-			Version:   DataVersionPhase0,
+			Version:   DataVersionBellatrix,
 			Bellatrix: v.Bellatrix.Attestation1,
 		}
 
@@ -168,7 +168,7 @@ func (v *VersionedAttesterSlashing) Attestation2() (*VersionedIndexedAttestation
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
-			Version: DataVersionPhase0,
+			Version: DataVersionAltair,
 			Altair:  v.Altair.Attestation2,
 		}
 
@@ -179,7 +179,7 @@ func (v *VersionedAttesterSlashing) Attestation2() (*VersionedIndexedAttestation
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
-			Version:   DataVersionPhase0,
+			Version:   DataVersionBellatrix,
 			Bellatrix: v.Bellatrix.Attestation2,
 		}
 
