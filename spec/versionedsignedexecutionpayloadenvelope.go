@@ -46,6 +46,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) String() string {
 		}
 
 		return v.Gloas.String()
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return ""
+		}
+
+		return v.Gloas.String()
 	default:
 		return "unknown version"
 	}
@@ -74,6 +80,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Message() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return nil, errors.New("no heze signed execution payload envelope")
+		}
+
+		return v.Gloas.Message, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -99,6 +111,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPay
 	case DataVersionGloas:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return nil, errors.New("no gloas signed execution payload envelope")
+		}
+
+		return v.Gloas.Message.Payload, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return nil, errors.New("no heze signed execution payload envelope")
 		}
 
 		return v.Gloas.Message.Payload, nil
@@ -133,6 +151,15 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 			Version: DataVersionGloas,
 			Gloas:   v.Gloas.Message.ExecutionRequests,
 		}, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return nil, errors.New("no heze signed execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionHeze,
+			Heze:    v.Gloas.Message.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -158,6 +185,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderI
 	case DataVersionGloas:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return 0, errors.New("no gloas signed execution payload envelope")
+		}
+
+		return v.Gloas.Message.BuilderIndex, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return 0, errors.New("no heze signed execution payload envelope")
 		}
 
 		return v.Gloas.Message.BuilderIndex, nil
@@ -189,6 +222,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.Message.BeaconBlockRoot, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return phase0.Root{}, errors.New("no heze signed execution payload envelope")
+		}
+
+		return v.Gloas.Message.BeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -217,6 +256,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase
 		}
 
 		return v.Gloas.Message.ParentBeaconBlockRoot, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return phase0.Root{}, errors.New("no heze signed execution payload envelope")
+		}
+
+		return v.Gloas.Message.ParentBeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -242,6 +287,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Signature() (phase0.BLSSignatu
 	case DataVersionGloas:
 		if v.Gloas == nil {
 			return phase0.BLSSignature{}, errors.New("no gloas signed execution payload envelope")
+		}
+
+		return v.Gloas.Signature, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return phase0.BLSSignature{}, errors.New("no heze signed execution payload envelope")
 		}
 
 		return v.Gloas.Signature, nil

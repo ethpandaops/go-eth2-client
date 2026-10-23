@@ -45,6 +45,12 @@ func (v *VersionedExecutionPayloadEnvelope) String() string {
 		}
 
 		return v.Gloas.String()
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return ""
+		}
+
+		return v.Gloas.String()
 	default:
 		return "unknown version"
 	}
@@ -70,6 +76,12 @@ func (v *VersionedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPayload, 
 	case DataVersionGloas:
 		if v.Gloas == nil {
 			return nil, errors.New("no gloas execution payload envelope")
+		}
+
+		return v.Gloas.Payload, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return nil, errors.New("no heze execution payload envelope")
 		}
 
 		return v.Gloas.Payload, nil
@@ -104,6 +116,15 @@ func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*VersionedExecu
 			Version: DataVersionGloas,
 			Gloas:   v.Gloas.ExecutionRequests,
 		}, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return nil, errors.New("no heze execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionHeze,
+			Heze:    v.Gloas.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -129,6 +150,12 @@ func (v *VersionedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderIndex, 
 	case DataVersionGloas:
 		if v.Gloas == nil {
 			return 0, errors.New("no gloas execution payload envelope")
+		}
+
+		return v.Gloas.BuilderIndex, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return 0, errors.New("no heze execution payload envelope")
 		}
 
 		return v.Gloas.BuilderIndex, nil
@@ -160,6 +187,12 @@ func (v *VersionedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root, erro
 		}
 
 		return v.Gloas.BeaconBlockRoot, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return phase0.Root{}, errors.New("no heze execution payload envelope")
+		}
+
+		return v.Gloas.BeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -185,6 +218,12 @@ func (v *VersionedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase0.Root
 	case DataVersionGloas:
 		if v.Gloas == nil {
 			return phase0.Root{}, errors.New("no gloas execution payload envelope")
+		}
+
+		return v.Gloas.ParentBeaconBlockRoot, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return phase0.Root{}, errors.New("no heze execution payload envelope")
 		}
 
 		return v.Gloas.ParentBeaconBlockRoot, nil
