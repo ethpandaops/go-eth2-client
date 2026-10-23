@@ -40,7 +40,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) String() string {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
 		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
 		return ""
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return ""
 		}
@@ -68,7 +68,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Message() (*gloas.ExecutionPay
 		return nil, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return nil, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return nil, errors.New("no gloas signed execution payload envelope")
 		}
@@ -96,7 +96,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPay
 		return nil, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return nil, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return nil, errors.New("no gloas signed execution payload envelope")
 		}
@@ -133,6 +133,15 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 			Version: DataVersionGloas,
 			Gloas:   v.Gloas.Message.ExecutionRequests,
 		}, nil
+	case DataVersionHeze:
+		if v.Gloas == nil || v.Gloas.Message == nil {
+			return nil, errors.New("no gloas signed execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionHeze,
+			Heze:    v.Gloas.Message.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -155,7 +164,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderI
 		return 0, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return 0, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return 0, errors.New("no gloas signed execution payload envelope")
 		}
@@ -183,7 +192,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root
 		return phase0.Root{}, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return phase0.Root{}, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return phase0.Root{}, errors.New("no gloas signed execution payload envelope")
 		}
@@ -211,7 +220,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase
 		return phase0.Root{}, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return phase0.Root{}, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil || v.Gloas.Message == nil {
 			return phase0.Root{}, errors.New("no gloas signed execution payload envelope")
 		}
@@ -239,7 +248,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Signature() (phase0.BLSSignatu
 		return phase0.BLSSignature{}, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return phase0.BLSSignature{}, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return phase0.BLSSignature{}, errors.New("no gloas signed execution payload envelope")
 		}

@@ -39,7 +39,7 @@ func (v *VersionedExecutionPayloadEnvelope) String() string {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
 		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
 		return ""
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return ""
 		}
@@ -67,7 +67,7 @@ func (v *VersionedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPayload, 
 		return nil, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return nil, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return nil, errors.New("no gloas execution payload envelope")
 		}
@@ -104,6 +104,15 @@ func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*VersionedExecu
 			Version: DataVersionGloas,
 			Gloas:   v.Gloas.ExecutionRequests,
 		}, nil
+	case DataVersionHeze:
+		if v.Gloas == nil {
+			return nil, errors.New("no gloas execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionHeze,
+			Heze:    v.Gloas.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -126,7 +135,7 @@ func (v *VersionedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderIndex, 
 		return 0, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return 0, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return 0, errors.New("no gloas execution payload envelope")
 		}
@@ -154,7 +163,7 @@ func (v *VersionedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root, erro
 		return phase0.Root{}, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return phase0.Root{}, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return phase0.Root{}, errors.New("no gloas execution payload envelope")
 		}
@@ -182,7 +191,7 @@ func (v *VersionedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase0.Root
 		return phase0.Root{}, errors.New("no execution payload envelope in electra")
 	case DataVersionFulu:
 		return phase0.Root{}, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
+	case DataVersionGloas, DataVersionHeze:
 		if v.Gloas == nil {
 			return phase0.Root{}, errors.New("no gloas execution payload envelope")
 		}
