@@ -184,6 +184,29 @@ func (v *VersionedExecutionRequests) BuilderExits() ([]*gloas.BuilderExitRequest
 	}
 }
 
+// SweepThresholds returns the set sweep threshold requests (EIP-8148, gloas onwards).
+func (v *VersionedExecutionRequests) SweepThresholds() ([]*gloas.SetSweepThresholdRequest, error) {
+	switch v.Version {
+	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella, DataVersionDeneb,
+		DataVersionElectra, DataVersionFulu:
+		return nil, errors.New("set sweep threshold requests are not present before gloas")
+	case DataVersionGloas:
+		if v.Gloas == nil {
+			return nil, errors.New("no gloas execution requests")
+		}
+
+		return v.Gloas.SweepThresholds, nil
+	case DataVersionHeze:
+		if v.Heze == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.Heze.SweepThresholds, nil
+	default:
+		return nil, errors.New("unknown version")
+	}
+}
+
 // String returns a string version of the structure.
 func (v *VersionedExecutionRequests) String() string {
 	switch v.Version {

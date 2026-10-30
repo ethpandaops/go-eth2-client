@@ -27,7 +27,8 @@ import (
 
 // ExecutionRequests is a fork-agnostic set of execution layer triggered
 // requests. The container is introduced in Electra; the builder request fields
-// (BuilderDeposits, BuilderExits) are populated from Gloas onwards (EIP-8282).
+// (BuilderDeposits, BuilderExits) are populated from Gloas onwards (EIP-8282),
+// and SweepThresholds from Gloas onwards (EIP-8148).
 type ExecutionRequests struct {
 	Version         version.DataVersion
 	Deposits        []*electra.DepositRequest
@@ -35,6 +36,7 @@ type ExecutionRequests struct {
 	Consolidations  []*electra.ConsolidationRequest
 	BuilderDeposits []*gloas.BuilderDepositRequest
 	BuilderExits    []*gloas.BuilderExitRequest
+	SweepThresholds []*gloas.SetSweepThresholdRequest
 }
 
 // viewType returns the fork-specific schema type pointer used as the view

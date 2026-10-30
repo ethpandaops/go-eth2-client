@@ -63,6 +63,7 @@ func testGloasSignedExecutionPayloadEnvelope() *gloas.SignedExecutionPayloadEnve
 				Consolidations:  []*electra.ConsolidationRequest{},
 				BuilderDeposits: []*gloas.BuilderDepositRequest{},
 				BuilderExits:    []*gloas.BuilderExitRequest{},
+				SweepThresholds: []*gloas.SetSweepThresholdRequest{},
 			},
 			BuilderIndex:          42,
 			BeaconBlockRoot:       phase0.Root{0x11},

@@ -29,6 +29,7 @@ type executionRequestsYAML struct {
 	Consolidations  []*electra.ConsolidationRequest `yaml:"consolidations"`
 	BuilderDeposits []*BuilderDepositRequest        `yaml:"builder_deposits"`
 	BuilderExits    []*BuilderExitRequest           `yaml:"builder_exits"`
+	SweepThresholds []*SetSweepThresholdRequest     `yaml:"sweep_thresholds"`
 }
 
 // MarshalYAML implements yaml.Marshaler.
@@ -39,6 +40,7 @@ func (e *ExecutionRequests) MarshalYAML() ([]byte, error) {
 		Consolidations:  e.Consolidations,
 		BuilderDeposits: e.BuilderDeposits,
 		BuilderExits:    e.BuilderExits,
+		SweepThresholds: e.SweepThresholds,
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err

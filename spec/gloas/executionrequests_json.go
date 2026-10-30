@@ -29,6 +29,7 @@ type executionRequestsJSON struct {
 	Consolidations  []*electra.ConsolidationRequest `json:"consolidations"`
 	BuilderDeposits []*BuilderDepositRequest        `json:"builder_deposits"`
 	BuilderExits    []*BuilderExitRequest           `json:"builder_exits"`
+	SweepThresholds []*SetSweepThresholdRequest     `json:"sweep_thresholds"`
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -39,6 +40,7 @@ func (e *ExecutionRequests) MarshalJSON() ([]byte, error) {
 		Consolidations:  e.Consolidations,
 		BuilderDeposits: e.BuilderDeposits,
 		BuilderExits:    e.BuilderExits,
+		SweepThresholds: e.SweepThresholds,
 	})
 }
 
@@ -96,6 +98,16 @@ func (e *ExecutionRequests) UnmarshalJSON(input []byte) error {
 	for i := range e.BuilderExits {
 		if e.BuilderExits[i] == nil {
 			return fmt.Errorf("builder exits entry %d missing", i)
+		}
+	}
+
+	if err := json.Unmarshal(raw["sweep_thresholds"], &e.SweepThresholds); err != nil {
+		return errors.Wrap(err, "sweep_thresholds")
+	}
+
+	for i := range e.SweepThresholds {
+		if e.SweepThresholds[i] == nil {
+			return fmt.Errorf("sweep thresholds entry %d missing", i)
 		}
 	}
 
