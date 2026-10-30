@@ -20,13 +20,14 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-// ExecutionRequests represents the execution layer triggered requests of a payload (EIP-8282).
+// ExecutionRequests represents the execution layer triggered requests of a payload (EIP-8282, EIP-8148).
 type ExecutionRequests struct {
 	Deposits        []*electra.DepositRequest       `ssz-index:"0" ssz-type:"progressive-list"`
 	Withdrawals     []*electra.WithdrawalRequest    `ssz-index:"1" ssz-type:"progressive-list"`
 	Consolidations  []*electra.ConsolidationRequest `ssz-index:"2" ssz-type:"progressive-list"`
 	BuilderDeposits []*BuilderDepositRequest        `ssz-index:"3" ssz-type:"progressive-list"`
 	BuilderExits    []*BuilderExitRequest           `ssz-index:"4" ssz-type:"progressive-list"`
+	SweepThresholds []*SetSweepThresholdRequest     `ssz-index:"5" ssz-type:"progressive-list"`
 }
 
 // String returns a string version of the structure.

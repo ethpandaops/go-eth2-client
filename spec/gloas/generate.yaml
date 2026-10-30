@@ -25,6 +25,8 @@ types:
     output: builderdepositrequest_ssz.go
   - name: BuilderExitRequest
     output: builderexitrequest_ssz.go
+  - name: SetSweepThresholdRequest
+    output: setsweepthresholdrequest_ssz.go
   - name: ExecutionPayload
     output: executionpayload_ssz.go
   - name: ExecutionRequests
