@@ -48,7 +48,8 @@ func (a *AttesterSlashing) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.AttesterSlashing)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionEIP8450:
 		return (*gloas.AttesterSlashing)(nil), nil
 	default:
 		return nil, fmt.Errorf("AttesterSlashing: unsupported version %d", a.Version)

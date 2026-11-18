@@ -42,6 +42,8 @@ const (
 	DataVersionGloas
 	// DataVersionHeze is data applicable for the Heze release of the beacon chain.
 	DataVersionHeze
+	// DataVersionEIP8450 is data applicable for the EIP-8450 post-quantum key registry fork of the beacon chain.
+	DataVersionEIP8450
 )
 
 var dataVersionStrings = [...]string{
@@ -55,6 +57,7 @@ var dataVersionStrings = [...]string{
 	"fulu",
 	"gloas",
 	"heze",
+	"eip8450",
 }
 
 var dataVersionMap = map[string]DataVersion{
@@ -67,6 +70,7 @@ var dataVersionMap = map[string]DataVersion{
 	`"fulu"`:      DataVersionFulu,
 	`"gloas"`:     DataVersionGloas,
 	`"heze"`:      DataVersionHeze,
+	`"eip8450"`:   DataVersionEIP8450,
 }
 
 // MarshalJSON implements json.Marshaler.

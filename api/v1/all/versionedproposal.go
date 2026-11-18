@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/all"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
@@ -78,6 +79,13 @@ func ProposalFromSignedBlock(block *all.SignedBeaconBlock) (*api.VersionedSigned
 		}
 
 		proposal.Heze = hezeBlock
+	case version.DataVersionEIP8450:
+		eip8450Block, ok := view.(*eip8450.SignedBeaconBlock)
+		if !ok {
+			return nil, fmt.Errorf("ProposalFromSignedBlock: unexpected view type %T for %s", view, block.Version)
+		}
+
+		proposal.EIP8450 = eip8450Block
 	default:
 		return nil, fmt.Errorf("ProposalFromSignedBlock: unsupported version %s", block.Version)
 	}

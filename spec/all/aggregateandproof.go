@@ -49,7 +49,8 @@ func (a *AggregateAndProof) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.AggregateAndProof)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionEIP8450:
 		// Gloas turns the aggregate into a progressive container, so the electra
 		// view would hash to a different root.
 		return (*gloas.AggregateAndProof)(nil), nil

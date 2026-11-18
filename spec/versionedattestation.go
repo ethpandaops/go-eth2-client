@@ -36,12 +36,13 @@ type VersionedAttestation struct {
 	Fulu           *electra.Attestation
 	Gloas          *gloas.Attestation
 	Heze           *gloas.Attestation
+	EIP8450        *gloas.Attestation
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedAttestation) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil
 }
 
 // AggregationBits returns the aggregation bits of the attestation.
@@ -96,11 +97,17 @@ func (v *VersionedAttestation) AggregationBits() (bitfield.Bitlist, error) {
 
 		return v.Gloas.AggregationBits, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.AggregationBits, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.AggregationBits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -158,11 +165,17 @@ func (v *VersionedAttestation) Data() (*phase0.AttestationData, error) {
 
 		return v.Gloas.Data, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.Data, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.Data, nil
 	default:
 		return nil, fmt.Errorf("unknown version: %d", v.Version)
 	}
@@ -192,11 +205,17 @@ func (v *VersionedAttestation) CommitteeBits() (bitfield.Bitvector64, error) {
 
 		return v.Gloas.CommitteeBits, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.CommitteeBits, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.CommitteeBits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -254,11 +273,17 @@ func (v *VersionedAttestation) CommitteeIndex() (phase0.CommitteeIndex, error) {
 
 		return v.Gloas.CommitteeIndex()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return 0, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.CommitteeIndex()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return 0, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.CommitteeIndex()
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -315,11 +340,17 @@ func (v *VersionedAttestation) HashTreeRoot() ([32]byte, error) {
 
 		return v.Gloas.HashTreeRoot()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return [32]byte{}, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return [32]byte{}, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.HashTreeRoot()
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -377,11 +408,17 @@ func (v *VersionedAttestation) Signature() (phase0.BLSSignature, error) {
 
 		return v.Gloas.Signature, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return phase0.BLSSignature{}, errors.New("no Heze attestation")
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return phase0.BLSSignature{}, errors.New("no EIP8450 attestation")
+		}
+
+		return v.EIP8450.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -439,11 +476,17 @@ func (v *VersionedAttestation) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}

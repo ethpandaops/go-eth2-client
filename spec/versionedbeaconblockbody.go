@@ -18,6 +18,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
+	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
@@ -36,6 +37,7 @@ type VersionedBeaconBlockBody struct {
 	Fulu      *electra.BeaconBlockBody
 	Gloas     *gloas.BeaconBlockBody
 	Heze      *heze.BeaconBlockBody
+	EIP8450   *eip8450.BeaconBlockBody
 }
 
 // String returns a string version of the structure.
@@ -90,11 +92,17 @@ func (v *VersionedBeaconBlockBody) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}

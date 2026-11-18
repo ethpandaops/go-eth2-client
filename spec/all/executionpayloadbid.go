@@ -53,7 +53,7 @@ func (e *ExecutionPayloadBid) viewType() (any, error) {
 	switch e.Version {
 	case version.DataVersionGloas:
 		return (*gloas.ExecutionPayloadBid)(nil), nil
-	case version.DataVersionHeze:
+	case version.DataVersionHeze, version.DataVersionEIP8450:
 		return (*heze.ExecutionPayloadBid)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadBid: unsupported version %d", e.Version)

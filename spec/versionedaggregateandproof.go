@@ -32,6 +32,7 @@ type VersionedAggregateAndProof struct {
 	Fulu      *electra.AggregateAndProof
 	Gloas     *electra.AggregateAndProof
 	Heze      *electra.AggregateAndProof
+	EIP8450   *electra.AggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -86,11 +87,17 @@ func (v *VersionedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIndex, e
 
 		return v.Gloas.AggregatorIndex, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return 0, errors.New("no heze aggregate and proof")
 		}
 
 		return v.Heze.AggregatorIndex, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return 0, errors.New("no heze aggregate and proof")
+		}
+
+		return v.EIP8450.AggregatorIndex, nil
 	default:
 		return 0, errors.New("unknown version for aggregate and proof")
 	}
@@ -148,11 +155,17 @@ func (v *VersionedAggregateAndProof) HashTreeRoot() ([32]byte, error) {
 
 		return v.Gloas.HashTreeRoot()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return [32]byte{}, errors.New("no heze aggregate and proof")
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return [32]byte{}, errors.New("no heze aggregate and proof")
+		}
+
+		return v.EIP8450.HashTreeRoot()
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -161,7 +174,7 @@ func (v *VersionedAggregateAndProof) HashTreeRoot() ([32]byte, error) {
 // IsEmpty returns true if there is no aggregate and proof.
 func (v *VersionedAggregateAndProof) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil
 }
 
 // String returns a string version of the structure.
@@ -216,11 +229,17 @@ func (v *VersionedAggregateAndProof) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}
@@ -278,11 +297,17 @@ func (v *VersionedAggregateAndProof) SelectionProof() (phase0.BLSSignature, erro
 
 		return v.Gloas.SelectionProof, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return phase0.BLSSignature{}, errors.New("no heze aggregate and proof")
 		}
 
 		return v.Heze.SelectionProof, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return phase0.BLSSignature{}, errors.New("no heze aggregate and proof")
+		}
+
+		return v.EIP8450.SelectionProof, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

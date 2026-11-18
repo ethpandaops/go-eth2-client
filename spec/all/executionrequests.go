@@ -45,7 +45,8 @@ func (e *ExecutionRequests) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.ExecutionRequests)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionEIP8450:
 		return (*gloas.ExecutionRequests)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionRequests: unsupported version %d", e.Version)

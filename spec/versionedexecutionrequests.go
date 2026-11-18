@@ -29,11 +29,12 @@ type VersionedExecutionRequests struct {
 	Fulu    *electra.ExecutionRequests
 	Gloas   *gloas.ExecutionRequests
 	Heze    *gloas.ExecutionRequests
+	EIP8450 *gloas.ExecutionRequests
 }
 
 // IsEmpty returns true if no fork-specific execution requests are populated.
 func (v *VersionedExecutionRequests) IsEmpty() bool {
-	return v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+	return v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil
 }
 
 // Deposits returns the deposit requests.
@@ -60,11 +61,17 @@ func (v *VersionedExecutionRequests) Deposits() ([]*electra.DepositRequest, erro
 
 		return v.Gloas.Deposits, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no heze execution requests")
 		}
 
 		return v.Heze.Deposits, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.EIP8450.Deposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -94,11 +101,17 @@ func (v *VersionedExecutionRequests) Withdrawals() ([]*electra.WithdrawalRequest
 
 		return v.Gloas.Withdrawals, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no heze execution requests")
 		}
 
 		return v.Heze.Withdrawals, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.EIP8450.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -128,11 +141,17 @@ func (v *VersionedExecutionRequests) Consolidations() ([]*electra.ConsolidationR
 
 		return v.Gloas.Consolidations, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no heze execution requests")
 		}
 
 		return v.Heze.Consolidations, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.EIP8450.Consolidations, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -151,11 +170,17 @@ func (v *VersionedExecutionRequests) BuilderDeposits() ([]*gloas.BuilderDepositR
 
 		return v.Gloas.BuilderDeposits, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no heze execution requests")
 		}
 
 		return v.Heze.BuilderDeposits, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.EIP8450.BuilderDeposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -174,11 +199,17 @@ func (v *VersionedExecutionRequests) BuilderExits() ([]*gloas.BuilderExitRequest
 
 		return v.Gloas.BuilderExits, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no heze execution requests")
 		}
 
 		return v.Heze.BuilderExits, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.EIP8450.BuilderExits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -208,11 +239,17 @@ func (v *VersionedExecutionRequests) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}

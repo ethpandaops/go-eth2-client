@@ -41,7 +41,7 @@ type ExecutionPayloadEnvelope struct {
 // descriptor for the active Version.
 func (e *ExecutionPayloadEnvelope) viewType() (any, error) {
 	switch e.Version {
-	case version.DataVersionGloas, version.DataVersionHeze:
+	case version.DataVersionGloas, version.DataVersionHeze, version.DataVersionEIP8450:
 		return (*gloas.ExecutionPayloadEnvelope)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadEnvelope: unsupported version %d", e.Version)

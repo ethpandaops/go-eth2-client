@@ -113,6 +113,10 @@ func unversionAttesterSlashing(slashing *spec.VersionedAttesterSlashing) (any, e
 		if slashing.Heze != nil {
 			unversionedSlashing = slashing.Heze
 		}
+	case spec.DataVersionEIP8450:
+		if slashing.EIP8450 != nil {
+			unversionedSlashing = slashing.EIP8450
+		}
 	default:
 		return nil, errors.Join(errors.New("unhandled attester slashing version"), client.ErrInvalidOptions)
 	}

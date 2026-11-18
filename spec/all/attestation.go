@@ -51,7 +51,8 @@ func (a *Attestation) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.Attestation)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionEIP8450:
 		return (*gloas.Attestation)(nil), nil
 	default:
 		return nil, fmt.Errorf("Attestation: unsupported version %d", a.Version)

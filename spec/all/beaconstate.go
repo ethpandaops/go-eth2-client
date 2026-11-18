@@ -23,6 +23,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
+	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
@@ -36,56 +37,60 @@ import (
 // BeaconState is a fork-agnostic beacon state containing the union of fields
 // from every fork. Fields populated on a given instance depend on Version.
 type BeaconState struct {
-	Version                       version.DataVersion
-	GenesisTime                   uint64
-	GenesisValidatorsRoot         phase0.Root
-	Slot                          phase0.Slot
-	Fork                          *phase0.Fork
-	LatestBlockHeader             *phase0.BeaconBlockHeader
-	BlockRoots                    []phase0.Root
-	StateRoots                    []phase0.Root
-	HistoricalRoots               []phase0.Root
-	ETH1Data                      *phase0.ETH1Data
-	ETH1DataVotes                 []*phase0.ETH1Data
-	ETH1DepositIndex              uint64
-	Validators                    []*phase0.Validator
-	Balances                      []phase0.Gwei
-	RANDAOMixes                   []phase0.Root
-	Slashings                     []phase0.Gwei
-	PreviousEpochAttestations     []*phase0.PendingAttestation
-	CurrentEpochAttestations      []*phase0.PendingAttestation
-	PreviousEpochParticipation    []altair.ParticipationFlags
-	CurrentEpochParticipation     []altair.ParticipationFlags
-	JustificationBits             bitfield.Bitvector4
-	PreviousJustifiedCheckpoint   *phase0.Checkpoint
-	CurrentJustifiedCheckpoint    *phase0.Checkpoint
-	FinalizedCheckpoint           *phase0.Checkpoint
-	InactivityScores              []uint64
-	CurrentSyncCommittee          *altair.SyncCommittee
-	NextSyncCommittee             *altair.SyncCommittee
-	LatestExecutionPayloadHeader  *ExecutionPayloadHeader
-	LatestBlockHash               phase0.Hash32
-	NextWithdrawalIndex           capella.WithdrawalIndex
-	NextWithdrawalValidatorIndex  phase0.ValidatorIndex
-	HistoricalSummaries           []*capella.HistoricalSummary
-	DepositRequestsStartIndex     uint64
-	DepositBalanceToConsume       phase0.Gwei
-	ExitBalanceToConsume          phase0.Gwei
-	EarliestExitEpoch             phase0.Epoch
-	ConsolidationBalanceToConsume phase0.Gwei
-	EarliestConsolidationEpoch    phase0.Epoch
-	PendingDeposits               []*electra.PendingDeposit
-	PendingPartialWithdrawals     []*electra.PendingPartialWithdrawal
-	PendingConsolidations         []*electra.PendingConsolidation
-	ProposerLookahead             []phase0.ValidatorIndex
-	Builders                      []*gloas.Builder
-	NextWithdrawalBuilderIndex    gloas.BuilderIndex
-	ExecutionPayloadAvailability  []uint8
-	BuilderPendingPayments        []*gloas.BuilderPendingPayment
-	BuilderPendingWithdrawals     []*gloas.BuilderPendingWithdrawal
-	LatestExecutionPayloadBid     *ExecutionPayloadBid
-	PayloadExpectedWithdrawals    []*capella.Withdrawal
-	PTCWindow                     [][]phase0.ValidatorIndex
+	Version                           version.DataVersion
+	GenesisTime                       uint64
+	GenesisValidatorsRoot             phase0.Root
+	Slot                              phase0.Slot
+	Fork                              *phase0.Fork
+	LatestBlockHeader                 *phase0.BeaconBlockHeader
+	BlockRoots                        []phase0.Root
+	StateRoots                        []phase0.Root
+	HistoricalRoots                   []phase0.Root
+	ETH1Data                          *phase0.ETH1Data
+	ETH1DataVotes                     []*phase0.ETH1Data
+	ETH1DepositIndex                  uint64
+	Validators                        []*phase0.Validator
+	Balances                          []phase0.Gwei
+	RANDAOMixes                       []phase0.Root
+	Slashings                         []phase0.Gwei
+	PreviousEpochAttestations         []*phase0.PendingAttestation
+	CurrentEpochAttestations          []*phase0.PendingAttestation
+	PreviousEpochParticipation        []altair.ParticipationFlags
+	CurrentEpochParticipation         []altair.ParticipationFlags
+	JustificationBits                 bitfield.Bitvector4
+	PreviousJustifiedCheckpoint       *phase0.Checkpoint
+	CurrentJustifiedCheckpoint        *phase0.Checkpoint
+	FinalizedCheckpoint               *phase0.Checkpoint
+	InactivityScores                  []uint64
+	CurrentSyncCommittee              *altair.SyncCommittee
+	NextSyncCommittee                 *altair.SyncCommittee
+	LatestExecutionPayloadHeader      *ExecutionPayloadHeader
+	LatestBlockHash                   phase0.Hash32
+	NextWithdrawalIndex               capella.WithdrawalIndex
+	NextWithdrawalValidatorIndex      phase0.ValidatorIndex
+	HistoricalSummaries               []*capella.HistoricalSummary
+	DepositRequestsStartIndex         uint64
+	DepositBalanceToConsume           phase0.Gwei
+	ExitBalanceToConsume              phase0.Gwei
+	EarliestExitEpoch                 phase0.Epoch
+	ConsolidationBalanceToConsume     phase0.Gwei
+	EarliestConsolidationEpoch        phase0.Epoch
+	PendingDeposits                   []*electra.PendingDeposit
+	PendingPartialWithdrawals         []*electra.PendingPartialWithdrawal
+	PendingConsolidations             []*electra.PendingConsolidation
+	ProposerLookahead                 []phase0.ValidatorIndex
+	Builders                          []*gloas.Builder
+	NextWithdrawalBuilderIndex        gloas.BuilderIndex
+	ExecutionPayloadAvailability      []uint8
+	BuilderPendingPayments            []*gloas.BuilderPendingPayment
+	BuilderPendingWithdrawals         []*gloas.BuilderPendingWithdrawal
+	LatestExecutionPayloadBid         *ExecutionPayloadBid
+	PayloadExpectedWithdrawals        []*capella.Withdrawal
+	PTCWindow                         [][]phase0.ValidatorIndex
+	PostQuantumKeyMaterial            []*eip8450.PQKeyMaterial
+	PostQuantumKeyChangeEpochs        []phase0.Epoch
+	BuilderPostQuantumKeyMaterial     []*eip8450.PQKeyMaterial
+	BuilderPostQuantumKeyChangeEpochs []phase0.Epoch
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -110,6 +115,8 @@ func (b *BeaconState) viewType() (any, error) {
 		return (*gloas.BeaconState)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.BeaconState)(nil), nil
+	case version.DataVersionEIP8450:
+		return (*eip8450.BeaconState)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconState: unsupported version %d", b.Version)
 	}
@@ -241,6 +248,8 @@ func beaconStateVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.BeaconState:
 		return version.DataVersionHeze, nil
+	case *eip8450.BeaconState:
+		return version.DataVersionEIP8450, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconState: unsupported view type %T", view)
 	}

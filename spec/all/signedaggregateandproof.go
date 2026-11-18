@@ -47,7 +47,8 @@ func (s *SignedAggregateAndProof) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.SignedAggregateAndProof)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionEIP8450:
 		return (*gloas.SignedAggregateAndProof)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedAggregateAndProof: unsupported version %d", s.Version)

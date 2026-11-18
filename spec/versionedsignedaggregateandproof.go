@@ -32,6 +32,7 @@ type VersionedSignedAggregateAndProof struct {
 	Fulu      *electra.SignedAggregateAndProof
 	Gloas     *electra.SignedAggregateAndProof
 	Heze      *electra.SignedAggregateAndProof
+	EIP8450   *electra.SignedAggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -86,11 +87,17 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 
 		return v.Gloas.Message.AggregatorIndex, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return 0, errors.New("no Heze signed aggregate and proof")
 		}
 
 		return v.Heze.Message.AggregatorIndex, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return 0, errors.New("no EIP8450 signed aggregate and proof")
+		}
+
+		return v.EIP8450.Message.AggregatorIndex, nil
 	default:
 		return 0, errors.New("unknown version for signed aggregate and proof")
 	}
@@ -99,7 +106,7 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 // IsEmpty returns true if there is no aggregate and proof.
 func (v *VersionedSignedAggregateAndProof) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil
 }
 
 // SelectionProof returns the selection proof of the signed aggregate.
@@ -154,11 +161,17 @@ func (v *VersionedSignedAggregateAndProof) SelectionProof() (phase0.BLSSignature
 
 		return v.Gloas.Message.SelectionProof, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
 		}
 
 		return v.Heze.Message.SelectionProof, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
+		}
+
+		return v.EIP8450.Message.SelectionProof, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -216,11 +229,17 @@ func (v *VersionedSignedAggregateAndProof) Signature() (phase0.BLSSignature, err
 
 		return v.Gloas.Signature, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
+		}
+
+		return v.EIP8450.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -278,11 +297,17 @@ func (v *VersionedSignedAggregateAndProof) Slot() (phase0.Slot, error) {
 
 		return v.Gloas.Message.Aggregate.Data.Slot, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return 0, errors.New("no heze signed aggregate and proof")
 		}
 
 		return v.Heze.Message.Aggregate.Data.Slot, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return 0, errors.New("no heze signed aggregate and proof")
+		}
+
+		return v.EIP8450.Message.Aggregate.Data.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -340,11 +365,17 @@ func (v *VersionedSignedAggregateAndProof) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}

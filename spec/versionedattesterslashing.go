@@ -33,12 +33,13 @@ type VersionedAttesterSlashing struct {
 	Fulu      *electra.AttesterSlashing
 	Gloas     *gloas.AttesterSlashing
 	Heze      *gloas.AttesterSlashing
+	EIP8450   *gloas.AttesterSlashing
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedAttesterSlashing) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil
 }
 
 // Attestation1 returns the first indexed attestation.
@@ -133,13 +134,24 @@ func (v *VersionedAttesterSlashing) Attestation1() (*VersionedIndexedAttestation
 
 		return &versionedIndexedAttestation, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no Heze indexed attestation")
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
 			Version: DataVersionHeze,
 			Heze:    v.Heze.Attestation1,
+		}
+
+		return &versionedIndexedAttestation, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no EIP8450 indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionEIP8450,
+			EIP8450: v.EIP8450.Attestation1,
 		}
 
 		return &versionedIndexedAttestation, nil
@@ -240,13 +252,24 @@ func (v *VersionedAttesterSlashing) Attestation2() (*VersionedIndexedAttestation
 
 		return &versionedIndexedAttestation, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return nil, errors.New("no Heze indexed attestation")
 		}
 
 		versionedIndexedAttestation := VersionedIndexedAttestation{
 			Version: DataVersionHeze,
 			Heze:    v.Heze.Attestation2,
+		}
+
+		return &versionedIndexedAttestation, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return nil, errors.New("no EIP8450 indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionEIP8450,
+			EIP8450: v.EIP8450.Attestation2,
 		}
 
 		return &versionedIndexedAttestation, nil
@@ -307,11 +330,17 @@ func (v *VersionedAttesterSlashing) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 		return "unknown version"
 	}

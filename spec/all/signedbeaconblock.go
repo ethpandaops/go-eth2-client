@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
+	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
@@ -60,6 +61,8 @@ func (s *SignedBeaconBlock) viewType() (any, error) {
 		return (*gloas.SignedBeaconBlock)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.SignedBeaconBlock)(nil), nil
+	case version.DataVersionEIP8450:
+		return (*eip8450.SignedBeaconBlock)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedBeaconBlock: unsupported version %d", s.Version)
 	}
@@ -186,6 +189,8 @@ func signedBeaconBlockVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.SignedBeaconBlock:
 		return version.DataVersionHeze, nil
+	case *eip8450.SignedBeaconBlock:
+		return version.DataVersionEIP8450, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedBeaconBlock: unsupported view type %T", view)
 	}

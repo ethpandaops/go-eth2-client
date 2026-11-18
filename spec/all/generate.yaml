@@ -14,6 +14,7 @@ types:
       - ../fulu.BeaconState
       - ../gloas.BeaconState
       - ../heze.BeaconState
+      - ../eip8450.BeaconState
 
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
@@ -27,6 +28,7 @@ types:
       - ../electra.BeaconBlockBody
       - ../gloas.BeaconBlockBody
       - ../heze.BeaconBlockBody
+      - ../eip8450.BeaconBlockBody
 
   - name: BeaconBlock
     output: beaconblock_ssz.go
@@ -40,6 +42,7 @@ types:
       - ../electra.BeaconBlock
       - ../gloas.BeaconBlock
       - ../heze.BeaconBlock
+      - ../eip8450.BeaconBlock
 
   - name: SignedBeaconBlock
     output: signedbeaconblock_ssz.go
@@ -53,6 +56,7 @@ types:
       - ../electra.SignedBeaconBlock
       - ../gloas.SignedBeaconBlock
       - ../heze.SignedBeaconBlock
+      - ../eip8450.SignedBeaconBlock
 
   - name: ExecutionPayload
     output: executionpayload_ssz.go

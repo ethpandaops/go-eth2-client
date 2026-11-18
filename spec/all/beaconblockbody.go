@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
+	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
@@ -52,6 +53,7 @@ type BeaconBlockBody struct {
 	SignedExecutionPayloadBid *SignedExecutionPayloadBid
 	PayloadAttestations       []*gloas.PayloadAttestation
 	ParentExecutionRequests   *ExecutionRequests
+	PQKeyRegistrations        []*eip8450.SignedPQKeyRegistration
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -76,6 +78,8 @@ func (b *BeaconBlockBody) viewType() (any, error) {
 		return (*gloas.BeaconBlockBody)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.BeaconBlockBody)(nil), nil
+	case version.DataVersionEIP8450:
+		return (*eip8450.BeaconBlockBody)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconBlockBody: unsupported version %d", b.Version)
 	}
@@ -230,6 +234,8 @@ func beaconBlockBodyVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.BeaconBlockBody:
 		return version.DataVersionHeze, nil
+	case *eip8450.BeaconBlockBody:
+		return version.DataVersionEIP8450, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconBlockBody: unsupported view type %T", view)
 	}

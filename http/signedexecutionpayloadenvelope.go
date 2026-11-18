@@ -152,7 +152,8 @@ func (s *Service) fetchSignedExecutionPayloadEnvelope(ctx context.Context,
 		return nil, err
 	}
 
-	if httpResponse.consensusVersion != spec.DataVersionGloas && httpResponse.consensusVersion != spec.DataVersionHeze {
+	if httpResponse.consensusVersion != spec.DataVersionGloas && httpResponse.consensusVersion != spec.DataVersionHeze &&
+		httpResponse.consensusVersion != spec.DataVersionEIP8450 {
 		return nil, fmt.Errorf("execution payload envelope not available for block version %s", httpResponse.consensusVersion)
 	}
 

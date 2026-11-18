@@ -28,6 +28,7 @@ type VersionedSignedExecutionPayloadBid struct {
 	Version DataVersion
 	Gloas   *gloas.SignedExecutionPayloadBid
 	Heze    *heze.SignedExecutionPayloadBid
+	EIP8450 *heze.SignedExecutionPayloadBid
 }
 
 // String returns a string version of the structure.
@@ -43,11 +44,17 @@ func (v *VersionedSignedExecutionPayloadBid) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return ""
 		}
 
 		return v.Heze.String()
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return ""
+		}
+
+		return v.EIP8450.String()
 	default:
 
 		return "unknown version"
@@ -78,11 +85,17 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockHash() (phase0.Hash32, e
 
 		return v.Gloas.Message.ParentBlockHash, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.ParentBlockHash, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.ParentBlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -112,11 +125,17 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockRoot() (phase0.Root, err
 
 		return v.Gloas.Message.ParentBlockRoot, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return phase0.Root{}, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.ParentBlockRoot, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return phase0.Root{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.ParentBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -146,11 +165,17 @@ func (v *VersionedSignedExecutionPayloadBid) BlockHash() (phase0.Hash32, error) 
 
 		return v.Gloas.Message.BlockHash, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.BlockHash, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -180,11 +205,17 @@ func (v *VersionedSignedExecutionPayloadBid) FeeRecipient() (bellatrix.Execution
 
 		return v.Gloas.Message.FeeRecipient, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.FeeRecipient, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -214,11 +245,17 @@ func (v *VersionedSignedExecutionPayloadBid) GasLimit() (uint64, error) {
 
 		return v.Gloas.Message.GasLimit, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return 0, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.GasLimit, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.GasLimit, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -248,11 +285,17 @@ func (v *VersionedSignedExecutionPayloadBid) BuilderIndex() (gloas.BuilderIndex,
 
 		return v.Gloas.Message.BuilderIndex, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return 0, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.BuilderIndex, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.BuilderIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -282,11 +325,17 @@ func (v *VersionedSignedExecutionPayloadBid) Slot() (phase0.Slot, error) {
 
 		return v.Gloas.Message.Slot, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return 0, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.Slot, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -316,11 +365,17 @@ func (v *VersionedSignedExecutionPayloadBid) Value() (phase0.Gwei, error) {
 
 		return v.Gloas.Message.Value, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return 0, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.Value, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.Value, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -350,11 +405,17 @@ func (v *VersionedSignedExecutionPayloadBid) ExecutionPayment() (phase0.Gwei, er
 
 		return v.Gloas.Message.ExecutionPayment, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return 0, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.ExecutionPayment, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.ExecutionPayment, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -384,11 +445,17 @@ func (v *VersionedSignedExecutionPayloadBid) BlobKZGCommitments() ([]deneb.KZGCo
 
 		return v.Gloas.Message.BlobKZGCommitments, nil
 	case DataVersionHeze:
-		if v.Heze == nil || v.Heze.Message == nil {
+		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
 			return nil, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Message.BlobKZGCommitments, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+			return nil, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Message.BlobKZGCommitments, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -418,11 +485,17 @@ func (v *VersionedSignedExecutionPayloadBid) Signature() (phase0.BLSSignature, e
 
 		return v.Gloas.Signature, nil
 	case DataVersionHeze:
-		if v.Heze == nil {
+		if v.Heze == nil && v.EIP8450 == nil {
 			return phase0.BLSSignature{}, errors.New("no heze execution payload bid")
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionEIP8450:
+		if v.EIP8450 == nil {
+			return phase0.BLSSignature{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.EIP8450.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
