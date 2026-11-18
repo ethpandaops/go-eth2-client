@@ -33,6 +33,7 @@ var (
 	DataVersionFulu      = version.DataVersionFulu
 	DataVersionGloas     = version.DataVersionGloas
 	DataVersionHeze      = version.DataVersionHeze
+	DataVersionDaisugi   = version.DataVersionDaisugi
 
 	BuilderVersionV1 = version.BuilderVersionV1
 )

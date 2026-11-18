@@ -16,6 +16,7 @@ package api
 import (
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	"github.com/ethpandaops/go-eth2-client/spec"
@@ -35,6 +36,7 @@ type VersionedBlindedProposal struct {
 	Deneb     *apiv1deneb.BlindedBeaconBlock
 	Electra   *apiv1electra.BlindedBeaconBlock
 	Fulu      *apiv1electra.BlindedBeaconBlock
+	Daisugi   *apiv1daisugi.BlindedBeaconBlock
 }
 
 // IsEmpty returns true if there is no proposal.
@@ -75,6 +77,12 @@ func (v *VersionedBlindedProposal) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Fulu.Slot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -113,6 +121,12 @@ func (v *VersionedBlindedProposal) ProposerIndex() (phase0.ValidatorIndex, error
 		}
 
 		return v.Fulu.ProposerIndex, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -156,6 +170,13 @@ func (v *VersionedBlindedProposal) RandaoReveal() (phase0.BLSSignature, error) {
 		}
 
 		return v.Fulu.Body.RANDAOReveal, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil {
+			return phase0.BLSSignature{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.RANDAOReveal, nil
 	default:
 		return phase0.BLSSignature{}, ErrUnsupportedVersion
 	}
@@ -199,6 +220,13 @@ func (v *VersionedBlindedProposal) Graffiti() ([32]byte, error) {
 		}
 
 		return v.Fulu.Body.Graffiti, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil {
+			return [32]byte{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.Graffiti, nil
 	default:
 		return [32]byte{}, ErrUnsupportedVersion
 	}
@@ -277,6 +305,20 @@ func (v *VersionedBlindedProposal) Attestations() ([]spec.VersionedAttestation, 
 		}
 
 		return versionedAttestations, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Body == nil {
+			return nil, ErrDataMissing
+		}
+
+		versionedAttestations := make([]spec.VersionedAttestation, len(v.Daisugi.Body.Attestations))
+		for i, attestation := range v.Daisugi.Body.Attestations {
+			versionedAttestations[i] = spec.VersionedAttestation{
+				Version: spec.DataVersionDaisugi,
+				Daisugi: attestation,
+			}
+		}
+
+		return versionedAttestations, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -315,6 +357,12 @@ func (v *VersionedBlindedProposal) Root() (phase0.Root, error) {
 		}
 
 		return v.Fulu.HashTreeRoot()
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -358,6 +406,13 @@ func (v *VersionedBlindedProposal) BodyRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Body.HashTreeRoot()
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -396,6 +451,12 @@ func (v *VersionedBlindedProposal) ParentRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.ParentRoot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.ParentRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -434,6 +495,12 @@ func (v *VersionedBlindedProposal) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.StateRoot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.StateRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -482,6 +549,14 @@ func (v *VersionedBlindedProposal) TransactionsRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Body.ExecutionPayloadHeader.TransactionsRoot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil ||
+			v.Daisugi.Body.ExecutionPayloadHeader == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.ExecutionPayloadHeader.TransactionsRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -530,6 +605,14 @@ func (v *VersionedBlindedProposal) FeeRecipient() (bellatrix.ExecutionAddress, e
 		}
 
 		return v.Fulu.Body.ExecutionPayloadHeader.FeeRecipient, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil ||
+			v.Daisugi.Body.ExecutionPayloadHeader == nil {
+			return bellatrix.ExecutionAddress{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.ExecutionPayloadHeader.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, ErrUnsupportedVersion
 	}
@@ -578,6 +661,14 @@ func (v *VersionedBlindedProposal) Timestamp() (uint64, error) {
 		}
 
 		return v.Fulu.Body.ExecutionPayloadHeader.Timestamp, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Body == nil ||
+			v.Daisugi.Body.ExecutionPayloadHeader == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.Body.ExecutionPayloadHeader.Timestamp, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -616,6 +707,12 @@ func (v *VersionedBlindedProposal) String() string {
 		}
 
 		return v.Fulu.String()
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

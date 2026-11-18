@@ -29,6 +29,7 @@ type VersionedExecutionRequests struct {
 	Fulu    *electra.ExecutionRequests
 	Gloas   *gloas.ExecutionRequests
 	Heze    *gloas.ExecutionRequests
+	Daisugi *electra.ExecutionRequests
 }
 
 // IsEmpty returns true if no fork-specific execution requests are populated.
@@ -65,6 +66,12 @@ func (v *VersionedExecutionRequests) Deposits() ([]*electra.DepositRequest, erro
 		}
 
 		return v.Heze.Deposits, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution requests")
+		}
+
+		return v.Daisugi.Deposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -99,6 +106,12 @@ func (v *VersionedExecutionRequests) Withdrawals() ([]*electra.WithdrawalRequest
 		}
 
 		return v.Heze.Withdrawals, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution requests")
+		}
+
+		return v.Daisugi.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -133,6 +146,12 @@ func (v *VersionedExecutionRequests) Consolidations() ([]*electra.ConsolidationR
 		}
 
 		return v.Heze.Consolidations, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution requests")
+		}
+
+		return v.Daisugi.Consolidations, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -142,7 +161,7 @@ func (v *VersionedExecutionRequests) Consolidations() ([]*electra.ConsolidationR
 func (v *VersionedExecutionRequests) BuilderDeposits() ([]*gloas.BuilderDepositRequest, error) {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella, DataVersionDeneb,
-		DataVersionElectra, DataVersionFulu:
+		DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return nil, errors.New("builder deposit requests are not present before gloas")
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -165,7 +184,7 @@ func (v *VersionedExecutionRequests) BuilderDeposits() ([]*gloas.BuilderDepositR
 func (v *VersionedExecutionRequests) BuilderExits() ([]*gloas.BuilderExitRequest, error) {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella, DataVersionDeneb,
-		DataVersionElectra, DataVersionFulu:
+		DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return nil, errors.New("builder exit requests are not present before gloas")
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -213,6 +232,12 @@ func (v *VersionedExecutionRequests) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

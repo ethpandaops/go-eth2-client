@@ -42,7 +42,8 @@ type ExecutionRequests struct {
 func (e *ExecutionRequests) viewType() (any, error) {
 	switch e.Version {
 	case version.DataVersionElectra,
-		version.DataVersionFulu:
+		version.DataVersionFulu,
+		version.DataVersionDaisugi:
 		return (*electra.ExecutionRequests)(nil), nil
 	case version.DataVersionGloas,
 		version.DataVersionHeze:

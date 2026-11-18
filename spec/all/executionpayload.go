@@ -20,6 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
@@ -33,27 +34,28 @@ import (
 // of fields from every fork. Fields populated on a given instance depend on
 // Version.
 type ExecutionPayload struct {
-	Version         version.DataVersion
-	ParentHash      phase0.Hash32
-	FeeRecipient    bellatrix.ExecutionAddress
-	StateRoot       phase0.Root
-	ReceiptsRoot    phase0.Root
-	LogsBloom       [256]byte
-	PrevRandao      [32]byte
-	BlockNumber     uint64
-	GasLimit        uint64
-	GasUsed         uint64
-	Timestamp       uint64
-	ExtraData       []byte
-	BaseFeePerGasLE [32]byte
-	BaseFeePerGas   *uint256.Int
-	BlockHash       phase0.Hash32
-	Transactions    []bellatrix.Transaction
-	Withdrawals     []*capella.Withdrawal
-	BlobGasUsed     uint64
-	ExcessBlobGas   uint64
-	BlockAccessList gloas.BlockAccessList
-	SlotNumber      uint64
+	Version             version.DataVersion
+	ParentHash          phase0.Hash32
+	FeeRecipient        bellatrix.ExecutionAddress
+	StateRoot           phase0.Root
+	ReceiptsRoot        phase0.Root
+	LogsBloom           [256]byte
+	PrevRandao          [32]byte
+	BlockNumber         uint64
+	GasLimit            uint64
+	GasUsed             uint64
+	Timestamp           uint64
+	ExtraData           []byte
+	BaseFeePerGasLE     [32]byte
+	BaseFeePerGas       *uint256.Int
+	BlockHash           phase0.Hash32
+	Transactions        []bellatrix.Transaction
+	Withdrawals         []*capella.Withdrawal
+	BlobGasUsed         uint64
+	ExcessBlobGas       uint64
+	BlockAccessList     gloas.BlockAccessList
+	SlotNumber          uint64
+	RecursiveStarkProof []byte
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -73,6 +75,8 @@ func (e *ExecutionPayload) viewType() (any, error) {
 		version.DataVersionHeze:
 		// Heze reuses the Gloas execution-payload schema unchanged.
 		return (*gloas.ExecutionPayload)(nil), nil
+	case version.DataVersionDaisugi:
+		return (*daisugi.ExecutionPayload)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayload: unsupported version %d", e.Version)
 	}
@@ -188,6 +192,8 @@ func executionPayloadVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionDeneb, nil
 	case *gloas.ExecutionPayload:
 		return version.DataVersionGloas, nil
+	case *daisugi.ExecutionPayload:
+		return version.DataVersionDaisugi, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionPayload: unsupported view type %T", view)
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
@@ -36,6 +37,7 @@ type VersionedBeaconBlockBody struct {
 	Fulu      *electra.BeaconBlockBody
 	Gloas     *gloas.BeaconBlockBody
 	Heze      *heze.BeaconBlockBody
+	Daisugi   *daisugi.BeaconBlockBody
 }
 
 // String returns a string version of the structure.
@@ -95,6 +97,12 @@ func (v *VersionedBeaconBlockBody) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

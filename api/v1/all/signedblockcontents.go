@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/ethpandaops/go-eth2-client/api"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	apiv1fulu "github.com/ethpandaops/go-eth2-client/api/v1/fulu"
@@ -51,6 +52,8 @@ func (s *SignedBlockContents) viewType() (any, error) {
 		// Fulu reuses the Electra signed block schema; only the KZG proof
 		// list limit differs (cell proofs).
 		return (*apiv1fulu.SignedBlockContents)(nil), nil
+	case version.DataVersionDaisugi:
+		return (*apiv1daisugi.SignedBlockContents)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedBlockContents: unsupported version %d", s.Version)
 	}
@@ -167,6 +170,8 @@ func signedBlockContentsVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *apiv1fulu.SignedBlockContents:
 		return version.DataVersionFulu, nil
+	case *apiv1daisugi.SignedBlockContents:
+		return version.DataVersionDaisugi, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedBlockContents: unsupported view type %T", view)
 	}

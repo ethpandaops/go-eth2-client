@@ -19,6 +19,7 @@ import (
 
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	apiv1fulu "github.com/ethpandaops/go-eth2-client/api/v1/fulu"
@@ -56,6 +57,8 @@ type VersionedSignedProposal struct {
 	FuluBlinded      *apiv1electra.SignedBlindedBeaconBlock
 	Gloas            *gloas.SignedBeaconBlock
 	Heze             *heze.SignedBeaconBlock
+	Daisugi          *apiv1daisugi.SignedBlockContents
+	DaisugiBlinded   *apiv1daisugi.SignedBlindedBeaconBlock
 }
 
 // AssertPresent throws an error if the expected proposal
@@ -118,6 +121,14 @@ func (v *VersionedSignedProposal) AssertPresent() error {
 		if v.Heze == nil {
 			return errors.New("heze proposal not present")
 		}
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil && !v.Blinded {
+			return errors.New("daisugi proposal not present")
+		}
+
+		if v.DaisugiBlinded == nil && v.Blinded {
+			return errors.New("blinded daisugi proposal not present")
+		}
 	default:
 		return errors.New("unsupported version")
 	}
@@ -171,6 +182,12 @@ func (v *VersionedSignedProposal) Slot() (phase0.Slot, error) {
 		return v.Gloas.Message.Slot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Slot, nil
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			return v.DaisugiBlinded.Message.Slot, nil
+		}
+
+		return v.Daisugi.SignedBlock.Message.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -221,6 +238,12 @@ func (v *VersionedSignedProposal) ProposerIndex() (phase0.ValidatorIndex, error)
 		return v.Gloas.Message.ProposerIndex, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.ProposerIndex, nil
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			return v.DaisugiBlinded.Message.ProposerIndex, nil
+		}
+
+		return v.Daisugi.SignedBlock.Message.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -267,6 +290,12 @@ func (v *VersionedSignedProposal) ExecutionBlockHash() (phase0.Hash32, error) {
 		return v.Gloas.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			return v.DaisugiBlinded.Message.Body.ExecutionPayloadHeader.BlockHash, nil
+		}
+
+		return v.Daisugi.SignedBlock.Message.Body.ExecutionPayload.BlockHash, nil
 	default:
 		return phase0.Hash32{}, ErrUnsupportedVersion
 	}
@@ -369,6 +398,20 @@ func (v *VersionedSignedProposal) String() string {
 		}
 
 		return v.Heze.String()
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			if v.DaisugiBlinded == nil {
+				return ""
+			}
+
+			return v.DaisugiBlinded.String()
+		}
+
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unsupported version"
 	}
@@ -450,6 +493,19 @@ func (v *VersionedSignedProposal) assertMessagePresent() error {
 	case spec.DataVersionHeze:
 		if v.Heze == nil || v.Heze.Message == nil {
 			return ErrDataMissing
+		}
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			if v.DaisugiBlinded == nil ||
+				v.DaisugiBlinded.Message == nil {
+				return ErrDataMissing
+			}
+		} else {
+			if v.Daisugi == nil ||
+				v.Daisugi.SignedBlock == nil ||
+				v.Daisugi.SignedBlock.Message == nil {
+				return ErrDataMissing
+			}
 		}
 	default:
 		return ErrUnsupportedVersion
@@ -560,6 +616,21 @@ func (v *VersionedSignedProposal) assertExecutionPayloadPresent() error {
 			v.Heze.Message.Body.SignedExecutionPayloadBid == nil ||
 			v.Heze.Message.Body.SignedExecutionPayloadBid.Message == nil {
 			return ErrDataMissing
+		}
+	case spec.DataVersionDaisugi:
+		if v.Blinded {
+			if v.DaisugiBlinded == nil ||
+				v.DaisugiBlinded.Message == nil {
+				return ErrDataMissing
+			}
+		} else {
+			if v.Daisugi == nil ||
+				v.Daisugi.SignedBlock == nil ||
+				v.Daisugi.SignedBlock.Message == nil ||
+				v.Daisugi.SignedBlock.Message.Body == nil ||
+				v.Daisugi.SignedBlock.Message.Body.ExecutionPayload == nil {
+				return ErrDataMissing
+			}
 		}
 	default:
 		return ErrUnsupportedVersion

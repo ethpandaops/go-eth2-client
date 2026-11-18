@@ -19,6 +19,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
@@ -31,25 +32,26 @@ import (
 // the union of fields from every fork. Fields populated on a given instance
 // depend on Version.
 type ExecutionPayloadHeader struct {
-	Version          version.DataVersion
-	ParentHash       phase0.Hash32
-	FeeRecipient     bellatrix.ExecutionAddress
-	StateRoot        phase0.Root
-	ReceiptsRoot     phase0.Root
-	LogsBloom        [256]byte
-	PrevRandao       [32]byte
-	BlockNumber      uint64
-	GasLimit         uint64
-	GasUsed          uint64
-	Timestamp        uint64
-	ExtraData        []byte
-	BaseFeePerGasLE  [32]byte
-	BaseFeePerGas    *uint256.Int
-	BlockHash        phase0.Hash32
-	TransactionsRoot phase0.Root
-	WithdrawalsRoot  phase0.Root
-	BlobGasUsed      uint64
-	ExcessBlobGas    uint64
+	Version                 version.DataVersion
+	ParentHash              phase0.Hash32
+	FeeRecipient            bellatrix.ExecutionAddress
+	StateRoot               phase0.Root
+	ReceiptsRoot            phase0.Root
+	LogsBloom               [256]byte
+	PrevRandao              [32]byte
+	BlockNumber             uint64
+	GasLimit                uint64
+	GasUsed                 uint64
+	Timestamp               uint64
+	ExtraData               []byte
+	BaseFeePerGasLE         [32]byte
+	BaseFeePerGas           *uint256.Int
+	BlockHash               phase0.Hash32
+	TransactionsRoot        phase0.Root
+	WithdrawalsRoot         phase0.Root
+	BlobGasUsed             uint64
+	ExcessBlobGas           uint64
+	RecursiveStarkProofRoot phase0.Root
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -64,6 +66,8 @@ func (e *ExecutionPayloadHeader) viewType() (any, error) {
 		version.DataVersionElectra,
 		version.DataVersionFulu:
 		return (*deneb.ExecutionPayloadHeader)(nil), nil
+	case version.DataVersionDaisugi:
+		return (*daisugi.ExecutionPayloadHeader)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadHeader: unsupported version %d", e.Version)
 	}
@@ -178,6 +182,8 @@ func executionPayloadHeaderVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionCapella, nil
 	case *deneb.ExecutionPayloadHeader:
 		return version.DataVersionDeneb, nil
+	case *daisugi.ExecutionPayloadHeader:
+		return version.DataVersionDaisugi, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionPayloadHeader: unsupported view type %T", view)
 	}

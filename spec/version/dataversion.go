@@ -42,6 +42,12 @@ const (
 	DataVersionGloas
 	// DataVersionHeze is data applicable for the Heze release of the beacon chain.
 	DataVersionHeze
+	// DataVersionDaisugi is data applicable for the Daisugi (PQ devnet) fork of the beacon chain.
+	//
+	// Daisugi branches off Electra and is not a successor of Fulu, Gloas or Heze, so it must
+	// not be used in ordered comparisons with those versions. Use IsElectraFamily or explicit
+	// switches instead.
+	DataVersionDaisugi
 )
 
 var dataVersionStrings = [...]string{
@@ -55,6 +61,7 @@ var dataVersionStrings = [...]string{
 	"fulu",
 	"gloas",
 	"heze",
+	"daisugi",
 }
 
 var dataVersionMap = map[string]DataVersion{
@@ -67,6 +74,7 @@ var dataVersionMap = map[string]DataVersion{
 	`"fulu"`:      DataVersionFulu,
 	`"gloas"`:     DataVersionGloas,
 	`"heze"`:      DataVersionHeze,
+	`"daisugi"`:   DataVersionDaisugi,
 }
 
 // MarshalJSON implements json.Marshaler.

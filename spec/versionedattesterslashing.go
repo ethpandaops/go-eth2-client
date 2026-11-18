@@ -33,6 +33,7 @@ type VersionedAttesterSlashing struct {
 	Fulu      *electra.AttesterSlashing
 	Gloas     *gloas.AttesterSlashing
 	Heze      *gloas.AttesterSlashing
+	Daisugi   *electra.AttesterSlashing
 }
 
 // IsEmpty returns true if there is no block.
@@ -143,6 +144,17 @@ func (v *VersionedAttesterSlashing) Attestation1() (*VersionedIndexedAttestation
 		}
 
 		return &versionedIndexedAttestation, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionDaisugi,
+			Daisugi: v.Daisugi.Attestation1,
+		}
+
+		return &versionedIndexedAttestation, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -250,6 +262,17 @@ func (v *VersionedAttesterSlashing) Attestation2() (*VersionedIndexedAttestation
 		}
 
 		return &versionedIndexedAttestation, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionDaisugi,
+			Daisugi: v.Daisugi.Attestation2,
+		}
+
+		return &versionedIndexedAttestation, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -312,6 +335,12 @@ func (v *VersionedAttesterSlashing) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

@@ -37,7 +37,7 @@ func (v *VersionedExecutionPayloadEnvelope) IsEmpty() bool {
 func (v *VersionedExecutionPayloadEnvelope) String() string {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
-		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
+		DataVersionDeneb, DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return ""
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -85,6 +85,8 @@ func (v *VersionedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPayload, 
 		}
 
 		return v.Gloas.Payload, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload envelope in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -125,6 +127,8 @@ func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*VersionedExecu
 			Version: DataVersionHeze,
 			Heze:    v.Gloas.ExecutionRequests,
 		}, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload envelope in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -159,6 +163,8 @@ func (v *VersionedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderIndex, 
 		}
 
 		return v.Gloas.BuilderIndex, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload envelope in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -193,6 +199,8 @@ func (v *VersionedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root, erro
 		}
 
 		return v.Gloas.BeaconBlockRoot, nil
+	case DataVersionDaisugi:
+		return phase0.Root{}, errors.New("no execution payload envelope in daisugi")
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -227,6 +235,8 @@ func (v *VersionedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.ParentBeaconBlockRoot, nil
+	case DataVersionDaisugi:
+		return phase0.Root{}, errors.New("no execution payload envelope in daisugi")
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}

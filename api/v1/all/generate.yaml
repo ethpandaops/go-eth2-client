@@ -9,6 +9,7 @@ types:
       - ../capella.BlindedBeaconBlockBody
       - ../deneb.BlindedBeaconBlockBody
       - ../electra.BlindedBeaconBlockBody
+      - ../daisugi.BlindedBeaconBlockBody
 
   - name: BlindedBeaconBlock
     output: blindedbeaconblock_ssz.go
@@ -18,6 +19,7 @@ types:
       - ../capella.BlindedBeaconBlock
       - ../deneb.BlindedBeaconBlock
       - ../electra.BlindedBeaconBlock
+      - ../daisugi.BlindedBeaconBlock
 
   - name: SignedBlindedBeaconBlock
     output: signedblindedbeaconblock_ssz.go
@@ -27,6 +29,7 @@ types:
       - ../capella.SignedBlindedBeaconBlock
       - ../deneb.SignedBlindedBeaconBlock
       - ../electra.SignedBlindedBeaconBlock
+      - ../daisugi.SignedBlindedBeaconBlock
 
   - name: BlockContents
     output: blockcontents_ssz.go
@@ -35,6 +38,7 @@ types:
       - ../deneb.BlockContents
       - ../electra.BlockContents
       - ../fulu.BlockContents
+      - ../daisugi.BlockContents
 
   - name: SignedBlockContents
     output: signedblockcontents_ssz.go
@@ -43,6 +47,7 @@ types:
       - ../deneb.SignedBlockContents
       - ../electra.SignedBlockContents
       - ../fulu.SignedBlockContents
+      - ../daisugi.SignedBlockContents
 
   - name: SignedExecutionPayloadEnvelopeContents
     output: signedexecutionpayloadenvelopecontents_ssz.go
