@@ -44,9 +44,8 @@ const (
 	DataVersionHeze
 	// DataVersionDaisugi is data applicable for the Daisugi (PQ devnet) fork of the beacon chain.
 	//
-	// Daisugi branches off Electra and is not a successor of Fulu, Gloas or Heze, so it must
-	// not be used in ordered comparisons with those versions. Use IsElectraFamily or explicit
-	// switches instead.
+	// Daisugi branches off Electra and has none of the Fulu, Gloas or Heze changes. It sorts
+	// after all canonical forks, so ordered comparisons against those need an explicit check.
 	DataVersionDaisugi
 )
 

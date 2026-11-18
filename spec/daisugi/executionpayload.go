@@ -21,6 +21,8 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/goccy/go-yaml"
 	"github.com/holiman/uint256"
+	"github.com/pk910/dynamic-ssz/hasher"
+	"github.com/pk910/dynamic-ssz/sszutils"
 )
 
 // MaxRecursiveProofBytes is the transport bound of the recursive STARK proof (EIP-8288).
@@ -46,6 +48,37 @@ type ExecutionPayload struct {
 	BlobGasUsed         uint64
 	ExcessBlobGas       uint64
 	RecursiveStarkProof []byte `ssz-max:"8388608"`
+}
+
+// RecursiveStarkProofRoot returns the SSZ hash tree root of a recursive STARK proof, which
+// is the value ExecutionPayloadHeader.RecursiveStarkProofRoot commits to.
+func RecursiveStarkProofRoot(proof []byte) (phase0.Root, error) {
+	length := uint64(len(proof))
+	if length > MaxRecursiveProofBytes {
+		return phase0.Root{}, fmt.Errorf("recursive stark proof exceeds %d bytes", MaxRecursiveProofBytes)
+	}
+
+	var root phase0.Root
+
+	err := hasher.WithDefaultHasher(func(hh sszutils.HashWalker) error {
+		idx := hh.StartTree(sszutils.TreeTypeBinary | sszutils.TreeTypePacked)
+		hh.AppendBytes32(proof)
+		hh.MerkleizeWithMixin(idx, length, sszutils.CalculateLimit(MaxRecursiveProofBytes, length, 1))
+
+		res, err := hh.HashRoot()
+		if err != nil {
+			return err
+		}
+
+		root = res
+
+		return nil
+	})
+	if err != nil {
+		return phase0.Root{}, fmt.Errorf("failed to hash recursive stark proof: %w", err)
+	}
+
+	return root, nil
 }
 
 // String returns a string version of the structure.

@@ -26,6 +26,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/goccy/go-yaml"
 	"github.com/holiman/uint256"
+	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/stretchr/testify/require"
 )
 
@@ -226,4 +227,36 @@ func TestExecutionPayloadHeaderRoundTrip(t *testing.T) {
 	changedRoot, err := header.HashTreeRoot()
 	require.NoError(t, err)
 	require.NotEqual(t, root, changedRoot)
+}
+
+func TestRecursiveStarkProofRoot(t *testing.T) {
+	// A container with a single field has the root of that field.
+	type proofContainer struct {
+		Proof []byte `ssz-max:"8388608"`
+	}
+
+	tests := []struct {
+		name  string
+		proof []byte
+	}{
+		{name: "Empty", proof: []byte{}},
+		{name: "Short", proof: []byte{0x01, 0x02, 0x03}},
+		{name: "OneChunk", proof: bytes.Repeat([]byte{0x11}, 32)},
+		{name: "UnevenChunks", proof: bytes.Repeat([]byte{0x22}, 1000)},
+		{name: "Large", proof: bytes.Repeat([]byte{0x33}, 254000)},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			expected, err := dynssz.NewDynSsz(nil).HashTreeRoot(&proofContainer{Proof: test.proof})
+			require.NoError(t, err)
+
+			root, err := daisugi.RecursiveStarkProofRoot(test.proof)
+			require.NoError(t, err)
+			require.Equal(t, phase0.Root(expected), root)
+		})
+	}
+
+	_, err := daisugi.RecursiveStarkProofRoot(make([]byte, daisugi.MaxRecursiveProofBytes+1))
+	require.Error(t, err)
 }
