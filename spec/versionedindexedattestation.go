@@ -33,6 +33,7 @@ type VersionedIndexedAttestation struct {
 	Fulu      *electra.IndexedAttestation
 	Gloas     *gloas.IndexedAttestation
 	Heze      *gloas.IndexedAttestation
+	Daisugi   *electra.IndexedAttestation
 }
 
 // IsEmpty returns true if there is no block.
@@ -98,6 +99,12 @@ func (v *VersionedIndexedAttestation) AttestingIndices() ([]uint64, error) {
 		}
 
 		return v.Heze.AttestingIndices, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi indexed attestation")
+		}
+
+		return v.Daisugi.AttestingIndices, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -160,6 +167,12 @@ func (v *VersionedIndexedAttestation) Data() (*phase0.AttestationData, error) {
 		}
 
 		return v.Heze.Data, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi indexed attestation")
+		}
+
+		return v.Daisugi.Data, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -222,6 +235,12 @@ func (v *VersionedIndexedAttestation) Signature() (phase0.BLSSignature, error) {
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no Daisugi indexed attestation")
+		}
+
+		return v.Daisugi.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -284,6 +303,12 @@ func (v *VersionedIndexedAttestation) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

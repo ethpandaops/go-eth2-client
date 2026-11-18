@@ -16,6 +16,7 @@ package api
 import (
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	"github.com/ethpandaops/go-eth2-client/spec"
@@ -35,6 +36,7 @@ type VersionedSignedBlindedBeaconBlock struct {
 	Deneb     *apiv1deneb.SignedBlindedBeaconBlock
 	Electra   *apiv1electra.SignedBlindedBeaconBlock
 	Fulu      *apiv1electra.SignedBlindedBeaconBlock
+	Daisugi   *apiv1daisugi.SignedBlindedBeaconBlock
 }
 
 // Slot returns the slot of the signed beacon block.
@@ -75,6 +77,13 @@ func (v *VersionedSignedBlindedBeaconBlock) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Fulu.Message.Slot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Message == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -163,6 +172,22 @@ func (v *VersionedSignedBlindedBeaconBlock) Attestations() ([]spec.VersionedAtte
 		}
 
 		return versionedAttestations, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Message == nil ||
+			v.Daisugi.Message.Body == nil {
+			return nil, ErrDataMissing
+		}
+
+		versionedAttestations := make([]spec.VersionedAttestation, len(v.Daisugi.Message.Body.Attestations))
+		for i, attestation := range v.Daisugi.Message.Body.Attestations {
+			versionedAttestations[i] = spec.VersionedAttestation{
+				Version: spec.DataVersionDaisugi,
+				Daisugi: attestation,
+			}
+		}
+
+		return versionedAttestations, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -204,6 +229,12 @@ func (v *VersionedSignedBlindedBeaconBlock) Root() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Message.HashTreeRoot()
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -248,6 +279,12 @@ func (v *VersionedSignedBlindedBeaconBlock) BodyRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Message.Body.HashTreeRoot()
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -289,6 +326,12 @@ func (v *VersionedSignedBlindedBeaconBlock) ParentRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Message.ParentRoot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.ParentRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -330,6 +373,12 @@ func (v *VersionedSignedBlindedBeaconBlock) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Fulu.Message.StateRoot, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.StateRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -414,6 +463,20 @@ func (v *VersionedSignedBlindedBeaconBlock) AttesterSlashings() ([]spec.Versione
 		}
 
 		return versionedAttesterSlashings, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, ErrDataMissing
+		}
+
+		versionedAttesterSlashings := make([]spec.VersionedAttesterSlashing, len(v.Daisugi.Message.Body.AttesterSlashings))
+		for i, attesterSlashing := range v.Daisugi.Message.Body.AttesterSlashings {
+			versionedAttesterSlashings[i] = spec.VersionedAttesterSlashing{
+				Version: spec.DataVersionDaisugi,
+				Daisugi: attesterSlashing,
+			}
+		}
+
+		return versionedAttesterSlashings, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -458,6 +521,12 @@ func (v *VersionedSignedBlindedBeaconBlock) ProposerSlashings() ([]*phase0.Propo
 		}
 
 		return v.Fulu.Message.Body.ProposerSlashings, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.ProposerSlashings, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -500,6 +569,12 @@ func (v *VersionedSignedBlindedBeaconBlock) ProposerIndex() (phase0.ValidatorInd
 		}
 
 		return v.Fulu.Message.ProposerIndex, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -553,6 +628,15 @@ func (v *VersionedSignedBlindedBeaconBlock) ExecutionParentHash() (phase0.Hash32
 		}
 
 		return v.Fulu.Message.Body.ExecutionPayloadHeader.ParentHash, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Message == nil ||
+			v.Daisugi.Message.Body == nil ||
+			v.Daisugi.Message.Body.ExecutionPayloadHeader == nil {
+			return phase0.Hash32{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.ExecutionPayloadHeader.ParentHash, nil
 	default:
 		return phase0.Hash32{}, ErrUnsupportedVersion
 	}
@@ -606,6 +690,15 @@ func (v *VersionedSignedBlindedBeaconBlock) ExecutionBlockHash() (phase0.Hash32,
 		}
 
 		return v.Fulu.Message.Body.ExecutionPayloadHeader.BlockHash, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Message == nil ||
+			v.Daisugi.Message.Body == nil ||
+			v.Daisugi.Message.Body.ExecutionPayloadHeader == nil {
+			return phase0.Hash32{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.ExecutionPayloadHeader.BlockHash, nil
 	default:
 		return phase0.Hash32{}, ErrUnsupportedVersion
 	}
@@ -659,6 +752,15 @@ func (v *VersionedSignedBlindedBeaconBlock) ExecutionBlockNumber() (uint64, erro
 		}
 
 		return v.Fulu.Message.Body.ExecutionPayloadHeader.BlockNumber, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil ||
+			v.Daisugi.Message == nil ||
+			v.Daisugi.Message.Body == nil ||
+			v.Daisugi.Message.Body.ExecutionPayloadHeader == nil {
+			return 0, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.ExecutionPayloadHeader.BlockNumber, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -687,6 +789,12 @@ func (v *VersionedSignedBlindedBeaconBlock) BlobKZGCommitments() ([]deneb.KZGCom
 		}
 
 		return v.Fulu.Message.Body.BlobKZGCommitments, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Message == nil || v.Daisugi.Message.Body == nil {
+			return nil, ErrDataMissing
+		}
+
+		return v.Daisugi.Message.Body.BlobKZGCommitments, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -725,6 +833,12 @@ func (v *VersionedSignedBlindedBeaconBlock) Signature() (phase0.BLSSignature, er
 		}
 
 		return v.Fulu.Signature, nil
+	case spec.DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Message == nil || v.Daisugi.Message.Body == nil {
+			return phase0.BLSSignature{}, ErrDataMissing
+		}
+
+		return v.Daisugi.Signature, nil
 	default:
 		return phase0.BLSSignature{}, ErrUnsupportedVersion
 	}

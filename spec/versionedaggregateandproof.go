@@ -32,6 +32,7 @@ type VersionedAggregateAndProof struct {
 	Fulu      *electra.AggregateAndProof
 	Gloas     *electra.AggregateAndProof
 	Heze      *electra.AggregateAndProof
+	Daisugi   *electra.AggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -91,6 +92,12 @@ func (v *VersionedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIndex, e
 		}
 
 		return v.Heze.AggregatorIndex, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi aggregate and proof")
+		}
+
+		return v.Daisugi.AggregatorIndex, nil
 	default:
 		return 0, errors.New("unknown version for aggregate and proof")
 	}
@@ -153,6 +160,12 @@ func (v *VersionedAggregateAndProof) HashTreeRoot() ([32]byte, error) {
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return [32]byte{}, errors.New("no daisugi aggregate and proof")
+		}
+
+		return v.Daisugi.HashTreeRoot()
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -221,6 +234,12 @@ func (v *VersionedAggregateAndProof) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}
@@ -283,6 +302,12 @@ func (v *VersionedAggregateAndProof) SelectionProof() (phase0.BLSSignature, erro
 		}
 
 		return v.Heze.SelectionProof, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no daisugi aggregate and proof")
+		}
+
+		return v.Daisugi.SelectionProof, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

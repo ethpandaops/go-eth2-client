@@ -14,6 +14,7 @@ types:
       - ../fulu.BeaconState
       - ../gloas.BeaconState
       - ../heze.BeaconState
+      - ../daisugi.BeaconState
 
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
@@ -27,6 +28,7 @@ types:
       - ../electra.BeaconBlockBody
       - ../gloas.BeaconBlockBody
       - ../heze.BeaconBlockBody
+      - ../daisugi.BeaconBlockBody
 
   - name: BeaconBlock
     output: beaconblock_ssz.go
@@ -40,6 +42,7 @@ types:
       - ../electra.BeaconBlock
       - ../gloas.BeaconBlock
       - ../heze.BeaconBlock
+      - ../daisugi.BeaconBlock
 
   - name: SignedBeaconBlock
     output: signedbeaconblock_ssz.go
@@ -53,6 +56,7 @@ types:
       - ../electra.SignedBeaconBlock
       - ../gloas.SignedBeaconBlock
       - ../heze.SignedBeaconBlock
+      - ../daisugi.SignedBeaconBlock
 
   - name: ExecutionPayload
     output: executionpayload_ssz.go
@@ -62,6 +66,7 @@ types:
       - ../capella.ExecutionPayload
       - ../deneb.ExecutionPayload
       - ../gloas.ExecutionPayload
+      - ../daisugi.ExecutionPayload
 
   - name: ExecutionPayloadHeader
     output: executionpayloadheader_ssz.go
@@ -70,6 +75,7 @@ types:
       - ../bellatrix.ExecutionPayloadHeader
       - ../capella.ExecutionPayloadHeader
       - ../deneb.ExecutionPayloadHeader
+      - ../daisugi.ExecutionPayloadHeader
 
   - name: Attestation
     output: attestation_ssz.go

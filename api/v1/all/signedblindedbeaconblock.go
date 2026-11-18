@@ -20,6 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
@@ -51,6 +52,8 @@ func (s *SignedBlindedBeaconBlock) viewType() (any, error) {
 		version.DataVersionFulu:
 		// Fulu reuses the Electra signed blinded block schema unchanged.
 		return (*apiv1electra.SignedBlindedBeaconBlock)(nil), nil
+	case version.DataVersionDaisugi:
+		return (*apiv1daisugi.SignedBlindedBeaconBlock)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedBlindedBeaconBlock: unsupported version %d", s.Version)
 	}
@@ -169,6 +172,8 @@ func signedBlindedBeaconBlockVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionDeneb, nil
 	case *apiv1electra.SignedBlindedBeaconBlock:
 		return version.DataVersionElectra, nil
+	case *apiv1daisugi.SignedBlindedBeaconBlock:
+		return version.DataVersionDaisugi, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedBlindedBeaconBlock: unsupported view type %T", view)
 	}

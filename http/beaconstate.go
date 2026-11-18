@@ -26,6 +26,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
@@ -163,6 +164,9 @@ func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*a
 	case spec.DataVersionHeze:
 		response.Data.Heze = &heze.BeaconState{}
 		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
+	case spec.DataVersionDaisugi:
+		response.Data.Daisugi = &daisugi.BeaconState{}
+		err = dynSSZ.UnmarshalSSZ(response.Data.Daisugi, res.body)
 	default:
 		return nil, fmt.Errorf("unhandled state version %s", res.consensusVersion)
 	}
@@ -236,6 +240,8 @@ func (*Service) beaconStateFromJSON(res *httpResponse) (*api.Response[*spec.Vers
 		response.Data.Gloas, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &gloas.BeaconState{})
 	case spec.DataVersionHeze:
 		response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &heze.BeaconState{})
+	case spec.DataVersionDaisugi:
+		response.Data.Daisugi, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &daisugi.BeaconState{})
 	default:
 		err = fmt.Errorf("unsupported version %s", res.consensusVersion)
 	}

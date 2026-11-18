@@ -552,7 +552,7 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal payload attributes v2")
 		}
-	case spec.DataVersionDeneb, spec.DataVersionElectra, spec.DataVersionFulu:
+	case spec.DataVersionDeneb, spec.DataVersionElectra, spec.DataVersionFulu, spec.DataVersionDaisugi:
 		if e.Data.V3 == nil {
 			return nil, errors.New("no payload attributes v3 data")
 		}
@@ -620,7 +620,8 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 	}
 
 	// The parent block number is not part of the event from Gloas onwards.
-	if e.Version < spec.DataVersionGloas {
+	// Daisugi branches off Electra and keeps it, although its version sorts after Gloas.
+	if e.Version < spec.DataVersionGloas || e.Version == spec.DataVersionDaisugi {
 		data.ParentBlockNumber = strconv.FormatUint(e.Data.ParentBlockNumber, 10)
 	}
 
@@ -698,7 +699,7 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 		}
 
 		e.Data.ParentBlockNumber = parentBlockNumber
-	} else if data.Version < spec.DataVersionGloas {
+	} else if data.Version < spec.DataVersionGloas || data.Version == spec.DataVersionDaisugi {
 		return errors.New("parent block number missing")
 	}
 
@@ -787,7 +788,7 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 		}
 
 		e.Data.V2 = &payloadAttributes
-	case spec.DataVersionDeneb, spec.DataVersionElectra, spec.DataVersionFulu:
+	case spec.DataVersionDeneb, spec.DataVersionElectra, spec.DataVersionFulu, spec.DataVersionDaisugi:
 		var payloadAttributes PayloadAttributesV3
 
 		err = json.Unmarshal(data.Data.PayloadAttributes, &payloadAttributes)

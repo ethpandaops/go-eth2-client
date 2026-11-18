@@ -45,7 +45,8 @@ func (a *AttesterSlashing) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.AttesterSlashing)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu:
+		version.DataVersionFulu,
+		version.DataVersionDaisugi:
 		return (*electra.AttesterSlashing)(nil), nil
 	case version.DataVersionGloas,
 		version.DataVersionHeze:

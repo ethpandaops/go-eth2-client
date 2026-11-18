@@ -36,6 +36,7 @@ type VersionedAttestation struct {
 	Fulu           *electra.Attestation
 	Gloas          *gloas.Attestation
 	Heze           *gloas.Attestation
+	Daisugi        *electra.Attestation
 }
 
 // IsEmpty returns true if there is no block.
@@ -101,6 +102,12 @@ func (v *VersionedAttestation) AggregationBits() (bitfield.Bitlist, error) {
 		}
 
 		return v.Heze.AggregationBits, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.AggregationBits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -163,6 +170,12 @@ func (v *VersionedAttestation) Data() (*phase0.AttestationData, error) {
 		}
 
 		return v.Heze.Data, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.Data, nil
 	default:
 		return nil, fmt.Errorf("unknown version: %d", v.Version)
 	}
@@ -197,6 +210,12 @@ func (v *VersionedAttestation) CommitteeBits() (bitfield.Bitvector64, error) {
 		}
 
 		return v.Heze.CommitteeBits, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.CommitteeBits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -259,6 +278,12 @@ func (v *VersionedAttestation) CommitteeIndex() (phase0.CommitteeIndex, error) {
 		}
 
 		return v.Heze.CommitteeIndex()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.CommitteeIndex()
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -320,6 +345,12 @@ func (v *VersionedAttestation) HashTreeRoot() ([32]byte, error) {
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return [32]byte{}, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.HashTreeRoot()
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -382,6 +413,12 @@ func (v *VersionedAttestation) Signature() (phase0.BLSSignature, error) {
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no Daisugi attestation")
+		}
+
+		return v.Daisugi.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -444,6 +481,12 @@ func (v *VersionedAttestation) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
@@ -34,13 +35,14 @@ type VersionedExecutionPayload struct {
 	Fulu      *deneb.ExecutionPayload
 	Gloas     *gloas.ExecutionPayload
 	Heze      *gloas.ExecutionPayload
+	Daisugi   *daisugi.ExecutionPayload
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedExecutionPayload) IsEmpty() bool {
 	return v.Version < DataVersionBellatrix ||
 		(v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil && v.Electra == nil &&
-			v.Fulu == nil && v.Gloas == nil && v.Heze == nil)
+			v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.Daisugi == nil)
 }
 
 // ParentHash returns the parent hash of the execution payload.
@@ -92,6 +94,12 @@ func (v *VersionedExecutionPayload) ParentHash() (phase0.Hash32, error) {
 		}
 
 		return v.Heze.ParentHash, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Hash32{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.ParentHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -146,6 +154,12 @@ func (v *VersionedExecutionPayload) FeeRecipient() (bellatrix.ExecutionAddress, 
 		}
 
 		return v.Heze.FeeRecipient, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return bellatrix.ExecutionAddress{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -200,6 +214,12 @@ func (v *VersionedExecutionPayload) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.StateRoot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.StateRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -254,6 +274,12 @@ func (v *VersionedExecutionPayload) ReceiptsRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.ReceiptsRoot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.ReceiptsRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -308,6 +334,12 @@ func (v *VersionedExecutionPayload) LogsBloom() ([256]byte, error) {
 		}
 
 		return v.Heze.LogsBloom, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return [256]byte{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.LogsBloom, nil
 	default:
 		return [256]byte{}, errors.New("unknown version")
 	}
@@ -362,6 +394,12 @@ func (v *VersionedExecutionPayload) PrevRandao() ([32]byte, error) {
 		}
 
 		return v.Heze.PrevRandao, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return [32]byte{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.PrevRandao, nil
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -416,6 +454,12 @@ func (v *VersionedExecutionPayload) BlockNumber() (uint64, error) {
 		}
 
 		return v.Heze.BlockNumber, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.BlockNumber, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -470,6 +514,12 @@ func (v *VersionedExecutionPayload) GasLimit() (uint64, error) {
 		}
 
 		return v.Heze.GasLimit, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.GasLimit, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -524,6 +574,12 @@ func (v *VersionedExecutionPayload) GasUsed() (uint64, error) {
 		}
 
 		return v.Heze.GasUsed, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.GasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -578,6 +634,12 @@ func (v *VersionedExecutionPayload) Timestamp() (uint64, error) {
 		}
 
 		return v.Heze.Timestamp, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.Timestamp, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -632,6 +694,12 @@ func (v *VersionedExecutionPayload) ExtraData() ([]byte, error) {
 		}
 
 		return v.Heze.ExtraData, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.ExtraData, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -696,6 +764,12 @@ func (v *VersionedExecutionPayload) BaseFeePerGas() (*uint256.Int, error) {
 		}
 
 		return v.Heze.BaseFeePerGas, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.BaseFeePerGas, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -750,6 +824,12 @@ func (v *VersionedExecutionPayload) BlockHash() (phase0.Hash32, error) {
 		}
 
 		return v.Heze.BlockHash, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Hash32{}, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -804,6 +884,12 @@ func (v *VersionedExecutionPayload) Transactions() ([]bellatrix.Transaction, err
 		}
 
 		return v.Heze.Transactions, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.Transactions, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -854,6 +940,12 @@ func (v *VersionedExecutionPayload) Withdrawals() ([]*capella.Withdrawal, error)
 		}
 
 		return v.Heze.Withdrawals, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -900,6 +992,12 @@ func (v *VersionedExecutionPayload) BlobGasUsed() (uint64, error) {
 		}
 
 		return v.Heze.BlobGasUsed, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.BlobGasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -946,8 +1044,34 @@ func (v *VersionedExecutionPayload) ExcessBlobGas() (uint64, error) {
 		}
 
 		return v.Heze.ExcessBlobGas, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.ExcessBlobGas, nil
 	default:
 		return 0, errors.New("unknown version")
+	}
+}
+
+// RecursiveStarkProof returns the recursive STARK proof (EIP-8288) of the execution payload.
+// The proof only exists in Daisugi payloads.
+func (v *VersionedExecutionPayload) RecursiveStarkProof() ([]byte, error) {
+	switch v.Version {
+	case DataVersionPhase0, DataVersionAltair:
+		return nil, errors.New("no execution payload before bellatrix")
+	case DataVersionBellatrix, DataVersionCapella, DataVersionDeneb, DataVersionElectra,
+		DataVersionFulu, DataVersionGloas, DataVersionHeze:
+		return nil, errors.New("recursive stark proof is only present in daisugi")
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no daisugi execution payload")
+		}
+
+		return v.Daisugi.RecursiveStarkProof, nil
+	default:
+		return nil, errors.New("unknown version")
 	}
 }
 
@@ -1000,6 +1124,12 @@ func (v *VersionedExecutionPayload) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

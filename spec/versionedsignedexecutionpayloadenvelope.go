@@ -38,7 +38,7 @@ func (v *VersionedSignedExecutionPayloadEnvelope) IsEmpty() bool {
 func (v *VersionedSignedExecutionPayloadEnvelope) String() string {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
-		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
+		DataVersionDeneb, DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return ""
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -86,6 +86,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Message() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload envelope in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -120,6 +122,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message.Payload, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload envelope in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -160,6 +164,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 			Version: DataVersionHeze,
 			Heze:    v.Gloas.Message.ExecutionRequests,
 		}, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload envelope in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -194,6 +200,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderI
 		}
 
 		return v.Gloas.Message.BuilderIndex, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload envelope in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -228,6 +236,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.Message.BeaconBlockRoot, nil
+	case DataVersionDaisugi:
+		return phase0.Root{}, errors.New("no execution payload envelope in daisugi")
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -262,6 +272,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase
 		}
 
 		return v.Gloas.Message.ParentBeaconBlockRoot, nil
+	case DataVersionDaisugi:
+		return phase0.Root{}, errors.New("no execution payload envelope in daisugi")
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -296,6 +308,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Signature() (phase0.BLSSignatu
 		}
 
 		return v.Gloas.Signature, nil
+	case DataVersionDaisugi:
+		return phase0.BLSSignature{}, errors.New("no execution payload envelope in daisugi")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

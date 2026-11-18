@@ -32,6 +32,7 @@ type VersionedSignedAggregateAndProof struct {
 	Fulu      *electra.SignedAggregateAndProof
 	Gloas     *electra.SignedAggregateAndProof
 	Heze      *electra.SignedAggregateAndProof
+	Daisugi   *electra.SignedAggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -91,6 +92,12 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 		}
 
 		return v.Heze.Message.AggregatorIndex, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi signed aggregate and proof")
+		}
+
+		return v.Daisugi.Message.AggregatorIndex, nil
 	default:
 		return 0, errors.New("unknown version for signed aggregate and proof")
 	}
@@ -159,6 +166,12 @@ func (v *VersionedSignedAggregateAndProof) SelectionProof() (phase0.BLSSignature
 		}
 
 		return v.Heze.Message.SelectionProof, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no daisugi signed aggregate and proof")
+		}
+
+		return v.Daisugi.Message.SelectionProof, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -221,6 +234,12 @@ func (v *VersionedSignedAggregateAndProof) Signature() (phase0.BLSSignature, err
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no daisugi signed aggregate and proof")
+		}
+
+		return v.Daisugi.Signature, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -283,6 +302,12 @@ func (v *VersionedSignedAggregateAndProof) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Message.Aggregate.Data.Slot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi signed aggregate and proof")
+		}
+
+		return v.Daisugi.Message.Aggregate.Data.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -345,6 +370,12 @@ func (v *VersionedSignedAggregateAndProof) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

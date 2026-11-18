@@ -23,6 +23,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	"github.com/ethpandaops/go-eth2-client/spec"
@@ -157,6 +158,11 @@ func (*Service) blindedProposalFromSSZ(res *httpResponse) (*api.Response[*api.Ve
 		if err := response.Data.Fulu.UnmarshalSSZ(res.body); err != nil {
 			return nil, errors.Join(errors.New("failed to decode fulu blinded beacon block proposal"), err)
 		}
+	case spec.DataVersionDaisugi:
+		response.Data.Daisugi = &apiv1daisugi.BlindedBeaconBlock{}
+		if err := response.Data.Daisugi.UnmarshalSSZ(res.body); err != nil {
+			return nil, errors.Join(errors.New("failed to decode daisugi blinded beacon block proposal"), err)
+		}
 	default:
 		return nil, fmt.Errorf("unhandled block proposal version %s", res.consensusVersion)
 	}
@@ -198,6 +204,11 @@ func (*Service) blindedProposalFromJSON(res *httpResponse) (*api.Response[*api.V
 		response.Data.Fulu, response.Metadata, err = decodeJSONResponse(
 			bytes.NewReader(res.body),
 			&apiv1electra.BlindedBeaconBlock{},
+		)
+	case spec.DataVersionDaisugi:
+		response.Data.Daisugi, response.Metadata, err = decodeJSONResponse(
+			bytes.NewReader(res.body),
+			&apiv1daisugi.BlindedBeaconBlock{},
 		)
 	default:
 		return nil, fmt.Errorf("unsupported version %s", res.consensusVersion)

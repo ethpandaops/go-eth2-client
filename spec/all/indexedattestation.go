@@ -46,7 +46,8 @@ func (i *IndexedAttestation) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.IndexedAttestation)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu:
+		version.DataVersionFulu,
+		version.DataVersionDaisugi:
 		return (*electra.IndexedAttestation)(nil), nil
 	case version.DataVersionGloas,
 		version.DataVersionHeze:

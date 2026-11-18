@@ -34,7 +34,7 @@ type VersionedSignedExecutionPayloadBid struct {
 func (v *VersionedSignedExecutionPayloadBid) String() string {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
-		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
+		DataVersionDeneb, DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return ""
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -83,6 +83,8 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockHash() (phase0.Hash32, e
 		}
 
 		return v.Heze.Message.ParentBlockHash, nil
+	case DataVersionDaisugi:
+		return phase0.Hash32{}, errors.New("no execution payload bid in daisugi")
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -117,6 +119,8 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockRoot() (phase0.Root, err
 		}
 
 		return v.Heze.Message.ParentBlockRoot, nil
+	case DataVersionDaisugi:
+		return phase0.Root{}, errors.New("no execution payload bid in daisugi")
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -151,6 +155,8 @@ func (v *VersionedSignedExecutionPayloadBid) BlockHash() (phase0.Hash32, error) 
 		}
 
 		return v.Heze.Message.BlockHash, nil
+	case DataVersionDaisugi:
+		return phase0.Hash32{}, errors.New("no execution payload bid in daisugi")
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -185,6 +191,8 @@ func (v *VersionedSignedExecutionPayloadBid) FeeRecipient() (bellatrix.Execution
 		}
 
 		return v.Heze.Message.FeeRecipient, nil
+	case DataVersionDaisugi:
+		return bellatrix.ExecutionAddress{}, errors.New("no execution payload bid in daisugi")
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -219,6 +227,8 @@ func (v *VersionedSignedExecutionPayloadBid) GasLimit() (uint64, error) {
 		}
 
 		return v.Heze.Message.GasLimit, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload bid in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -253,6 +263,8 @@ func (v *VersionedSignedExecutionPayloadBid) BuilderIndex() (gloas.BuilderIndex,
 		}
 
 		return v.Heze.Message.BuilderIndex, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload bid in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -287,6 +299,8 @@ func (v *VersionedSignedExecutionPayloadBid) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Message.Slot, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload bid in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -321,6 +335,8 @@ func (v *VersionedSignedExecutionPayloadBid) Value() (phase0.Gwei, error) {
 		}
 
 		return v.Heze.Message.Value, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload bid in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -355,6 +371,8 @@ func (v *VersionedSignedExecutionPayloadBid) ExecutionPayment() (phase0.Gwei, er
 		}
 
 		return v.Heze.Message.ExecutionPayment, nil
+	case DataVersionDaisugi:
+		return 0, errors.New("no execution payload bid in daisugi")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -389,6 +407,8 @@ func (v *VersionedSignedExecutionPayloadBid) BlobKZGCommitments() ([]deneb.KZGCo
 		}
 
 		return v.Heze.Message.BlobKZGCommitments, nil
+	case DataVersionDaisugi:
+		return nil, errors.New("no execution payload bid in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -423,6 +443,8 @@ func (v *VersionedSignedExecutionPayloadBid) Signature() (phase0.BLSSignature, e
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionDaisugi:
+		return phase0.BLSSignature{}, errors.New("no execution payload bid in daisugi")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

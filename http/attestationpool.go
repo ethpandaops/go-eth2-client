@@ -124,6 +124,10 @@ func verifyAttestationPool(opts *api.AttestationPoolOpts, data []*spec.Versioned
 			if err := verifyGloasAttestation(opts, datum.Gloas); err != nil {
 				return err
 			}
+		case spec.DataVersionDaisugi:
+			if err := verifyElectraAttestation(opts, datum.Daisugi); err != nil {
+				return err
+			}
 		default:
 			return errors.New("unsupported attestation version")
 		}

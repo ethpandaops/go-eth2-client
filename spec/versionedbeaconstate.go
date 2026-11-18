@@ -19,6 +19,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/fulu"
@@ -42,6 +43,7 @@ type VersionedBeaconState struct {
 	Fulu      *fulu.BeaconState
 	Gloas     *gloas.BeaconState
 	Heze      *heze.BeaconState
+	Daisugi   *daisugi.BeaconState
 }
 
 // IsEmpty returns true if there is no block.
@@ -107,6 +109,12 @@ func (v *VersionedBeaconState) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Slot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -153,6 +161,12 @@ func (v *VersionedBeaconState) NextWithdrawalValidatorIndex() (phase0.ValidatorI
 		}
 
 		return v.Heze.NextWithdrawalValidatorIndex, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.NextWithdrawalValidatorIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -215,6 +229,12 @@ func (v *VersionedBeaconState) Validators() ([]*phase0.Validator, error) {
 		}
 
 		return v.Heze.Validators, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.Validators, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -277,6 +297,12 @@ func (v *VersionedBeaconState) ValidatorBalances() ([]phase0.Gwei, error) {
 		}
 
 		return v.Heze.Balances, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.Balances, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -307,6 +333,12 @@ func (v *VersionedBeaconState) DepositRequestsStartIndex() (uint64, error) {
 		return v.Gloas.DepositRequestsStartIndex, nil
 	case DataVersionHeze:
 		return 0, errors.New("state does not provide deposit requests start index")
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.DepositRequestsStartIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -341,6 +373,12 @@ func (v *VersionedBeaconState) DepositBalanceToConsume() (phase0.Gwei, error) {
 		}
 
 		return v.Heze.DepositBalanceToConsume, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.DepositBalanceToConsume, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -375,6 +413,12 @@ func (v *VersionedBeaconState) ExitBalanceToConsume() (phase0.Gwei, error) {
 		}
 
 		return v.Heze.ExitBalanceToConsume, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.ExitBalanceToConsume, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -409,6 +453,12 @@ func (v *VersionedBeaconState) EarliestExitEpoch() (phase0.Epoch, error) {
 		}
 
 		return v.Heze.EarliestExitEpoch, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.EarliestExitEpoch, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -443,6 +493,12 @@ func (v *VersionedBeaconState) ConsolidationBalanceToConsume() (phase0.Gwei, err
 		}
 
 		return v.Heze.ConsolidationBalanceToConsume, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.ConsolidationBalanceToConsume, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -477,6 +533,12 @@ func (v *VersionedBeaconState) EarliestConsolidationEpoch() (phase0.Epoch, error
 		}
 
 		return v.Heze.EarliestConsolidationEpoch, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.EarliestConsolidationEpoch, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -511,6 +573,12 @@ func (v *VersionedBeaconState) PendingDeposits() ([]*electra.PendingDeposit, err
 		}
 
 		return v.Heze.PendingDeposits, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.PendingDeposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -545,6 +613,12 @@ func (v *VersionedBeaconState) PendingPartialWithdrawals() ([]*electra.PendingPa
 		}
 
 		return v.Heze.PendingPartialWithdrawals, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.PendingPartialWithdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -579,6 +653,12 @@ func (v *VersionedBeaconState) PendingConsolidations() ([]*electra.PendingConsol
 		}
 
 		return v.Heze.PendingConsolidations, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.PendingConsolidations, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -588,7 +668,7 @@ func (v *VersionedBeaconState) PendingConsolidations() ([]*electra.PendingConsol
 func (v *VersionedBeaconState) Builders() ([]*gloas.Builder, error) {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
-		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
+		DataVersionDeneb, DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return nil, errors.New("state does not provide builders")
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -611,7 +691,7 @@ func (v *VersionedBeaconState) Builders() ([]*gloas.Builder, error) {
 func (v *VersionedBeaconState) ExecutionPayloadAvailability() ([]uint8, error) {
 	switch v.Version {
 	case DataVersionPhase0, DataVersionAltair, DataVersionBellatrix, DataVersionCapella,
-		DataVersionDeneb, DataVersionElectra, DataVersionFulu:
+		DataVersionDeneb, DataVersionElectra, DataVersionFulu, DataVersionDaisugi:
 		return nil, errors.New("state does not provide execution payload availability")
 	case DataVersionGloas:
 		if v.Gloas == nil {
@@ -729,6 +809,12 @@ func (v *VersionedBeaconState) GetTree() (*treeproof.Node, error) {
 		}
 
 		return dynssz.GetGlobalDynSsz().GetTree(v.Heze)
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return nil, errors.New("no Daisugi state")
+		}
+
+		return dynssz.GetGlobalDynSsz().GetTree(v.Daisugi)
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -791,6 +877,12 @@ func (v *VersionedBeaconState) HashTreeRoot() (phase0.Hash32, error) {
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Hash32{}, errors.New("no Daisugi state")
+		}
+
+		return v.Daisugi.HashTreeRoot()
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -855,6 +947,12 @@ func (v *VersionedBeaconState) FieldIndex(name string) (int, error) {
 		}
 
 		return proofutil.FieldIndex(v.Heze, name)
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return proofutil.FieldIndex(v.Daisugi, name)
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -920,6 +1018,12 @@ func (v *VersionedBeaconState) FieldGeneralizedIndex(name string) (int, error) {
 		}
 
 		return proofutil.FieldGeneralizedIndex(v.Heze, name)
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no Daisugi state")
+		}
+
+		return proofutil.FieldGeneralizedIndex(v.Daisugi, name)
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -1091,6 +1195,12 @@ func (v *VersionedBeaconState) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

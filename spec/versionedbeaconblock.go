@@ -19,6 +19,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
+	"github.com/ethpandaops/go-eth2-client/spec/daisugi"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
@@ -38,6 +39,7 @@ type VersionedBeaconBlock struct {
 	Fulu      *electra.BeaconBlock
 	Gloas     *gloas.BeaconBlock
 	Heze      *heze.BeaconBlock
+	Daisugi   *daisugi.BeaconBlock
 }
 
 // IsEmpty returns true if there is no block.
@@ -103,6 +105,12 @@ func (v *VersionedBeaconBlock) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Slot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -199,6 +207,16 @@ func (v *VersionedBeaconBlock) RandaoReveal() (phase0.BLSSignature, error) {
 		}
 
 		return v.Heze.Body.RANDAOReveal, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.BLSSignature{}, errors.New("no daisugi block")
+		}
+
+		if v.Daisugi.Body == nil {
+			return phase0.BLSSignature{}, errors.New("no daisugi block body")
+		}
+
+		return v.Daisugi.Body.RANDAOReveal, nil
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -295,6 +313,16 @@ func (v *VersionedBeaconBlock) Graffiti() ([32]byte, error) {
 		}
 
 		return v.Heze.Body.Graffiti, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return [32]byte{}, errors.New("no daisugi block")
+		}
+
+		if v.Daisugi.Body == nil {
+			return [32]byte{}, errors.New("no daisugi block body")
+		}
+
+		return v.Daisugi.Body.Graffiti, nil
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -357,6 +385,12 @@ func (v *VersionedBeaconBlock) ProposerIndex() (phase0.ValidatorIndex, error) {
 		}
 
 		return v.Heze.ProposerIndex, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return 0, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.ProposerIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -419,6 +453,12 @@ func (v *VersionedBeaconBlock) Root() (phase0.Root, error) {
 		}
 
 		return v.Heze.HashTreeRoot()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.HashTreeRoot()
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -515,6 +555,16 @@ func (v *VersionedBeaconBlock) BodyRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.Body.HashTreeRoot()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi block")
+		}
+
+		if v.Daisugi.Body == nil {
+			return phase0.Root{}, errors.New("no daisugi block body")
+		}
+
+		return v.Daisugi.Body.HashTreeRoot()
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -577,6 +627,12 @@ func (v *VersionedBeaconBlock) ParentRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.ParentRoot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.ParentRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -639,6 +695,12 @@ func (v *VersionedBeaconBlock) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.StateRoot, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return phase0.Root{}, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.StateRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -769,6 +831,20 @@ func (v *VersionedBeaconBlock) Attestations() ([]VersionedAttestation, error) {
 			versionedAttestations[i] = VersionedAttestation{
 				Version: DataVersionHeze,
 				Heze:    attestation,
+			}
+		}
+
+		return versionedAttestations, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Body == nil {
+			return nil, errors.New("no daisugi block")
+		}
+
+		versionedAttestations := make([]VersionedAttestation, len(v.Daisugi.Body.Attestations))
+		for i, attestation := range v.Daisugi.Body.Attestations {
+			versionedAttestations[i] = VersionedAttestation{
+				Version: DataVersionDaisugi,
+				Daisugi: attestation,
 			}
 		}
 
@@ -907,6 +983,20 @@ func (v *VersionedBeaconBlock) AttesterSlashings() ([]VersionedAttesterSlashing,
 		}
 
 		return versionedAttesterSlashings, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Body == nil {
+			return nil, errors.New("no daisugi block")
+		}
+
+		versionedAttesterSlashings := make([]VersionedAttesterSlashing, len(v.Daisugi.Body.AttesterSlashings))
+		for i, attesterSlashing := range v.Daisugi.Body.AttesterSlashings {
+			versionedAttesterSlashings[i] = VersionedAttesterSlashing{
+				Version: DataVersionDaisugi,
+				Daisugi: attesterSlashing,
+			}
+		}
+
+		return versionedAttesterSlashings, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -969,6 +1059,12 @@ func (v *VersionedBeaconBlock) ProposerSlashings() ([]*phase0.ProposerSlashing, 
 		}
 
 		return v.Heze.Body.ProposerSlashings, nil
+	case DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Body == nil {
+			return nil, errors.New("no daisugi block")
+		}
+
+		return v.Daisugi.Body.ProposerSlashings, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1010,6 +1106,8 @@ func (v *VersionedBeaconBlock) SignedExecutionPayloadBid() (*VersionedSignedExec
 			Heze:    v.Heze.Body.SignedExecutionPayloadBid,
 		}, nil
 
+	case DataVersionDaisugi:
+		return nil, errors.New("no signed execution payload bid in daisugi")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1060,6 +1158,12 @@ func (v *VersionedBeaconBlock) ExecutionPayload() (*VersionedExecutionPayload, e
 		return nil, errors.New("no execution payload in gloas")
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload in heze")
+	case DataVersionDaisugi:
+		if v.Daisugi == nil || v.Daisugi.Body == nil {
+			return nil, errors.New("no daisugi block")
+		}
+
+		versionedExecutionPayload.Daisugi = v.Daisugi.Body.ExecutionPayload
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1124,6 +1228,12 @@ func (v *VersionedBeaconBlock) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionDaisugi:
+		if v.Daisugi == nil {
+			return ""
+		}
+
+		return v.Daisugi.String()
 	default:
 		return "unknown version"
 	}

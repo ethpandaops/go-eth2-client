@@ -25,6 +25,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/api"
 	apiv1bellatrix "github.com/ethpandaops/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/ethpandaops/go-eth2-client/api/v1/capella"
+	apiv1daisugi "github.com/ethpandaops/go-eth2-client/api/v1/daisugi"
 	apiv1deneb "github.com/ethpandaops/go-eth2-client/api/v1/deneb"
 	apiv1electra "github.com/ethpandaops/go-eth2-client/api/v1/electra"
 	apiv1fulu "github.com/ethpandaops/go-eth2-client/api/v1/fulu"
@@ -201,6 +202,14 @@ func (s *Service) beaconBlockProposalFromSSZ(ctx context.Context,
 			response.Data.Fulu = &apiv1fulu.BlockContents{}
 			err = dynSSZ.UnmarshalSSZ(response.Data.Fulu, res.body)
 		}
+	case spec.DataVersionDaisugi:
+		if response.Data.Blinded {
+			response.Data.DaisugiBlinded = &apiv1daisugi.BlindedBeaconBlock{}
+			err = dynSSZ.UnmarshalSSZ(response.Data.DaisugiBlinded, res.body)
+		} else {
+			response.Data.Daisugi = &apiv1daisugi.BlockContents{}
+			err = dynSSZ.UnmarshalSSZ(response.Data.Daisugi, res.body)
+		}
 	default:
 		return nil, fmt.Errorf("unhandled block proposal version %s", res.consensusVersion)
 	}
@@ -300,6 +309,18 @@ func (s *Service) beaconBlockProposalFromJSON(res *httpResponse) (*api.Response[
 			response.Data.Fulu, response.Metadata, err = decodeJSONResponse(
 				bytes.NewReader(res.body),
 				&apiv1fulu.BlockContents{},
+			)
+		}
+	case spec.DataVersionDaisugi:
+		if response.Data.Blinded {
+			response.Data.DaisugiBlinded, response.Metadata, err = decodeJSONResponse(
+				bytes.NewReader(res.body),
+				&apiv1daisugi.BlindedBeaconBlock{},
+			)
+		} else {
+			response.Data.Daisugi, response.Metadata, err = decodeJSONResponse(
+				bytes.NewReader(res.body),
+				&apiv1daisugi.BlockContents{},
 			)
 		}
 	default:

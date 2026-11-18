@@ -46,7 +46,8 @@ func (a *AggregateAndProof) viewType() (any, error) {
 		version.DataVersionDeneb:
 		return (*phase0.AggregateAndProof)(nil), nil
 	case version.DataVersionElectra,
-		version.DataVersionFulu:
+		version.DataVersionFulu,
+		version.DataVersionDaisugi:
 		return (*electra.AggregateAndProof)(nil), nil
 	case version.DataVersionGloas,
 		version.DataVersionHeze:
