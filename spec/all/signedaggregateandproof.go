@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -28,9 +29,10 @@ import (
 
 // SignedAggregateAndProof is a fork-agnostic signed aggregate and proof.
 type SignedAggregateAndProof struct {
-	Version   version.DataVersion
-	Message   *AggregateAndProof
-	Signature phase0.BLSSignature
+	Version       version.DataVersion
+	Message       *AggregateAndProof
+	Signature     phase0.BLSSignature
+	XMSSSignature pq.XMSSSignature
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -47,9 +49,10 @@ func (s *SignedAggregateAndProof) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.SignedAggregateAndProof)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze,
-		version.DataVersionEIP8450:
+		version.DataVersionHeze:
 		return (*gloas.SignedAggregateAndProof)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.SignedAggregateAndProof)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedAggregateAndProof: unsupported version %d", s.Version)
 	}
@@ -166,6 +169,8 @@ func signedAggregateAndProofVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.SignedAggregateAndProof:
 		return version.DataVersionGloas, nil
+	case *pq.SignedAggregateAndProof:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedAggregateAndProof: unsupported view type %T", view)
 	}

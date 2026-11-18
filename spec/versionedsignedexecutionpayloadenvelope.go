@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedExecutionPayloadEnvelope contains a versioned signed
@@ -27,11 +28,12 @@ import (
 type VersionedSignedExecutionPayloadEnvelope struct {
 	Version DataVersion
 	Gloas   *gloas.SignedExecutionPayloadEnvelope
+	PQ      *pq.SignedExecutionPayloadEnvelope
 }
 
 // IsEmpty returns true if no fork-specific envelope is populated.
 func (v *VersionedSignedExecutionPayloadEnvelope) IsEmpty() bool {
-	return v.Gloas == nil
+	return v.Gloas == nil && v.PQ == nil
 }
 
 // String returns a string version of the structure.
@@ -52,6 +54,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) String() string {
 		}
 
 		return v.Gloas.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

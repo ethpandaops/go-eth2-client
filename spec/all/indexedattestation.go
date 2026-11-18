@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -33,6 +34,7 @@ type IndexedAttestation struct {
 	AttestingIndices []uint64
 	Data             *phase0.AttestationData
 	Signature        phase0.BLSSignature
+	Proof            []byte
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -49,9 +51,10 @@ func (i *IndexedAttestation) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.IndexedAttestation)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze,
-		version.DataVersionEIP8450:
+		version.DataVersionHeze:
 		return (*gloas.IndexedAttestation)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.IndexedAttestation)(nil), nil
 	default:
 		return nil, fmt.Errorf("IndexedAttestation: unsupported version %d", i.Version)
 	}
@@ -165,6 +168,8 @@ func indexedAttestationVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.IndexedAttestation:
 		return version.DataVersionGloas, nil
+	case *pq.IndexedAttestation:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("IndexedAttestation: unsupported view type %T", view)
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/all"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // SignedExecutionPayloadEnvelope fetches a signed execution payload envelope
@@ -41,10 +42,18 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 		return nil, err
 	}
 
-	// All current envelope-bearing forks (Gloas, Heze) reuse the gloas
-	// schema, so the wire bytes always parse into *gloas.SignedExecutionPayloadEnvelope.
-	envelope := &gloas.SignedExecutionPayloadEnvelope{}
 	metadata := metadataFromHeaders(httpResponse.headers)
+	versioned := &spec.VersionedSignedExecutionPayloadEnvelope{Version: httpResponse.consensusVersion}
+
+	var envelope any
+
+	if httpResponse.consensusVersion == spec.DataVersionPQ {
+		versioned.PQ = &pq.SignedExecutionPayloadEnvelope{}
+		envelope = versioned.PQ
+	} else {
+		versioned.Gloas = &gloas.SignedExecutionPayloadEnvelope{}
+		envelope = versioned.Gloas
+	}
 
 	switch httpResponse.contentType {
 	case ContentTypeSSZ:
@@ -57,12 +66,20 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		var (
+			jsonMetadata map[string]any
+			err          error
+		)
+
+		if versioned.PQ != nil {
+			versioned.PQ, jsonMetadata, err = decodeJSONResponse(bytes.NewReader(httpResponse.body), versioned.PQ)
+		} else {
+			versioned.Gloas, jsonMetadata, err = decodeJSONResponse(bytes.NewReader(httpResponse.body), versioned.Gloas)
+		}
+
 		if err != nil {
 			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
 		}
-
-		envelope = decoded
 
 		maps.Copy(metadata, jsonMetadata)
 	default:
@@ -70,10 +87,7 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	}
 
 	return &api.Response[*spec.VersionedSignedExecutionPayloadEnvelope]{
-		Data: &spec.VersionedSignedExecutionPayloadEnvelope{
-			Version: httpResponse.consensusVersion,
-			Gloas:   envelope,
-		},
+		Data:     versioned,
 		Metadata: metadata,
 	}, nil
 }
@@ -153,7 +167,7 @@ func (s *Service) fetchSignedExecutionPayloadEnvelope(ctx context.Context,
 	}
 
 	if httpResponse.consensusVersion != spec.DataVersionGloas && httpResponse.consensusVersion != spec.DataVersionHeze &&
-		httpResponse.consensusVersion != spec.DataVersionEIP8450 {
+		httpResponse.consensusVersion != spec.DataVersionPQ {
 		return nil, fmt.Errorf("execution payload envelope not available for block version %s", httpResponse.consensusVersion)
 	}
 

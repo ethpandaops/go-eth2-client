@@ -70,8 +70,8 @@ func versionFieldName(v version.DataVersion) (string, error) {
 		return "Gloas", nil
 	case version.DataVersionHeze:
 		return "Heze", nil
-	case version.DataVersionEIP8450:
-		return "EIP8450", nil
+	case version.DataVersionPQ:
+		return "PQ", nil
 	default:
 		return "", fmt.Errorf("unsupported version %d", v)
 	}

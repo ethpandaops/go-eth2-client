@@ -22,11 +22,11 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
-	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -34,9 +34,10 @@ import (
 
 // SignedBeaconBlock is a fork-agnostic signed beacon block.
 type SignedBeaconBlock struct {
-	Version   version.DataVersion
-	Message   *BeaconBlock
-	Signature phase0.BLSSignature
+	Version       version.DataVersion
+	Message       *BeaconBlock
+	Signature     phase0.BLSSignature
+	XMSSSignature pq.XMSSSignature
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -61,8 +62,8 @@ func (s *SignedBeaconBlock) viewType() (any, error) {
 		return (*gloas.SignedBeaconBlock)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.SignedBeaconBlock)(nil), nil
-	case version.DataVersionEIP8450:
-		return (*eip8450.SignedBeaconBlock)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.SignedBeaconBlock)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedBeaconBlock: unsupported version %d", s.Version)
 	}
@@ -189,8 +190,8 @@ func signedBeaconBlockVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.SignedBeaconBlock:
 		return version.DataVersionHeze, nil
-	case *eip8450.SignedBeaconBlock:
-		return version.DataVersionEIP8450, nil
+	case *pq.SignedBeaconBlock:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedBeaconBlock: unsupported view type %T", view)
 	}

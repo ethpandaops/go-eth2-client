@@ -71,7 +71,7 @@ func (e *ExecutionPayload) viewType() (any, error) {
 		return (*deneb.ExecutionPayload)(nil), nil
 	case version.DataVersionGloas,
 		version.DataVersionHeze,
-		version.DataVersionEIP8450:
+		version.DataVersionPQ:
 		// Heze reuses the Gloas execution-payload schema unchanged.
 		return (*gloas.ExecutionPayload)(nil), nil
 	default:

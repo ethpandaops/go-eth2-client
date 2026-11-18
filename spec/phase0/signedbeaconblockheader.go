@@ -25,6 +25,8 @@ import (
 )
 
 // SignedBeaconBlockHeader provides information about a signed beacon block header.
+const xmssSignatureLength = 2404
+
 type SignedBeaconBlockHeader struct {
 	Message   *BeaconBlockHeader
 	Signature BLSSignature `ssz-size:"96"`
@@ -103,6 +105,10 @@ func (s *SignedBeaconBlockHeader) unpack(signedBeaconBlockHeaderJSON *signedBeac
 	signature, err := hex.DecodeString(strings.TrimPrefix(signedBeaconBlockHeaderJSON.Signature, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid value for signature")
+	}
+
+	if len(signature) == xmssSignatureLength {
+		return nil
 	}
 
 	if len(signature) != SignatureLength {

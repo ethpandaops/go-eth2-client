@@ -22,11 +22,11 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
-	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -65,8 +65,8 @@ func (b *BeaconBlock) viewType() (any, error) {
 		return (*gloas.BeaconBlock)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.BeaconBlock)(nil), nil
-	case version.DataVersionEIP8450:
-		return (*eip8450.BeaconBlock)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.BeaconBlock)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconBlock: unsupported version %d", b.Version)
 	}
@@ -193,8 +193,8 @@ func beaconBlockVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.BeaconBlock:
 		return version.DataVersionHeze, nil
-	case *eip8450.BeaconBlock:
-		return version.DataVersionEIP8450, nil
+	case *pq.BeaconBlock:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconBlock: unsupported view type %T", view)
 	}

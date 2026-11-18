@@ -60,12 +60,12 @@ func (s *Service) SubmitExecutionPayloadBid(ctx context.Context,
 		}
 
 		bid = versioned.Heze
-	case spec.DataVersionEIP8450:
-		if versioned.EIP8450 == nil {
+	case spec.DataVersionPQ:
+		if versioned.PQ == nil {
 			return errors.Join(errors.New("no heze bid supplied"), client.ErrInvalidOptions)
 		}
 
-		bid = versioned.EIP8450
+		bid = versioned.PQ
 	default:
 		return errors.Join(
 			fmt.Errorf("unsupported bid version %s", versioned.Version),

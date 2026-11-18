@@ -34,14 +34,14 @@ type VersionedExecutionPayload struct {
 	Fulu      *deneb.ExecutionPayload
 	Gloas     *gloas.ExecutionPayload
 	Heze      *gloas.ExecutionPayload
-	EIP8450   *gloas.ExecutionPayload
+	PQ        *gloas.ExecutionPayload
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedExecutionPayload) IsEmpty() bool {
 	return v.Version < DataVersionBellatrix ||
 		(v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil && v.Electra == nil &&
-			v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.EIP8450 == nil)
+			v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil)
 }
 
 // ParentHash returns the parent hash of the execution payload.
@@ -88,17 +88,17 @@ func (v *VersionedExecutionPayload) ParentHash() (phase0.Hash32, error) {
 
 		return v.Gloas.ParentHash, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.ParentHash, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.ParentHash, nil
+		return v.PQ.ParentHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -148,17 +148,17 @@ func (v *VersionedExecutionPayload) FeeRecipient() (bellatrix.ExecutionAddress, 
 
 		return v.Gloas.FeeRecipient, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.FeeRecipient, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.FeeRecipient, nil
+		return v.PQ.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -208,17 +208,17 @@ func (v *VersionedExecutionPayload) StateRoot() (phase0.Root, error) {
 
 		return v.Gloas.StateRoot, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return phase0.Root{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.StateRoot, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return phase0.Root{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.StateRoot, nil
+		return v.PQ.StateRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -268,17 +268,17 @@ func (v *VersionedExecutionPayload) ReceiptsRoot() (phase0.Root, error) {
 
 		return v.Gloas.ReceiptsRoot, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return phase0.Root{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.ReceiptsRoot, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return phase0.Root{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.ReceiptsRoot, nil
+		return v.PQ.ReceiptsRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -328,17 +328,17 @@ func (v *VersionedExecutionPayload) LogsBloom() ([256]byte, error) {
 
 		return v.Gloas.LogsBloom, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return [256]byte{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.LogsBloom, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return [256]byte{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.LogsBloom, nil
+		return v.PQ.LogsBloom, nil
 	default:
 		return [256]byte{}, errors.New("unknown version")
 	}
@@ -388,17 +388,17 @@ func (v *VersionedExecutionPayload) PrevRandao() ([32]byte, error) {
 
 		return v.Gloas.PrevRandao, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return [32]byte{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.PrevRandao, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return [32]byte{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.PrevRandao, nil
+		return v.PQ.PrevRandao, nil
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -448,17 +448,17 @@ func (v *VersionedExecutionPayload) BlockNumber() (uint64, error) {
 
 		return v.Gloas.BlockNumber, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.BlockNumber, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.BlockNumber, nil
+		return v.PQ.BlockNumber, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -508,17 +508,17 @@ func (v *VersionedExecutionPayload) GasLimit() (uint64, error) {
 
 		return v.Gloas.GasLimit, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.GasLimit, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.GasLimit, nil
+		return v.PQ.GasLimit, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -568,17 +568,17 @@ func (v *VersionedExecutionPayload) GasUsed() (uint64, error) {
 
 		return v.Gloas.GasUsed, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.GasUsed, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.GasUsed, nil
+		return v.PQ.GasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -628,17 +628,17 @@ func (v *VersionedExecutionPayload) Timestamp() (uint64, error) {
 
 		return v.Gloas.Timestamp, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.Timestamp, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.Timestamp, nil
+		return v.PQ.Timestamp, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -688,17 +688,17 @@ func (v *VersionedExecutionPayload) ExtraData() ([]byte, error) {
 
 		return v.Gloas.ExtraData, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.ExtraData, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.ExtraData, nil
+		return v.PQ.ExtraData, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -758,17 +758,17 @@ func (v *VersionedExecutionPayload) BaseFeePerGas() (*uint256.Int, error) {
 
 		return v.Gloas.BaseFeePerGas, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.BaseFeePerGas, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.BaseFeePerGas, nil
+		return v.PQ.BaseFeePerGas, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -818,17 +818,17 @@ func (v *VersionedExecutionPayload) BlockHash() (phase0.Hash32, error) {
 
 		return v.Gloas.BlockHash, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.BlockHash, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return phase0.Hash32{}, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.BlockHash, nil
+		return v.PQ.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -878,17 +878,17 @@ func (v *VersionedExecutionPayload) Transactions() ([]bellatrix.Transaction, err
 
 		return v.Gloas.Transactions, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.Transactions, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.Transactions, nil
+		return v.PQ.Transactions, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -934,17 +934,17 @@ func (v *VersionedExecutionPayload) Withdrawals() ([]*capella.Withdrawal, error)
 
 		return v.Gloas.Withdrawals, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.Withdrawals, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return nil, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.Withdrawals, nil
+		return v.PQ.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -986,17 +986,17 @@ func (v *VersionedExecutionPayload) BlobGasUsed() (uint64, error) {
 
 		return v.Gloas.BlobGasUsed, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.BlobGasUsed, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.BlobGasUsed, nil
+		return v.PQ.BlobGasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -1038,17 +1038,17 @@ func (v *VersionedExecutionPayload) ExcessBlobGas() (uint64, error) {
 
 		return v.Gloas.ExcessBlobGas, nil
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
 		return v.Heze.ExcessBlobGas, nil
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return 0, errors.New("no heze execution payload")
 		}
 
-		return v.EIP8450.ExcessBlobGas, nil
+		return v.PQ.ExcessBlobGas, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -1098,17 +1098,17 @@ func (v *VersionedExecutionPayload) String() string {
 
 		return v.Gloas.String()
 	case DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return ""
 		}
 
 		return v.Heze.String()
-	case DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case DataVersionPQ:
+		if v.PQ == nil {
 			return ""
 		}
 
-		return v.EIP8450.String()
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

@@ -20,6 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -41,8 +42,10 @@ type ExecutionPayloadEnvelope struct {
 // descriptor for the active Version.
 func (e *ExecutionPayloadEnvelope) viewType() (any, error) {
 	switch e.Version {
-	case version.DataVersionGloas, version.DataVersionHeze, version.DataVersionEIP8450:
+	case version.DataVersionGloas, version.DataVersionHeze:
 		return (*gloas.ExecutionPayloadEnvelope)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.ExecutionPayloadEnvelope)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadEnvelope: unsupported version %d", e.Version)
 	}
@@ -160,6 +163,8 @@ func executionPayloadEnvelopeVersion(view any) (version.DataVersion, error) {
 	switch view.(type) {
 	case *gloas.ExecutionPayloadEnvelope:
 		return version.DataVersionGloas, nil
+	case *pq.ExecutionPayloadEnvelope:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionPayloadEnvelope: unsupported view type %T", view)
 	}

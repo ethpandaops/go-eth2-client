@@ -20,6 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -29,12 +30,15 @@ import (
 // requests. The container is introduced in Electra; the builder request fields
 // (BuilderDeposits, BuilderExits) are populated from Gloas onwards (EIP-8282).
 type ExecutionRequests struct {
-	Version         version.DataVersion
-	Deposits        []*electra.DepositRequest
-	Withdrawals     []*electra.WithdrawalRequest
-	Consolidations  []*electra.ConsolidationRequest
-	BuilderDeposits []*gloas.BuilderDepositRequest
-	BuilderExits    []*gloas.BuilderExitRequest
+	Version                   version.DataVersion
+	Deposits                  []*electra.DepositRequest
+	Withdrawals               []*electra.WithdrawalRequest
+	Consolidations            []*electra.ConsolidationRequest
+	BuilderDeposits           []*gloas.BuilderDepositRequest
+	BuilderExits              []*gloas.BuilderExitRequest
+	ValidatorPreregistrations []*pq.ValidatorPreregistrationRequest
+	BuilderPreregistrations   []*pq.BuilderPreregistrationRequest
+	VoluntaryExits            []*pq.VoluntaryExitRequest
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -45,9 +49,10 @@ func (e *ExecutionRequests) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.ExecutionRequests)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze,
-		version.DataVersionEIP8450:
+		version.DataVersionHeze:
 		return (*gloas.ExecutionRequests)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.ExecutionRequests)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionRequests: unsupported version %d", e.Version)
 	}
@@ -159,6 +164,8 @@ func executionRequestsVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.ExecutionRequests:
 		return version.DataVersionGloas, nil
+	case *pq.ExecutionRequests:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("ExecutionRequests: unsupported view type %T", view)
 	}

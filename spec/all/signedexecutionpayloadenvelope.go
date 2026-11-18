@@ -20,6 +20,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -29,17 +30,20 @@ import (
 // envelope. Currently only gloas defines this container; later forks that
 // share the schema will reuse the gloas view.
 type SignedExecutionPayloadEnvelope struct {
-	Version   version.DataVersion
-	Message   *ExecutionPayloadEnvelope
-	Signature phase0.BLSSignature
+	Version       version.DataVersion
+	Message       *ExecutionPayloadEnvelope
+	Signature     phase0.BLSSignature
+	XMSSSignature pq.XMSSSignature
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
 // descriptor for the active Version.
 func (s *SignedExecutionPayloadEnvelope) viewType() (any, error) {
 	switch s.Version {
-	case version.DataVersionGloas, version.DataVersionHeze, version.DataVersionEIP8450:
+	case version.DataVersionGloas, version.DataVersionHeze:
 		return (*gloas.SignedExecutionPayloadEnvelope)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.SignedExecutionPayloadEnvelope)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedExecutionPayloadEnvelope: unsupported version %d", s.Version)
 	}
@@ -152,6 +156,8 @@ func signedExecutionPayloadEnvelopeVersion(view any) (version.DataVersion, error
 	switch view.(type) {
 	case *gloas.SignedExecutionPayloadEnvelope:
 		return version.DataVersionGloas, nil
+	case *pq.SignedExecutionPayloadEnvelope:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedExecutionPayloadEnvelope: unsupported view type %T", view)
 	}

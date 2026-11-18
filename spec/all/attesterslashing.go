@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -48,9 +49,10 @@ func (a *AttesterSlashing) viewType() (any, error) {
 		version.DataVersionFulu:
 		return (*electra.AttesterSlashing)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze,
-		version.DataVersionEIP8450:
+		version.DataVersionHeze:
 		return (*gloas.AttesterSlashing)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.AttesterSlashing)(nil), nil
 	default:
 		return nil, fmt.Errorf("AttesterSlashing: unsupported version %d", a.Version)
 	}
@@ -171,6 +173,8 @@ func attesterSlashingVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.AttesterSlashing:
 		return version.DataVersionGloas, nil
+	case *pq.AttesterSlashing:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("AttesterSlashing: unsupported view type %T", view)
 	}

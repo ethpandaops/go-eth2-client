@@ -14,7 +14,7 @@ types:
       - ../fulu.BeaconState
       - ../gloas.BeaconState
       - ../heze.BeaconState
-      - ../eip8450.BeaconState
+      - ../pq.BeaconState
 
   - name: BeaconBlockBody
     output: beaconblockbody_ssz.go
@@ -28,7 +28,7 @@ types:
       - ../electra.BeaconBlockBody
       - ../gloas.BeaconBlockBody
       - ../heze.BeaconBlockBody
-      - ../eip8450.BeaconBlockBody
+      - ../pq.BeaconBlockBody
 
   - name: BeaconBlock
     output: beaconblock_ssz.go
@@ -42,7 +42,7 @@ types:
       - ../electra.BeaconBlock
       - ../gloas.BeaconBlock
       - ../heze.BeaconBlock
-      - ../eip8450.BeaconBlock
+      - ../pq.BeaconBlock
 
   - name: SignedBeaconBlock
     output: signedbeaconblock_ssz.go
@@ -56,7 +56,7 @@ types:
       - ../electra.SignedBeaconBlock
       - ../gloas.SignedBeaconBlock
       - ../heze.SignedBeaconBlock
-      - ../eip8450.SignedBeaconBlock
+      - ../pq.SignedBeaconBlock
 
   - name: ExecutionPayload
     output: executionpayload_ssz.go
@@ -82,6 +82,7 @@ types:
       - ../phase0.Attestation
       - ../electra.Attestation
       - ../gloas.Attestation
+      - ../pq.Attestation
 
   - name: AttesterSlashing
     output: attesterslashing_ssz.go
@@ -90,6 +91,7 @@ types:
       - ../phase0.AttesterSlashing
       - ../electra.AttesterSlashing
       - ../gloas.AttesterSlashing
+      - ../pq.AttesterSlashing
 
   - name: IndexedAttestation
     output: indexedattestation_ssz.go
@@ -98,6 +100,7 @@ types:
       - ../phase0.IndexedAttestation
       - ../electra.IndexedAttestation
       - ../gloas.IndexedAttestation
+      - ../pq.IndexedAttestation
 
   - name: AggregateAndProof
     output: aggregateandproof_ssz.go
@@ -106,6 +109,7 @@ types:
       - ../phase0.AggregateAndProof
       - ../electra.AggregateAndProof
       - ../gloas.AggregateAndProof
+      - ../pq.AggregateAndProof
 
   - name: SignedAggregateAndProof
     output: signedaggregateandproof_ssz.go
@@ -114,6 +118,7 @@ types:
       - ../phase0.SignedAggregateAndProof
       - ../electra.SignedAggregateAndProof
       - ../gloas.SignedAggregateAndProof
+      - ../pq.SignedAggregateAndProof
 
   - name: ExecutionPayloadBid
     output: executionpayloadbid_ssz.go
@@ -128,18 +133,21 @@ types:
     views:
       - ../gloas.SignedExecutionPayloadBid
       - ../heze.SignedExecutionPayloadBid
+      - ../pq.SignedExecutionPayloadBid
 
   - name: ExecutionPayloadEnvelope
     output: executionpayloadenvelope_ssz.go
     view-only: true
     views:
       - ../gloas.ExecutionPayloadEnvelope
+      - ../pq.ExecutionPayloadEnvelope
 
   - name: SignedExecutionPayloadEnvelope
     output: signedexecutionpayloadenvelope_ssz.go
     view-only: true
     views:
       - ../gloas.SignedExecutionPayloadEnvelope
+      - ../pq.SignedExecutionPayloadEnvelope
 
   - name: ExecutionRequests
     output: executionrequests_ssz.go
@@ -147,3 +155,4 @@ types:
     views:
       - ../electra.ExecutionRequests
       - ../gloas.ExecutionRequests
+      - ../pq.ExecutionRequests

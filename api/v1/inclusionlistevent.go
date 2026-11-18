@@ -155,7 +155,7 @@ func (e *InclusionListEvent) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal inclusion list message")
 		}
-	case spec.DataVersionEIP8450:
+	case spec.DataVersionPQ:
 		if e.Data.Message == nil {
 			return nil, errors.New("inclusion list message missing")
 		}
@@ -214,7 +214,7 @@ func (e *InclusionListEvent) UnmarshalJSON(input []byte) error {
 			return err
 		}
 		e.Data.Message = &message
-	case spec.DataVersionEIP8450:
+	case spec.DataVersionPQ:
 		var message InclusionList
 		if err := json.Unmarshal(event.Data.Message, &message); err != nil {
 			return err

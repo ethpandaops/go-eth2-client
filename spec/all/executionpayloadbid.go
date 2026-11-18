@@ -51,9 +51,9 @@ type ExecutionPayloadBid struct {
 // descriptor for the active Version.
 func (e *ExecutionPayloadBid) viewType() (any, error) {
 	switch e.Version {
-	case version.DataVersionGloas:
+	case version.DataVersionGloas, version.DataVersionPQ:
 		return (*gloas.ExecutionPayloadBid)(nil), nil
-	case version.DataVersionHeze, version.DataVersionEIP8450:
+	case version.DataVersionHeze:
 		return (*heze.ExecutionPayloadBid)(nil), nil
 	default:
 		return nil, fmt.Errorf("ExecutionPayloadBid: unsupported version %d", e.Version)

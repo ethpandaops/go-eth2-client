@@ -27,11 +27,11 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
 	"github.com/ethpandaops/go-eth2-client/spec/deneb"
-	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // SignedBeaconBlock fetches a signed beacon block given a block ID and decodes
@@ -168,9 +168,9 @@ func (s *Service) signedBeaconBlockFromSSZ(ctx context.Context,
 	case spec.DataVersionHeze:
 		response.Data.Heze = &heze.SignedBeaconBlock{}
 		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
-	case spec.DataVersionEIP8450:
-		response.Data.EIP8450 = &eip8450.SignedBeaconBlock{}
-		err = dynSSZ.UnmarshalSSZ(response.Data.EIP8450, res.body)
+	case spec.DataVersionPQ:
+		response.Data.PQ = &pq.SignedBeaconBlock{}
+		err = dynSSZ.UnmarshalSSZ(response.Data.PQ, res.body)
 	default:
 		return nil, fmt.Errorf("unhandled signed beacon block version %s", res.consensusVersion)
 	}
@@ -228,9 +228,9 @@ func (*Service) signedBeaconBlockFromJSON(res *httpResponse) (*api.Response[*spe
 		response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body),
 			&heze.SignedBeaconBlock{},
 		)
-	case spec.DataVersionEIP8450:
-		response.Data.EIP8450, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body),
-			&eip8450.SignedBeaconBlock{},
+	case spec.DataVersionPQ:
+		response.Data.PQ, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body),
+			&pq.SignedBeaconBlock{},
 		)
 	default:
 		return nil, fmt.Errorf("unhandled version %s", res.consensusVersion)

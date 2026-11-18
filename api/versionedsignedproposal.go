@@ -26,10 +26,10 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/altair"
 	"github.com/ethpandaops/go-eth2-client/spec/bellatrix"
 	"github.com/ethpandaops/go-eth2-client/spec/capella"
-	"github.com/ethpandaops/go-eth2-client/spec/eip8450"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedProposal contains a versioned signed beacon node proposal.
@@ -57,7 +57,7 @@ type VersionedSignedProposal struct {
 	FuluBlinded      *apiv1electra.SignedBlindedBeaconBlock
 	Gloas            *gloas.SignedBeaconBlock
 	Heze             *heze.SignedBeaconBlock
-	EIP8450          *eip8450.SignedBeaconBlock
+	PQ               *pq.SignedBeaconBlock
 }
 
 // AssertPresent throws an error if the expected proposal
@@ -117,11 +117,11 @@ func (v *VersionedSignedProposal) AssertPresent() error {
 			return errors.New("gloas proposal not present")
 		}
 	case spec.DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return errors.New("heze proposal not present")
 		}
-	case spec.DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case spec.DataVersionPQ:
+		if v.PQ == nil {
 			return errors.New("heze proposal not present")
 		}
 	default:
@@ -177,8 +177,8 @@ func (v *VersionedSignedProposal) Slot() (phase0.Slot, error) {
 		return v.Gloas.Message.Slot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Slot, nil
-	case spec.DataVersionEIP8450:
-		return v.EIP8450.Message.Slot, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -229,8 +229,8 @@ func (v *VersionedSignedProposal) ProposerIndex() (phase0.ValidatorIndex, error)
 		return v.Gloas.Message.ProposerIndex, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.ProposerIndex, nil
-	case spec.DataVersionEIP8450:
-		return v.EIP8450.Message.ProposerIndex, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -277,8 +277,8 @@ func (v *VersionedSignedProposal) ExecutionBlockHash() (phase0.Hash32, error) {
 		return v.Gloas.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
-	case spec.DataVersionEIP8450:
-		return v.EIP8450.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	default:
 		return phase0.Hash32{}, ErrUnsupportedVersion
 	}
@@ -376,17 +376,17 @@ func (v *VersionedSignedProposal) String() string {
 
 		return v.Gloas.String()
 	case spec.DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil {
+		if v.Heze == nil {
 			return ""
 		}
 
 		return v.Heze.String()
-	case spec.DataVersionEIP8450:
-		if v.EIP8450 == nil {
+	case spec.DataVersionPQ:
+		if v.PQ == nil {
 			return ""
 		}
 
-		return v.EIP8450.String()
+		return v.PQ.String()
 	default:
 		return "unsupported version"
 	}
@@ -466,11 +466,11 @@ func (v *VersionedSignedProposal) assertMessagePresent() error {
 			return ErrDataMissing
 		}
 	case spec.DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil || v.Heze.Message == nil {
+		if v.Heze == nil || v.Heze.Message == nil {
 			return ErrDataMissing
 		}
-	case spec.DataVersionEIP8450:
-		if v.EIP8450 == nil || v.EIP8450.Message == nil {
+	case spec.DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
 			return ErrDataMissing
 		}
 	default:
@@ -576,19 +576,19 @@ func (v *VersionedSignedProposal) assertExecutionPayloadPresent() error {
 			return ErrDataMissing
 		}
 	case spec.DataVersionHeze:
-		if v.Heze == nil && v.EIP8450 == nil ||
+		if v.Heze == nil ||
 			v.Heze.Message == nil ||
 			v.Heze.Message.Body == nil ||
 			v.Heze.Message.Body.SignedExecutionPayloadBid == nil ||
 			v.Heze.Message.Body.SignedExecutionPayloadBid.Message == nil {
 			return ErrDataMissing
 		}
-	case spec.DataVersionEIP8450:
-		if v.EIP8450 == nil ||
-			v.EIP8450.Message == nil ||
-			v.EIP8450.Message.Body == nil ||
-			v.EIP8450.Message.Body.SignedExecutionPayloadBid == nil ||
-			v.EIP8450.Message.Body.SignedExecutionPayloadBid.Message == nil {
+	case spec.DataVersionPQ:
+		if v.PQ == nil ||
+			v.PQ.Message == nil ||
+			v.PQ.Message.Body == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid.Message == nil {
 			return ErrDataMissing
 		}
 	default:
