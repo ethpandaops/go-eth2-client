@@ -73,14 +73,14 @@ type VoluntaryExitRequest struct {
 }
 
 type ExecutionRequests struct {
-	Deposits                  []*electra.DepositRequest          `json:"deposits" ssz-index:"0" ssz-type:"progressive-list"`
-	Withdrawals               []*electra.WithdrawalRequest       `json:"withdrawals" ssz-index:"1" ssz-type:"progressive-list"`
-	Consolidations            []*electra.ConsolidationRequest    `json:"consolidations" ssz-index:"2" ssz-type:"progressive-list"`
-	BuilderDeposits           []*gloas.BuilderDepositRequest     `json:"builder_deposits" ssz-index:"3" ssz-type:"progressive-list"`
-	BuilderExits              []*gloas.BuilderExitRequest        `json:"builder_exits" ssz-index:"4" ssz-type:"progressive-list"`
-	ValidatorPreregistrations []*ValidatorPreregistrationRequest `json:"validator_preregistrations" ssz-index:"7" ssz-type:"progressive-list"`
-	BuilderPreregistrations   []*BuilderPreregistrationRequest   `json:"builder_preregistrations" ssz-index:"8" ssz-type:"progressive-list"`
-	VoluntaryExits            []*VoluntaryExitRequest            `json:"voluntary_exits" ssz-index:"9" ssz-type:"progressive-list"`
+	Deposits                  []*electra.DepositRequest          `ssz-index:"0" json:"deposits" ssz-type:"progressive-list"`
+	Withdrawals               []*electra.WithdrawalRequest       `ssz-index:"1" json:"withdrawals" ssz-type:"progressive-list"`
+	Consolidations            []*electra.ConsolidationRequest    `ssz-index:"2" json:"consolidations" ssz-type:"progressive-list"`
+	BuilderDeposits           []*gloas.BuilderDepositRequest     `ssz-index:"3" json:"builder_deposits" ssz-type:"progressive-list"`
+	BuilderExits              []*gloas.BuilderExitRequest        `ssz-index:"4" json:"builder_exits" ssz-type:"progressive-list"`
+	ValidatorPreregistrations []*ValidatorPreregistrationRequest `ssz-index:"7" json:"validator_preregistrations" ssz-type:"progressive-list"`
+	BuilderPreregistrations   []*BuilderPreregistrationRequest   `ssz-index:"8" json:"builder_preregistrations" ssz-type:"progressive-list"`
+	VoluntaryExits            []*VoluntaryExitRequest            `ssz-index:"9" json:"voluntary_exits" ssz-type:"progressive-list"`
 }
 
 type SignedBeaconBlockHeader struct {
@@ -94,15 +94,15 @@ type ProposerSlashing struct {
 }
 
 type Attestation struct {
-	AggregationBits bitfield.Bitlist        `json:"aggregation_bits" ssz-index:"0" ssz-type:"progressive-bitlist"`
-	Data            *phase0.AttestationData `json:"data" ssz-index:"1"`
-	CommitteeBits   bitfield.Bitvector64    `json:"committee_bits" ssz-index:"3" dynssz-size:"MAX_COMMITTEES_PER_SLOT_PQ/8" ssz-size:"2"`
+	AggregationBits bitfield.Bitlist        `ssz-index:"0" json:"aggregation_bits" ssz-type:"progressive-bitlist"`
+	Data            *phase0.AttestationData `ssz-index:"1" json:"data"`
+	CommitteeBits   bitfield.Bitvector64    `ssz-index:"3" dynssz-size:"MAX_COMMITTEES_PER_SLOT_PQ/8" json:"committee_bits" ssz-size:"2"`
 }
 
 type IndexedAttestation struct {
-	AttestingIndices []uint64                `json:"attesting_indices" ssz-index:"0" ssz-type:"progressive-list"`
-	Data             *phase0.AttestationData `json:"data" ssz-index:"1"`
-	Proof            []byte                  `json:"proof" ssz-index:"2" dynssz-max:"MAX_STARK_PROOF_SIZE" ssz-max:"1048576"`
+	AttestingIndices []uint64                `ssz-index:"0" json:"attesting_indices" ssz-type:"progressive-list"`
+	Data             *phase0.AttestationData `ssz-index:"1" json:"data"`
+	Proof            []byte                  `ssz-index:"2" dynssz-max:"MAX_STARK_PROOF_SIZE" json:"proof" ssz-max:"1048576"`
 }
 
 type AttesterSlashing struct {
@@ -120,7 +120,7 @@ type SingleAttestation struct {
 type AggregateAndProof struct {
 	AggregatorIndex phase0.ValidatorIndex `json:"aggregator_index"`
 	Aggregate       *Attestation          `json:"aggregate"`
-	Proof           []byte                `json:"proof" dynssz-max:"MAX_STARK_PROOF_SIZE" ssz-max:"1048576"`
+	Proof           []byte                `dynssz-max:"MAX_STARK_PROOF_SIZE" json:"proof" ssz-max:"1048576"`
 }
 
 type SignedAggregateAndProof struct {
@@ -140,11 +140,11 @@ type SignedExecutionPayloadBid struct {
 }
 
 type ExecutionPayloadEnvelope struct {
-	Payload               *gloas.ExecutionPayload `json:"payload" ssz-index:"0"`
-	ExecutionRequests     *ExecutionRequests      `json:"execution_requests" ssz-index:"1"`
-	BuilderIndex          gloas.BuilderIndex      `json:"builder_index" ssz-index:"2"`
-	BeaconBlockRoot       phase0.Root             `json:"beacon_block_root" ssz-index:"3"`
-	ParentBeaconBlockRoot phase0.Root             `json:"parent_beacon_block_root" ssz-index:"4"`
+	Payload               *gloas.ExecutionPayload `ssz-index:"0" json:"payload"`
+	ExecutionRequests     *ExecutionRequests      `ssz-index:"1" json:"execution_requests"`
+	BuilderIndex          gloas.BuilderIndex      `ssz-index:"2" json:"builder_index"`
+	BeaconBlockRoot       phase0.Root             `ssz-index:"3" json:"beacon_block_root"`
+	ParentBeaconBlockRoot phase0.Root             `ssz-index:"4" json:"parent_beacon_block_root"`
 }
 
 type SignedExecutionPayloadEnvelope struct {
@@ -153,16 +153,16 @@ type SignedExecutionPayloadEnvelope struct {
 }
 
 type BeaconBlockBody struct {
-	VRFReveal                 VRFProof                   `json:"randao_reveal" ssz-index:"0" ssz-size:"32,32"`
-	ETH1Data                  *phase0.ETH1Data           `json:"eth1_data" ssz-index:"1"`
-	Graffiti                  [32]byte                   `json:"graffiti" ssz-index:"2"`
-	XMSSProposerSlashings     []*ProposerSlashing        `json:"proposer_slashings" ssz-index:"3" ssz-type:"progressive-list"`
-	AttesterSlashings         []*AttesterSlashing        `json:"attester_slashings" ssz-index:"4" ssz-type:"progressive-list"`
-	Attestations              []*Attestation             `json:"attestations" ssz-index:"5" ssz-type:"progressive-list"`
-	Deposits                  []*phase0.Deposit          `json:"deposits" ssz-index:"6" ssz-type:"progressive-list"`
-	SignedExecutionPayloadBid *SignedExecutionPayloadBid `json:"signed_execution_payload_bid" ssz-index:"10"`
-	ParentExecutionRequests   *ExecutionRequests         `json:"parent_execution_requests" ssz-index:"12"`
-	AttestationProof          []byte                     `json:"proof" ssz-index:"13" dynssz-max:"MAX_STARK_PROOF_SIZE" ssz-max:"1048576"`
+	VRFReveal                 VRFProof                   `ssz-index:"0" json:"randao_reveal" ssz-size:"32,32"`
+	ETH1Data                  *phase0.ETH1Data           `ssz-index:"1" json:"eth1_data"`
+	Graffiti                  [32]byte                   `ssz-index:"2" json:"graffiti"`
+	XMSSProposerSlashings     []*ProposerSlashing        `ssz-index:"3" json:"proposer_slashings" ssz-type:"progressive-list"`
+	AttesterSlashings         []*AttesterSlashing        `ssz-index:"4" json:"attester_slashings" ssz-type:"progressive-list"`
+	Attestations              []*Attestation             `ssz-index:"5" json:"attestations" ssz-type:"progressive-list"`
+	Deposits                  []*phase0.Deposit          `ssz-index:"6" json:"deposits" ssz-type:"progressive-list"`
+	SignedExecutionPayloadBid *SignedExecutionPayloadBid `ssz-index:"10" json:"signed_execution_payload_bid"`
+	ParentExecutionRequests   *ExecutionRequests         `ssz-index:"12" json:"parent_execution_requests"`
+	AttestationProof          []byte                     `ssz-index:"13" dynssz-max:"MAX_STARK_PROOF_SIZE" json:"proof" ssz-max:"1048576"`
 }
 
 type BeaconBlock struct {

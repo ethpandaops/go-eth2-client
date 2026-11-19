@@ -302,7 +302,7 @@ func (v *VersionedSignedBeaconBlock) ExecutionBlockNumber() (uint64, error) {
 	case DataVersionHeze:
 		return 0, errors.New("no execution block number for heze block")
 	case DataVersionPQ:
-		return 0, errors.New("no execution block number for heze block")
+		return 0, errors.New("no execution block number for pq block")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -359,7 +359,7 @@ func (v *VersionedSignedBeaconBlock) ExecutionTransactions() ([]bellatrix.Transa
 	case DataVersionHeze:
 		return nil, errors.New("no execution block transactions for heze block")
 	case DataVersionPQ:
-		return nil, errors.New("no execution block transactions for heze block")
+		return nil, errors.New("no execution block transactions for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -977,7 +977,7 @@ func (v *VersionedSignedBeaconBlock) ETH1Data() (*phase0.ETH1Data, error) {
 	case DataVersionHeze:
 		return nil, errors.New("no eth1 data in heze")
 	case DataVersionPQ:
-		return nil, errors.New("no eth1 data in heze")
+		return nil, errors.New("no eth1 data in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1037,7 +1037,7 @@ func (v *VersionedSignedBeaconBlock) Deposits() ([]*phase0.Deposit, error) {
 	case DataVersionHeze:
 		return nil, errors.New("no deposits in heze")
 	case DataVersionPQ:
-		return nil, errors.New("no deposits in heze")
+		return nil, errors.New("no deposits in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1493,7 +1493,7 @@ func (v *VersionedSignedBeaconBlock) Withdrawals() ([]*capella.Withdrawal, error
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload withdrawals for heze block")
 	case DataVersionPQ:
-		return nil, errors.New("no execution payload withdrawals for heze block")
+		return nil, errors.New("no execution payload withdrawals for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1595,7 +1595,7 @@ func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*VersionedExecutionReq
 	case DataVersionHeze:
 		return nil, errors.New("no execution requests for heze block")
 	case DataVersionPQ:
-		return nil, errors.New("no execution requests for heze block")
+		return nil, errors.New("no execution requests for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1696,7 +1696,7 @@ func (v *VersionedSignedBeaconBlock) ExecutionPayload() (*VersionedExecutionPayl
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload in heze")
 	case DataVersionPQ:
-		return nil, errors.New("no execution payload in heze")
+		return nil, errors.New("no execution payload in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}

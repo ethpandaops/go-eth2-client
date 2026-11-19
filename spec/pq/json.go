@@ -43,9 +43,9 @@ func marshalStruct(value any) ([]byte, error) {
 		rv = rv.Elem()
 	}
 
-	var buf bytes.Buffer
+	var buf []byte
 
-	buf.WriteByte('{')
+	buf = append(buf, '{')
 
 	for i := range rv.NumField() {
 		field := rv.Type().Field(i)
@@ -61,17 +61,17 @@ func marshalStruct(value any) ([]byte, error) {
 		}
 
 		if i > 0 {
-			buf.WriteByte(',')
+			buf = append(buf, ',')
 		}
 
-		buf.WriteString(strconv.Quote(name))
-		buf.WriteByte(':')
-		buf.Write(encoded)
+		buf = append(buf, strconv.Quote(name)...)
+		buf = append(buf, ':')
+		buf = append(buf, encoded...)
 	}
 
-	buf.WriteByte('}')
+	buf = append(buf, '}')
 
-	return buf.Bytes(), nil
+	return buf, nil
 }
 
 func encodeValue(rv reflect.Value) ([]byte, error) {
@@ -103,9 +103,9 @@ func encodeValue(rv reflect.Value) ([]byte, error) {
 			return []byte(strconv.Quote("0x" + hex.EncodeToString(data))), nil
 		}
 
-		var buf bytes.Buffer
+		var buf []byte
 
-		buf.WriteByte('[')
+		buf = append(buf, '[')
 
 		for i := range rv.Len() {
 			encoded, err := encodeValue(rv.Index(i))
@@ -114,15 +114,15 @@ func encodeValue(rv reflect.Value) ([]byte, error) {
 			}
 
 			if i > 0 {
-				buf.WriteByte(',')
+				buf = append(buf, ',')
 			}
 
-			buf.Write(encoded)
+			buf = append(buf, encoded...)
 		}
 
-		buf.WriteByte(']')
+		buf = append(buf, ']')
 
-		return buf.Bytes(), nil
+		return buf, nil
 	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return []byte(strconv.Quote(strconv.FormatUint(rv.Uint(), 10))), nil
 	case reflect.Bool:

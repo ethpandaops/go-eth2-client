@@ -1164,7 +1164,7 @@ func (v *VersionedBeaconBlock) ExecutionPayload() (*VersionedExecutionPayload, e
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload in heze")
 	case DataVersionPQ:
-		return nil, errors.New("no execution payload in heze")
+		return nil, errors.New("no execution payload in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
