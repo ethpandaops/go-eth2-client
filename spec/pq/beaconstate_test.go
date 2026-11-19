@@ -42,7 +42,7 @@ func minimalSpecs() map[string]any {
 func TestGenesisStateFixture(t *testing.T) {
 	ds := dynssz.NewDynSsz(minimalSpecs())
 
-	encoded, err := os.ReadFile("testdata/genesis_minimal.ssz")
+	encoded, err := os.ReadFile("testdata/genesis_minimal_ssz.bin")
 	require.NoError(t, err)
 
 	state := &pq.BeaconState{}

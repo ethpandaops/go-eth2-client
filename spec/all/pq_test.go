@@ -30,7 +30,7 @@ func pqMinimalSpecs() map[string]any {
 func TestPQBeaconStateView(t *testing.T) {
 	ds := dynssz.NewDynSsz(pqMinimalSpecs())
 
-	encoded, err := os.ReadFile("../pq/testdata/genesis_minimal.ssz")
+	encoded, err := os.ReadFile("../pq/testdata/genesis_minimal_ssz.bin")
 	require.NoError(t, err)
 
 	state := &all.BeaconState{Version: version.DataVersionPQ}
