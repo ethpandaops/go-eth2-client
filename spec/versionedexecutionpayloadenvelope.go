@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedExecutionPayloadEnvelope contains a versioned execution payload
@@ -26,11 +27,12 @@ import (
 type VersionedExecutionPayloadEnvelope struct {
 	Version DataVersion
 	Gloas   *gloas.ExecutionPayloadEnvelope
+	PQ      *pq.ExecutionPayloadEnvelope
 }
 
 // IsEmpty returns true if no fork-specific envelope is populated.
 func (v *VersionedExecutionPayloadEnvelope) IsEmpty() bool {
-	return v.Gloas == nil
+	return v.Gloas == nil && v.PQ == nil
 }
 
 // String returns a string version of the structure.
@@ -51,6 +53,12 @@ func (v *VersionedExecutionPayloadEnvelope) String() string {
 		}
 
 		return v.Gloas.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}
@@ -85,6 +93,12 @@ func (v *VersionedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPayload, 
 		}
 
 		return v.Gloas.Payload, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no pq execution payload envelope")
+		}
+
+		return v.PQ.Payload, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -125,6 +139,15 @@ func (v *VersionedExecutionPayloadEnvelope) ExecutionRequests() (*VersionedExecu
 			Version: DataVersionHeze,
 			Heze:    v.Gloas.ExecutionRequests,
 		}, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no pq execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -159,6 +182,12 @@ func (v *VersionedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderIndex, 
 		}
 
 		return v.Gloas.BuilderIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no pq execution payload envelope")
+		}
+
+		return v.PQ.BuilderIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -193,6 +222,12 @@ func (v *VersionedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root, erro
 		}
 
 		return v.Gloas.BeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Root{}, errors.New("no pq execution payload envelope")
+		}
+
+		return v.PQ.BeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -227,6 +262,12 @@ func (v *VersionedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.ParentBeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Root{}, errors.New("no pq execution payload envelope")
+		}
+
+		return v.PQ.ParentBeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}

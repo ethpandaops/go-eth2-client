@@ -94,6 +94,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Message() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message, nil
+	case DataVersionPQ:
+		return nil, errors.New("pq execution payload envelopes have their own message type")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -128,6 +130,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message.Payload, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return nil, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.Payload, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -168,6 +176,15 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 			Version: DataVersionHeze,
 			Heze:    v.Gloas.Message.ExecutionRequests,
 		}, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return nil, errors.New("no pq signed execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.Message.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -202,6 +219,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderI
 		}
 
 		return v.Gloas.Message.BuilderIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.BuilderIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -236,6 +259,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.Message.BeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.BeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -270,6 +299,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase
 		}
 
 		return v.Gloas.Message.ParentBeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.ParentBeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -304,6 +339,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Signature() (phase0.BLSSignatu
 		}
 
 		return v.Gloas.Signature, nil
+	case DataVersionPQ:
+		return phase0.BLSSignature{}, errors.New("pq execution payload envelopes carry an XMSS signature")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
