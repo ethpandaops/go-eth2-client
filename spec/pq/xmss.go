@@ -49,10 +49,6 @@ func (p XMSSPubKey) DepositPubKey() phase0.BLSPubKey {
 	return pubkey
 }
 
-func ProvenSignatures(proof []byte) int {
-	return len(proof) / XMSSSignatureSize
-}
-
 func (v *Validator) Legacy() *phase0.Validator {
 	return &phase0.Validator{
 		PublicKey:                  v.PublicKey.DepositPubKey(),

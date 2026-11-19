@@ -87,7 +87,7 @@ func TestPQSignedBeaconBlockView(t *testing.T) {
 	union := &all.SignedBeaconBlock{Version: version.DataVersionPQ}
 	require.NoError(t, ds.UnmarshalSSZ(union, encoded))
 	require.Equal(t, uint32(0x2a), union.XMSSSignature.LeafIndex())
-	require.Equal(t, 2, pq.ProvenSignatures(union.Message.Body.AttestationProof))
+	require.Len(t, union.Message.Body.AttestationProof, 2*pq.XMSSSignatureSize)
 
 	t.Logf("block root %x", root)
 
