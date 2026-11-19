@@ -19,6 +19,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedAttesterSlashing contains a versioned attestation.
@@ -33,12 +34,13 @@ type VersionedAttesterSlashing struct {
 	Fulu      *electra.AttesterSlashing
 	Gloas     *gloas.AttesterSlashing
 	Heze      *gloas.AttesterSlashing
+	PQ        *pq.AttesterSlashing
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedAttesterSlashing) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil
 }
 
 // Attestation1 returns the first indexed attestation.
@@ -140,6 +142,17 @@ func (v *VersionedAttesterSlashing) Attestation1() (*VersionedIndexedAttestation
 		versionedIndexedAttestation := VersionedIndexedAttestation{
 			Version: DataVersionHeze,
 			Heze:    v.Heze.Attestation1,
+		}
+
+		return &versionedIndexedAttestation, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no PQ indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.Attestation1,
 		}
 
 		return &versionedIndexedAttestation, nil
@@ -250,6 +263,17 @@ func (v *VersionedAttesterSlashing) Attestation2() (*VersionedIndexedAttestation
 		}
 
 		return &versionedIndexedAttestation, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no PQ indexed attestation")
+		}
+
+		versionedIndexedAttestation := VersionedIndexedAttestation{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.Attestation2,
+		}
+
+		return &versionedIndexedAttestation, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -312,6 +336,12 @@ func (v *VersionedAttesterSlashing) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

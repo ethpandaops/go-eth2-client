@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedExecutionPayloadBid contains a versioned signed execution payload bid.
@@ -28,6 +29,7 @@ type VersionedSignedExecutionPayloadBid struct {
 	Version DataVersion
 	Gloas   *gloas.SignedExecutionPayloadBid
 	Heze    *heze.SignedExecutionPayloadBid
+	PQ      *pq.SignedExecutionPayloadBid
 }
 
 // String returns a string version of the structure.
@@ -48,6 +50,12 @@ func (v *VersionedSignedExecutionPayloadBid) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 
 		return "unknown version"
@@ -83,6 +91,12 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockHash() (phase0.Hash32, e
 		}
 
 		return v.Heze.Message.ParentBlockHash, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.ParentBlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -117,6 +131,12 @@ func (v *VersionedSignedExecutionPayloadBid) ParentBlockRoot() (phase0.Root, err
 		}
 
 		return v.Heze.Message.ParentBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.ParentBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -151,6 +171,12 @@ func (v *VersionedSignedExecutionPayloadBid) BlockHash() (phase0.Hash32, error) 
 		}
 
 		return v.Heze.Message.BlockHash, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -185,6 +211,12 @@ func (v *VersionedSignedExecutionPayloadBid) FeeRecipient() (bellatrix.Execution
 		}
 
 		return v.Heze.Message.FeeRecipient, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -219,6 +251,12 @@ func (v *VersionedSignedExecutionPayloadBid) GasLimit() (uint64, error) {
 		}
 
 		return v.Heze.Message.GasLimit, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.GasLimit, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -253,6 +291,12 @@ func (v *VersionedSignedExecutionPayloadBid) BuilderIndex() (gloas.BuilderIndex,
 		}
 
 		return v.Heze.Message.BuilderIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.BuilderIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -287,6 +331,12 @@ func (v *VersionedSignedExecutionPayloadBid) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Message.Slot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -321,6 +371,12 @@ func (v *VersionedSignedExecutionPayloadBid) Value() (phase0.Gwei, error) {
 		}
 
 		return v.Heze.Message.Value, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.Value, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -355,6 +411,12 @@ func (v *VersionedSignedExecutionPayloadBid) ExecutionPayment() (phase0.Gwei, er
 		}
 
 		return v.Heze.Message.ExecutionPayment, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.ExecutionPayment, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -389,6 +451,12 @@ func (v *VersionedSignedExecutionPayloadBid) BlobKZGCommitments() ([]deneb.KZGCo
 		}
 
 		return v.Heze.Message.BlobKZGCommitments, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return nil, errors.New("no heze execution payload bid")
+		}
+
+		return v.PQ.Message.BlobKZGCommitments, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -423,6 +491,12 @@ func (v *VersionedSignedExecutionPayloadBid) Signature() (phase0.BLSSignature, e
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.BLSSignature{}, errors.New("no heze execution payload bid")
+		}
+
+		return phase0.BLSSignature{}, errors.New("PQ bids carry no BLS signature")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

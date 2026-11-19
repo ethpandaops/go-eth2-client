@@ -29,6 +29,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedProposal contains a versioned proposal.
@@ -56,6 +57,7 @@ type VersionedProposal struct {
 	FuluBlinded      *apiv1electra.BlindedBeaconBlock
 	Gloas            *gloas.BeaconBlock
 	Heze             *heze.BeaconBlock
+	PQ               *pq.BeaconBlock
 }
 
 // IsEmpty returns true if there is no proposal.
@@ -73,7 +75,7 @@ func (v *VersionedProposal) IsEmpty() bool {
 		v.Fulu == nil &&
 		v.FuluBlinded == nil &&
 		v.Gloas == nil &&
-		v.Heze == nil
+		v.Heze == nil && v.PQ == nil
 }
 
 // BodyRoot returns the body root of the proposal.
@@ -121,6 +123,8 @@ func (v *VersionedProposal) BodyRoot() (phase0.Root, error) {
 		return v.Gloas.Body.HashTreeRoot()
 	case spec.DataVersionHeze:
 		return v.Heze.Body.HashTreeRoot()
+	case spec.DataVersionPQ:
+		return v.PQ.Body.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -171,6 +175,8 @@ func (v *VersionedProposal) ParentRoot() (phase0.Root, error) {
 		return v.Gloas.ParentRoot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.ParentRoot, nil
+	case spec.DataVersionPQ:
+		return v.PQ.ParentRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -221,6 +227,8 @@ func (v *VersionedProposal) ProposerIndex() (phase0.ValidatorIndex, error) {
 		return v.Gloas.ProposerIndex, nil
 	case spec.DataVersionHeze:
 		return v.Heze.ProposerIndex, nil
+	case spec.DataVersionPQ:
+		return v.PQ.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -271,6 +279,8 @@ func (v *VersionedProposal) Root() (phase0.Root, error) {
 		return v.Gloas.HashTreeRoot()
 	case spec.DataVersionHeze:
 		return v.Heze.HashTreeRoot()
+	case spec.DataVersionPQ:
+		return v.PQ.HashTreeRoot()
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -321,6 +331,8 @@ func (v *VersionedProposal) Slot() (phase0.Slot, error) {
 		return v.Gloas.Slot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Slot, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -371,6 +383,8 @@ func (v *VersionedProposal) StateRoot() (phase0.Root, error) {
 		return v.Gloas.StateRoot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.StateRoot, nil
+	case spec.DataVersionPQ:
+		return v.PQ.StateRoot, nil
 	default:
 		return phase0.Root{}, ErrUnsupportedVersion
 	}
@@ -533,6 +547,16 @@ func (v *VersionedProposal) Attestations() ([]spec.VersionedAttestation, error) 
 		}
 
 		return versionedAttestations, nil
+	case spec.DataVersionPQ:
+		versionedAttestations := make([]spec.VersionedAttestation, len(v.PQ.Body.Attestations))
+		for i, attestation := range v.PQ.Body.Attestations {
+			versionedAttestations[i] = spec.VersionedAttestation{
+				Version: spec.DataVersionPQ,
+				PQ:      attestation,
+			}
+		}
+
+		return versionedAttestations, nil
 	default:
 		return nil, ErrUnsupportedVersion
 	}
@@ -583,6 +607,8 @@ func (v *VersionedProposal) Graffiti() ([32]byte, error) {
 		return v.Gloas.Body.Graffiti, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Body.Graffiti, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Body.Graffiti, nil
 	default:
 		return [32]byte{}, ErrUnsupportedVersion
 	}
@@ -633,6 +659,8 @@ func (v *VersionedProposal) RandaoReveal() (phase0.BLSSignature, error) {
 		return v.Gloas.Body.RANDAOReveal, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Body.RANDAOReveal, nil
+	case spec.DataVersionPQ:
+		return phase0.BLSSignature{}, ErrUnsupportedVersion
 	default:
 		return phase0.BLSSignature{}, ErrUnsupportedVersion
 	}
@@ -675,7 +703,7 @@ func (v *VersionedProposal) Transactions() ([]bellatrix.Transaction, error) {
 		}
 
 		return v.Fulu.Block.Body.ExecutionPayload.Transactions, nil
-	case spec.DataVersionGloas, spec.DataVersionHeze:
+	case spec.DataVersionGloas, spec.DataVersionHeze, spec.DataVersionPQ:
 		return nil, ErrDataMissing
 	default:
 		return nil, ErrUnsupportedVersion
@@ -723,6 +751,8 @@ func (v *VersionedProposal) FeeRecipient() (bellatrix.ExecutionAddress, error) {
 		return v.Gloas.Body.SignedExecutionPayloadBid.Message.FeeRecipient, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Body.SignedExecutionPayloadBid.Message.FeeRecipient, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Body.SignedExecutionPayloadBid.Message.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, ErrUnsupportedVersion
 	}
@@ -765,7 +795,7 @@ func (v *VersionedProposal) Timestamp() (uint64, error) {
 		}
 
 		return v.Fulu.Block.Body.ExecutionPayload.Timestamp, nil
-	case spec.DataVersionGloas, spec.DataVersionHeze:
+	case spec.DataVersionGloas, spec.DataVersionHeze, spec.DataVersionPQ:
 		return 0, ErrDataMissing
 	default:
 		return 0, ErrUnsupportedVersion
@@ -813,6 +843,8 @@ func (v *VersionedProposal) GasLimit() (uint64, error) {
 		return v.Gloas.Body.SignedExecutionPayloadBid.Message.GasLimit, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Body.SignedExecutionPayloadBid.Message.GasLimit, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Body.SignedExecutionPayloadBid.Message.GasLimit, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -843,7 +875,7 @@ func (v *VersionedProposal) Blobs() ([]deneb.Blob, error) {
 		}
 
 		return v.Fulu.Blobs, nil
-	case spec.DataVersionGloas, spec.DataVersionHeze:
+	case spec.DataVersionGloas, spec.DataVersionHeze, spec.DataVersionPQ:
 		return nil, ErrDataMissing
 	default:
 		return nil, ErrUnsupportedVersion
@@ -875,7 +907,7 @@ func (v *VersionedProposal) KZGProofs() ([]deneb.KZGProof, error) {
 		}
 
 		return v.Fulu.KZGProofs, nil
-	case spec.DataVersionGloas, spec.DataVersionHeze:
+	case spec.DataVersionGloas, spec.DataVersionHeze, spec.DataVersionPQ:
 		return nil, ErrDataMissing
 	default:
 		return nil, ErrUnsupportedVersion
@@ -953,6 +985,12 @@ func (v *VersionedProposal) String() string {
 		}
 
 		return v.Heze.String()
+	case spec.DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}
@@ -998,6 +1036,8 @@ func (v *VersionedProposal) proposalPresent() bool {
 		return v.Gloas != nil
 	case spec.DataVersionHeze:
 		return v.Heze != nil
+	case spec.DataVersionPQ:
+		return v.PQ != nil
 	}
 
 	return false
@@ -1043,6 +1083,8 @@ func (v *VersionedProposal) bodyPresent() bool {
 		return v.Gloas != nil && v.Gloas.Body != nil
 	case spec.DataVersionHeze:
 		return v.Heze != nil && v.Heze.Body != nil
+	case spec.DataVersionPQ:
+		return v.PQ != nil && v.PQ.Body != nil
 	}
 
 	return false
@@ -1098,6 +1140,11 @@ func (v *VersionedProposal) payloadPresent() bool {
 			v.Heze.Body != nil &&
 			v.Heze.Body.SignedExecutionPayloadBid != nil &&
 			v.Heze.Body.SignedExecutionPayloadBid.Message != nil
+	case spec.DataVersionPQ:
+		return v.PQ != nil &&
+			v.PQ.Body != nil &&
+			v.PQ.Body.SignedExecutionPayloadBid != nil &&
+			v.PQ.Body.SignedExecutionPayloadBid.Message != nil
 	}
 
 	return false

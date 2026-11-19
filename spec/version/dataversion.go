@@ -42,6 +42,8 @@ const (
 	DataVersionGloas
 	// DataVersionHeze is data applicable for the Heze release of the beacon chain.
 	DataVersionHeze
+	// DataVersionPQ is data applicable for the post-quantum fork of the beacon chain.
+	DataVersionPQ
 )
 
 var dataVersionStrings = [...]string{
@@ -55,6 +57,7 @@ var dataVersionStrings = [...]string{
 	"fulu",
 	"gloas",
 	"heze",
+	"pq",
 }
 
 var dataVersionMap = map[string]DataVersion{
@@ -67,6 +70,7 @@ var dataVersionMap = map[string]DataVersion{
 	`"fulu"`:      DataVersionFulu,
 	`"gloas"`:     DataVersionGloas,
 	`"heze"`:      DataVersionHeze,
+	`"pq"`:        DataVersionPQ,
 }
 
 // MarshalJSON implements json.Marshaler.

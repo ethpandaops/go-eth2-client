@@ -607,6 +607,29 @@ func (e *PayloadAttributesEvent) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal payload attributes v5")
 		}
+	case spec.DataVersionPQ:
+		if e.Data.V5 == nil {
+			return nil, errors.New("no payload attributes v5 data")
+		}
+
+		inclusionListTransactions := make([]string, len(e.Data.V5.InclusionListTransactions))
+		for i, transaction := range e.Data.V5.InclusionListTransactions {
+			inclusionListTransactions[i] = fmt.Sprintf("%#x", []byte(transaction))
+		}
+
+		payloadAttributes, err = json.Marshal(&payloadAttributesV5JSON{
+			Timestamp:                 strconv.FormatUint(e.Data.V5.Timestamp, 10),
+			PrevRandao:                fmt.Sprintf("%#x", e.Data.V5.PrevRandao),
+			SuggestedFeeRecipient:     e.Data.V5.SuggestedFeeRecipient.String(),
+			Withdrawals:               e.Data.V5.Withdrawals,
+			ParentBeaconBlockRoot:     fmt.Sprintf("%#x", e.Data.V5.ParentBeaconBlockRoot),
+			SlotNumber:                strconv.FormatUint(e.Data.V5.SlotNumber, 10),
+			TargetGasLimit:            strconv.FormatUint(e.Data.V5.TargetGasLimit, 10),
+			InclusionListTransactions: inclusionListTransactions,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal payload attributes v5")
+		}
 	default:
 		return nil, fmt.Errorf("unsupported payload attributes version: %s", e.Version)
 	}
@@ -806,6 +829,15 @@ func (e *PayloadAttributesEvent) unpack(data *payloadAttributesEventJSON) error 
 
 		e.Data.V4 = &payloadAttributes
 	case spec.DataVersionHeze:
+		var payloadAttributes PayloadAttributesV5
+
+		err = json.Unmarshal(data.Data.PayloadAttributes, &payloadAttributes)
+		if err != nil {
+			return err
+		}
+
+		e.Data.V5 = &payloadAttributes
+	case spec.DataVersionPQ:
 		var payloadAttributes PayloadAttributesV5
 
 		err = json.Unmarshal(data.Data.PayloadAttributes, &payloadAttributes)

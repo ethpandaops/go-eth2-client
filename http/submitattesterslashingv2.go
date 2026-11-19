@@ -113,6 +113,10 @@ func unversionAttesterSlashing(slashing *spec.VersionedAttesterSlashing) (any, e
 		if slashing.Heze != nil {
 			unversionedSlashing = slashing.Heze
 		}
+	case spec.DataVersionPQ:
+		if slashing.PQ != nil {
+			unversionedSlashing = slashing.PQ
+		}
 	default:
 		return nil, errors.Join(errors.New("unhandled attester slashing version"), client.ErrInvalidOptions)
 	}

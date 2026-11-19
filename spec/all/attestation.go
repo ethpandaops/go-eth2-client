@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -53,6 +54,8 @@ func (a *Attestation) viewType() (any, error) {
 	case version.DataVersionGloas,
 		version.DataVersionHeze:
 		return (*gloas.Attestation)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.Attestation)(nil), nil
 	default:
 		return nil, fmt.Errorf("Attestation: unsupported version %d", a.Version)
 	}
@@ -165,6 +168,8 @@ func attestationVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionElectra, nil
 	case *gloas.Attestation:
 		return version.DataVersionGloas, nil
+	case *pq.Attestation:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("Attestation: unsupported view type %T", view)
 	}

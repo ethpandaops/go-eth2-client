@@ -70,7 +70,8 @@ func (e *ExecutionPayload) viewType() (any, error) {
 		// Electra and Fulu reuse the Deneb execution-payload schema unchanged.
 		return (*deneb.ExecutionPayload)(nil), nil
 	case version.DataVersionGloas,
-		version.DataVersionHeze:
+		version.DataVersionHeze,
+		version.DataVersionPQ:
 		// Heze reuses the Gloas execution-payload schema unchanged.
 		return (*gloas.ExecutionPayload)(nil), nil
 	default:

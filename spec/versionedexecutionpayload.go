@@ -34,13 +34,14 @@ type VersionedExecutionPayload struct {
 	Fulu      *deneb.ExecutionPayload
 	Gloas     *gloas.ExecutionPayload
 	Heze      *gloas.ExecutionPayload
+	PQ        *gloas.ExecutionPayload
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedExecutionPayload) IsEmpty() bool {
 	return v.Version < DataVersionBellatrix ||
 		(v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil && v.Electra == nil &&
-			v.Fulu == nil && v.Gloas == nil && v.Heze == nil)
+			v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil)
 }
 
 // ParentHash returns the parent hash of the execution payload.
@@ -92,6 +93,12 @@ func (v *VersionedExecutionPayload) ParentHash() (phase0.Hash32, error) {
 		}
 
 		return v.Heze.ParentHash, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.ParentHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -146,6 +153,12 @@ func (v *VersionedExecutionPayload) FeeRecipient() (bellatrix.ExecutionAddress, 
 		}
 
 		return v.Heze.FeeRecipient, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return bellatrix.ExecutionAddress{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.FeeRecipient, nil
 	default:
 		return bellatrix.ExecutionAddress{}, errors.New("unknown version")
 	}
@@ -200,6 +213,12 @@ func (v *VersionedExecutionPayload) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.StateRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Root{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.StateRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -254,6 +273,12 @@ func (v *VersionedExecutionPayload) ReceiptsRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.ReceiptsRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Root{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.ReceiptsRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -308,6 +333,12 @@ func (v *VersionedExecutionPayload) LogsBloom() ([256]byte, error) {
 		}
 
 		return v.Heze.LogsBloom, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return [256]byte{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.LogsBloom, nil
 	default:
 		return [256]byte{}, errors.New("unknown version")
 	}
@@ -362,6 +393,12 @@ func (v *VersionedExecutionPayload) PrevRandao() ([32]byte, error) {
 		}
 
 		return v.Heze.PrevRandao, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return [32]byte{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.PrevRandao, nil
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -416,6 +453,12 @@ func (v *VersionedExecutionPayload) BlockNumber() (uint64, error) {
 		}
 
 		return v.Heze.BlockNumber, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.BlockNumber, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -470,6 +513,12 @@ func (v *VersionedExecutionPayload) GasLimit() (uint64, error) {
 		}
 
 		return v.Heze.GasLimit, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.GasLimit, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -524,6 +573,12 @@ func (v *VersionedExecutionPayload) GasUsed() (uint64, error) {
 		}
 
 		return v.Heze.GasUsed, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.GasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -578,6 +633,12 @@ func (v *VersionedExecutionPayload) Timestamp() (uint64, error) {
 		}
 
 		return v.Heze.Timestamp, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.Timestamp, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -632,6 +693,12 @@ func (v *VersionedExecutionPayload) ExtraData() ([]byte, error) {
 		}
 
 		return v.Heze.ExtraData, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.ExtraData, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -696,6 +763,12 @@ func (v *VersionedExecutionPayload) BaseFeePerGas() (*uint256.Int, error) {
 		}
 
 		return v.Heze.BaseFeePerGas, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.BaseFeePerGas, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -750,6 +823,12 @@ func (v *VersionedExecutionPayload) BlockHash() (phase0.Hash32, error) {
 		}
 
 		return v.Heze.BlockHash, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.Hash32{}, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -804,6 +883,12 @@ func (v *VersionedExecutionPayload) Transactions() ([]bellatrix.Transaction, err
 		}
 
 		return v.Heze.Transactions, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.Transactions, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -854,6 +939,12 @@ func (v *VersionedExecutionPayload) Withdrawals() ([]*capella.Withdrawal, error)
 		}
 
 		return v.Heze.Withdrawals, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -900,6 +991,12 @@ func (v *VersionedExecutionPayload) BlobGasUsed() (uint64, error) {
 		}
 
 		return v.Heze.BlobGasUsed, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.BlobGasUsed, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -946,6 +1043,12 @@ func (v *VersionedExecutionPayload) ExcessBlobGas() (uint64, error) {
 		}
 
 		return v.Heze.ExcessBlobGas, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze execution payload")
+		}
+
+		return v.PQ.ExcessBlobGas, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -1000,6 +1103,12 @@ func (v *VersionedExecutionPayload) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

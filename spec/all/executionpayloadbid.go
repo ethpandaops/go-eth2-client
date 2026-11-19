@@ -51,7 +51,7 @@ type ExecutionPayloadBid struct {
 // descriptor for the active Version.
 func (e *ExecutionPayloadBid) viewType() (any, error) {
 	switch e.Version {
-	case version.DataVersionGloas:
+	case version.DataVersionGloas, version.DataVersionPQ:
 		return (*gloas.ExecutionPayloadBid)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.ExecutionPayloadBid)(nil), nil

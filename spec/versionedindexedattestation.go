@@ -19,6 +19,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedIndexedAttestation contains a versioned indexed attestation.
@@ -33,12 +34,13 @@ type VersionedIndexedAttestation struct {
 	Fulu      *electra.IndexedAttestation
 	Gloas     *gloas.IndexedAttestation
 	Heze      *gloas.IndexedAttestation
+	PQ        *pq.IndexedAttestation
 }
 
 // IsEmpty returns true if there is no block.
 func (v *VersionedIndexedAttestation) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil
 }
 
 // AttestingIndices returns the attesting indices of the indexed attestation.
@@ -98,6 +100,12 @@ func (v *VersionedIndexedAttestation) AttestingIndices() ([]uint64, error) {
 		}
 
 		return v.Heze.AttestingIndices, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no PQ indexed attestation")
+		}
+
+		return v.PQ.AttestingIndices, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -160,6 +168,12 @@ func (v *VersionedIndexedAttestation) Data() (*phase0.AttestationData, error) {
 		}
 
 		return v.Heze.Data, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no PQ indexed attestation")
+		}
+
+		return v.PQ.Data, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -222,6 +236,12 @@ func (v *VersionedIndexedAttestation) Signature() (phase0.BLSSignature, error) {
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.BLSSignature{}, errors.New("no PQ indexed attestation")
+		}
+
+		return phase0.BLSSignature{}, errors.New("PQ indexed attestations carry no signature")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -284,6 +304,12 @@ func (v *VersionedIndexedAttestation) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

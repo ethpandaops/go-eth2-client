@@ -29,6 +29,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedProposal contains a versioned signed beacon node proposal.
@@ -56,6 +57,7 @@ type VersionedSignedProposal struct {
 	FuluBlinded      *apiv1electra.SignedBlindedBeaconBlock
 	Gloas            *gloas.SignedBeaconBlock
 	Heze             *heze.SignedBeaconBlock
+	PQ               *pq.SignedBeaconBlock
 }
 
 // AssertPresent throws an error if the expected proposal
@@ -118,6 +120,10 @@ func (v *VersionedSignedProposal) AssertPresent() error {
 		if v.Heze == nil {
 			return errors.New("heze proposal not present")
 		}
+	case spec.DataVersionPQ:
+		if v.PQ == nil {
+			return errors.New("heze proposal not present")
+		}
 	default:
 		return errors.New("unsupported version")
 	}
@@ -171,6 +177,8 @@ func (v *VersionedSignedProposal) Slot() (phase0.Slot, error) {
 		return v.Gloas.Message.Slot, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Slot, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.Slot, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -221,6 +229,8 @@ func (v *VersionedSignedProposal) ProposerIndex() (phase0.ValidatorIndex, error)
 		return v.Gloas.Message.ProposerIndex, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.ProposerIndex, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.ProposerIndex, nil
 	default:
 		return 0, ErrUnsupportedVersion
 	}
@@ -267,6 +277,8 @@ func (v *VersionedSignedProposal) ExecutionBlockHash() (phase0.Hash32, error) {
 		return v.Gloas.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	case spec.DataVersionHeze:
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
+	case spec.DataVersionPQ:
+		return v.PQ.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	default:
 		return phase0.Hash32{}, ErrUnsupportedVersion
 	}
@@ -369,6 +381,12 @@ func (v *VersionedSignedProposal) String() string {
 		}
 
 		return v.Heze.String()
+	case spec.DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unsupported version"
 	}
@@ -449,6 +467,10 @@ func (v *VersionedSignedProposal) assertMessagePresent() error {
 		}
 	case spec.DataVersionHeze:
 		if v.Heze == nil || v.Heze.Message == nil {
+			return ErrDataMissing
+		}
+	case spec.DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
 			return ErrDataMissing
 		}
 	default:
@@ -559,6 +581,14 @@ func (v *VersionedSignedProposal) assertExecutionPayloadPresent() error {
 			v.Heze.Message.Body == nil ||
 			v.Heze.Message.Body.SignedExecutionPayloadBid == nil ||
 			v.Heze.Message.Body.SignedExecutionPayloadBid.Message == nil {
+			return ErrDataMissing
+		}
+	case spec.DataVersionPQ:
+		if v.PQ == nil ||
+			v.PQ.Message == nil ||
+			v.PQ.Message.Body == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid.Message == nil {
 			return ErrDataMissing
 		}
 	default:

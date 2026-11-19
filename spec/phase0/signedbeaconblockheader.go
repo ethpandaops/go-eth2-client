@@ -25,9 +25,20 @@ import (
 )
 
 // SignedBeaconBlockHeader provides information about a signed beacon block header.
+const xmssSignatureLength = 2404
+
 type SignedBeaconBlockHeader struct {
-	Message   *BeaconBlockHeader
-	Signature BLSSignature `ssz-size:"96"`
+	Message       *BeaconBlockHeader
+	Signature     BLSSignature `ssz-size:"96"`
+	XMSSSignature []byte       `ssz:"-"`
+}
+
+func (s *SignedBeaconBlockHeader) signatureString() string {
+	if len(s.XMSSSignature) > 0 {
+		return fmt.Sprintf("%#x", s.XMSSSignature)
+	}
+
+	return fmt.Sprintf("%#x", s.Signature)
 }
 
 // signedBeaconBlockHeaderJSON is an internal representation of the struct.
@@ -46,7 +57,7 @@ type signedBeaconBlockHeaderYAML struct {
 func (s *SignedBeaconBlockHeader) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&signedBeaconBlockHeaderJSON{
 		Message:   s.Message,
-		Signature: fmt.Sprintf("%#x", s.Signature),
+		Signature: s.signatureString(),
 	})
 }
 
@@ -64,7 +75,7 @@ func (s *SignedBeaconBlockHeader) UnmarshalJSON(input []byte) error {
 func (s *SignedBeaconBlockHeader) MarshalYAML() ([]byte, error) {
 	yamlBytes, err := yaml.MarshalWithOptions(&signedBeaconBlockHeaderYAML{
 		Message:   s.Message,
-		Signature: fmt.Sprintf("%#x", s.Signature),
+		Signature: s.signatureString(),
 	}, yaml.Flow(true))
 	if err != nil {
 		return nil, err
@@ -103,6 +114,12 @@ func (s *SignedBeaconBlockHeader) unpack(signedBeaconBlockHeaderJSON *signedBeac
 	signature, err := hex.DecodeString(strings.TrimPrefix(signedBeaconBlockHeaderJSON.Signature, "0x"))
 	if err != nil {
 		return errors.Wrap(err, "invalid value for signature")
+	}
+
+	if len(signature) == xmssSignatureLength {
+		s.XMSSSignature = signature
+
+		return nil
 	}
 
 	if len(signature) != SignatureLength {
