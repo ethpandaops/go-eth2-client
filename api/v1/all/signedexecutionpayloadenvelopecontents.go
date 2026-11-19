@@ -41,7 +41,7 @@ type SignedExecutionPayloadEnvelopeContents struct {
 // descriptor for the active Version.
 func (s *SignedExecutionPayloadEnvelopeContents) viewType() (any, error) {
 	switch s.Version {
-	case version.DataVersionGloas, version.DataVersionHeze, version.DataVersionPQ:
+	case version.DataVersionGloas, version.DataVersionHeze:
 		return (*apiv1gloas.SignedExecutionPayloadEnvelopeContents)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedExecutionPayloadEnvelopeContents: unsupported version %d", s.Version)
