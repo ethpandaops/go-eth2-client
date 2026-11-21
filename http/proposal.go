@@ -113,7 +113,7 @@ func (s *Service) Proposal(ctx context.Context,
 
 	// Only check the RANDAO reveal if we are not connected to DVT middleware,
 	// as the returned values will be decided by the middleware.
-	if !s.connectedToDVTMiddleware {
+	if !s.IsConnectedToDVTMiddleware() {
 		blockRandaoReveal, err := response.Data.RandaoReveal()
 		if err != nil {
 			return nil, err
