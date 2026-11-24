@@ -30,6 +30,7 @@ type executionPayloadBidJSON struct {
 	ParentBlockHash       string   `json:"parent_block_hash"`
 	ParentBlockRoot       string   `json:"parent_block_root"`
 	BlockHash             string   `json:"block_hash"`
+	PayloadRoot           string   `json:"payload_root"`
 	PrevRandao            string   `json:"prev_randao"`
 	FeeRecipient          string   `json:"fee_recipient"`
 	GasLimit              string   `json:"gas_limit"`
@@ -52,6 +53,7 @@ func (e *ExecutionPayloadBid) MarshalJSON() ([]byte, error) {
 		ParentBlockHash:       fmt.Sprintf("%#x", e.ParentBlockHash),
 		ParentBlockRoot:       fmt.Sprintf("%#x", e.ParentBlockRoot),
 		BlockHash:             fmt.Sprintf("%#x", e.BlockHash),
+		PayloadRoot:           fmt.Sprintf("%#x", e.PayloadRoot),
 		PrevRandao:            fmt.Sprintf("%#x", e.PrevRandao),
 		FeeRecipient:          fmt.Sprintf("%#x", e.FeeRecipient),
 		GasLimit:              fmt.Sprintf("%d", e.GasLimit),
@@ -100,6 +102,16 @@ func (e *ExecutionPayloadBid) UnmarshalJSON(input []byte) error {
 		return errors.Wrap(err, "invalid block hash")
 	}
 	copy(e.BlockHash[:], blockHash)
+
+	// Payload root
+	if data.PayloadRoot == "" {
+		return errors.New("payload root missing")
+	}
+	payloadRoot, err := hex.DecodeString(strings.TrimPrefix(data.PayloadRoot, "0x"))
+	if err != nil {
+		return errors.Wrap(err, "invalid payload root")
+	}
+	copy(e.PayloadRoot[:], payloadRoot)
 
 	// Prev randao
 	if data.PrevRandao == "" {

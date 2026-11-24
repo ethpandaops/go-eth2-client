@@ -27,6 +27,7 @@ type executionPayloadBidYAML struct {
 	ParentBlockHash       string   `yaml:"parent_block_hash"`
 	ParentBlockRoot       string   `yaml:"parent_block_root"`
 	BlockHash             string   `yaml:"block_hash"`
+	PayloadRoot           string   `yaml:"payload_root"`
 	PrevRandao            string   `yaml:"prev_randao"`
 	FeeRecipient          string   `yaml:"fee_recipient"`
 	GasLimit              uint64   `yaml:"gas_limit"`
@@ -50,6 +51,7 @@ func (e *ExecutionPayloadBid) MarshalYAML() ([]byte, error) {
 		ParentBlockHash:       fmt.Sprintf("%#x", e.ParentBlockHash),
 		ParentBlockRoot:       fmt.Sprintf("%#x", e.ParentBlockRoot),
 		BlockHash:             fmt.Sprintf("%#x", e.BlockHash),
+		PayloadRoot:           fmt.Sprintf("%#x", e.PayloadRoot),
 		PrevRandao:            fmt.Sprintf("%#x", e.PrevRandao),
 		FeeRecipient:          fmt.Sprintf("%#x", e.FeeRecipient),
 		GasLimit:              e.GasLimit,

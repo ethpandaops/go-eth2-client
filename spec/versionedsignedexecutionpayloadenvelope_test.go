@@ -21,7 +21,6 @@ func TestVersionedSignedExecutionPayloadEnvelopeHeze(t *testing.T) {
 			Message: &gloas.ExecutionPayloadEnvelope{
 				Payload:           payload,
 				ExecutionRequests: requests,
-				BuilderIndex:      7,
 				BeaconBlockRoot:   root,
 			},
 		},
@@ -35,10 +34,6 @@ func TestVersionedSignedExecutionPayloadEnvelopeHeze(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, spec.DataVersionHeze, gotRequests.Version)
 	require.Equal(t, requests, gotRequests.Heze)
-
-	builderIndex, err := envelope.BuilderIndex()
-	require.NoError(t, err)
-	require.Equal(t, gloas.BuilderIndex(7), builderIndex)
 
 	blockRoot, err := envelope.BeaconBlockRoot()
 	require.NoError(t, err)

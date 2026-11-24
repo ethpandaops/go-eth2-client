@@ -17,7 +17,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -27,7 +26,6 @@ import (
 type executionPayloadEnvelopeJSON struct {
 	Payload               *ExecutionPayload  `json:"payload"`
 	ExecutionRequests     *ExecutionRequests `json:"execution_requests"`
-	BuilderIndex          string             `json:"builder_index"`
 	BeaconBlockRoot       string             `json:"beacon_block_root"`
 	ParentBeaconBlockRoot string             `json:"parent_beacon_block_root"`
 }
@@ -37,7 +35,6 @@ func (e *ExecutionPayloadEnvelope) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&executionPayloadEnvelopeJSON{
 		Payload:               e.Payload,
 		ExecutionRequests:     e.ExecutionRequests,
-		BuilderIndex:          fmt.Sprintf("%d", e.BuilderIndex),
 		BeaconBlockRoot:       fmt.Sprintf("%#x", e.BeaconBlockRoot),
 		ParentBeaconBlockRoot: fmt.Sprintf("%#x", e.ParentBeaconBlockRoot),
 	})
@@ -59,15 +56,6 @@ func (e *ExecutionPayloadEnvelope) UnmarshalJSON(input []byte) error {
 		return errors.New("execution requests missing")
 	}
 	e.ExecutionRequests = data.ExecutionRequests
-
-	if data.BuilderIndex == "" {
-		return errors.New("builder index missing")
-	}
-	builderIndex, err := strconv.ParseUint(data.BuilderIndex, 10, 64)
-	if err != nil {
-		return errors.Wrap(err, "invalid builder index")
-	}
-	e.BuilderIndex = BuilderIndex(builderIndex)
 
 	if data.BeaconBlockRoot == "" {
 		return errors.New("beacon block root missing")

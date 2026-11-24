@@ -165,40 +165,6 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 	}
 }
 
-// BuilderIndex returns the builder index of the signed envelope.
-func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderIndex, error) {
-	switch v.Version {
-	case DataVersionPhase0:
-		return 0, errors.New("no execution payload envelope in phase0")
-	case DataVersionAltair:
-		return 0, errors.New("no execution payload envelope in altair")
-	case DataVersionBellatrix:
-		return 0, errors.New("no execution payload envelope in bellatrix")
-	case DataVersionCapella:
-		return 0, errors.New("no execution payload envelope in capella")
-	case DataVersionDeneb:
-		return 0, errors.New("no execution payload envelope in deneb")
-	case DataVersionElectra:
-		return 0, errors.New("no execution payload envelope in electra")
-	case DataVersionFulu:
-		return 0, errors.New("no execution payload envelope in fulu")
-	case DataVersionGloas:
-		if v.Gloas == nil || v.Gloas.Message == nil {
-			return 0, errors.New("no gloas signed execution payload envelope")
-		}
-
-		return v.Gloas.Message.BuilderIndex, nil
-	case DataVersionHeze:
-		if v.Gloas == nil || v.Gloas.Message == nil {
-			return 0, errors.New("no heze signed execution payload envelope")
-		}
-
-		return v.Gloas.Message.BuilderIndex, nil
-	default:
-		return 0, errors.New("unknown version")
-	}
-}
-
 // BeaconBlockRoot returns the beacon block root of the signed envelope.
 func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root, error) {
 	switch v.Version {

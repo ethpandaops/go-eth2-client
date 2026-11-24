@@ -29,16 +29,17 @@ type ExecutionPayloadBid struct {
 	ParentBlockHash       phase0.Hash32              `ssz-index:"0"`
 	ParentBlockRoot       phase0.Root                `ssz-index:"1"`
 	BlockHash             phase0.Hash32              `ssz-index:"2"`
-	PrevRandao            phase0.Root                `ssz-index:"3"`
-	FeeRecipient          bellatrix.ExecutionAddress `ssz-index:"4"`
-	GasLimit              uint64                     `ssz-index:"5"`
-	BuilderIndex          gloas.BuilderIndex         `ssz-index:"6"`
-	Slot                  phase0.Slot                `ssz-index:"7"`
-	Value                 phase0.Gwei                `ssz-index:"8"`
-	ExecutionPayment      phase0.Gwei                `ssz-index:"9"`
-	BlobKZGCommitments    []deneb.KZGCommitment      `ssz-index:"10" ssz-type:"progressive-list"`
-	ExecutionRequestsRoot phase0.Root                `ssz-index:"11"`
-	InclusionListBits     []byte                     `ssz-index:"12" dynssz-size:"INCLUSION_LIST_COMMITTEE_SIZE/8" ssz-size:"2"`
+	PayloadRoot           phase0.Root                `ssz-index:"3"`
+	PrevRandao            phase0.Root                `ssz-index:"4"`
+	FeeRecipient          bellatrix.ExecutionAddress `ssz-index:"5"`
+	GasLimit              uint64                     `ssz-index:"6"`
+	BuilderIndex          gloas.BuilderIndex         `ssz-index:"7"`
+	Slot                  phase0.Slot                `ssz-index:"8"`
+	Value                 phase0.Gwei                `ssz-index:"9"`
+	ExecutionPayment      phase0.Gwei                `ssz-index:"10"`
+	BlobKZGCommitments    []deneb.KZGCommitment      `ssz-index:"11" ssz-type:"progressive-list"`
+	ExecutionRequestsRoot phase0.Root                `ssz-index:"12"`
+	InclusionListBits     []byte                     `ssz-index:"13" dynssz-size:"INCLUSION_LIST_COMMITTEE_SIZE/8" ssz-size:"2"`
 }
 
 // String returns a string version of the structure.

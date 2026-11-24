@@ -64,7 +64,6 @@ func testGloasSignedExecutionPayloadEnvelope() *gloas.SignedExecutionPayloadEnve
 				BuilderDeposits: []*gloas.BuilderDepositRequest{},
 				BuilderExits:    []*gloas.BuilderExitRequest{},
 			},
-			BuilderIndex:          42,
 			BeaconBlockRoot:       phase0.Root{0x11},
 			ParentBeaconBlockRoot: phase0.Root{0x12},
 		},

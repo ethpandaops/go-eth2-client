@@ -35,6 +35,7 @@ type ExecutionPayloadBid struct {
 	ParentBlockHash       phase0.Hash32
 	ParentBlockRoot       phase0.Root
 	BlockHash             phase0.Hash32
+	PayloadRoot           phase0.Root
 	PrevRandao            phase0.Root
 	FeeRecipient          bellatrix.ExecutionAddress
 	GasLimit              uint64

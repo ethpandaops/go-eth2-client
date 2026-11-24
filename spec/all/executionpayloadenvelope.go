@@ -32,7 +32,6 @@ type ExecutionPayloadEnvelope struct {
 	Version               version.DataVersion
 	Payload               *ExecutionPayload
 	ExecutionRequests     *ExecutionRequests
-	BuilderIndex          gloas.BuilderIndex
 	BeaconBlockRoot       phase0.Root
 	ParentBeaconBlockRoot phase0.Root
 }

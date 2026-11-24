@@ -26,7 +26,6 @@ import (
 type executionPayloadEnvelopeYAML struct {
 	Payload               *ExecutionPayload  `yaml:"payload"`
 	ExecutionRequests     *ExecutionRequests `yaml:"execution_requests"`
-	BuilderIndex          uint64             `yaml:"builder_index"`
 	BeaconBlockRoot       string             `yaml:"beacon_block_root"`
 	ParentBeaconBlockRoot string             `yaml:"parent_beacon_block_root"`
 }
@@ -36,7 +35,6 @@ func (e *ExecutionPayloadEnvelope) MarshalYAML() ([]byte, error) {
 	yamlBytes, err := yaml.MarshalWithOptions(&executionPayloadEnvelopeYAML{
 		Payload:               e.Payload,
 		ExecutionRequests:     e.ExecutionRequests,
-		BuilderIndex:          uint64(e.BuilderIndex),
 		BeaconBlockRoot:       fmt.Sprintf("%#x", e.BeaconBlockRoot),
 		ParentBeaconBlockRoot: fmt.Sprintf("%#x", e.ParentBeaconBlockRoot),
 	}, yaml.Flow(true))
