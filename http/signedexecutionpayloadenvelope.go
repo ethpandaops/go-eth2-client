@@ -42,8 +42,9 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 	}
 
 	// All current envelope-bearing forks (Gloas, Heze) reuse the gloas
-	// schema, so the wire bytes always parse into *gloas.SignedExecutionPayloadEnvelope.
-	envelope := &gloas.SignedExecutionPayloadEnvelope{}
+	// schema. The envelope is not signed on the wire, so the bytes parse into
+	// *gloas.ExecutionPayloadEnvelope and the signature is left empty.
+	envelope := &gloas.SignedExecutionPayloadEnvelope{Message: &gloas.ExecutionPayloadEnvelope{}}
 	metadata := metadataFromHeaders(httpResponse.headers)
 
 	switch httpResponse.contentType {
@@ -53,16 +54,16 @@ func (s *Service) SignedExecutionPayloadEnvelope(ctx context.Context,
 			return nil, err
 		}
 
-		if err := ds.UnmarshalSSZ(envelope, httpResponse.body); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+		if err := ds.UnmarshalSSZ(envelope.Message, httpResponse.body); err != nil {
+			return nil, errors.Join(fmt.Errorf("failed to decode %s execution payload envelope", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope.Message)
 		if err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(fmt.Errorf("failed to decode %s execution payload envelope", httpResponse.consensusVersion), err)
 		}
 
-		envelope = decoded
+		envelope.Message = decoded
 
 		maps.Copy(metadata, jsonMetadata)
 	default:
@@ -94,7 +95,11 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 		return nil, err
 	}
 
-	envelope := &all.SignedExecutionPayloadEnvelope{Version: httpResponse.consensusVersion}
+	// The envelope is not signed on the wire, the signature is left empty.
+	envelope := &all.SignedExecutionPayloadEnvelope{
+		Version: httpResponse.consensusVersion,
+		Message: &all.ExecutionPayloadEnvelope{Version: httpResponse.consensusVersion},
+	}
 	metadata := metadataFromHeaders(httpResponse.headers)
 
 	switch httpResponse.contentType {
@@ -104,16 +109,16 @@ func (s *Service) AgnosticSignedExecutionPayloadEnvelope(ctx context.Context,
 			return nil, err
 		}
 
-		if err := envelope.UnmarshalSSZDyn(ds, httpResponse.body); err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+		if err := envelope.Message.UnmarshalSSZDyn(ds, httpResponse.body); err != nil {
+			return nil, errors.Join(fmt.Errorf("failed to decode %s execution payload envelope", httpResponse.consensusVersion), err)
 		}
 	case ContentTypeJSON:
-		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope)
+		decoded, jsonMetadata, err := decodeJSONResponse(bytes.NewReader(httpResponse.body), envelope.Message)
 		if err != nil {
-			return nil, errors.Join(fmt.Errorf("failed to decode %s signed execution payload envelope", httpResponse.consensusVersion), err)
+			return nil, errors.Join(fmt.Errorf("failed to decode %s execution payload envelope", httpResponse.consensusVersion), err)
 		}
 
-		envelope = decoded
+		envelope.Message = decoded
 
 		maps.Copy(metadata, jsonMetadata)
 	default:
