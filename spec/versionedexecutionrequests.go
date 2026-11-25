@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedExecutionRequests contains versioned execution layer triggered
@@ -29,11 +30,12 @@ type VersionedExecutionRequests struct {
 	Fulu    *electra.ExecutionRequests
 	Gloas   *gloas.ExecutionRequests
 	Heze    *gloas.ExecutionRequests
+	PQ      *pq.ExecutionRequests
 }
 
 // IsEmpty returns true if no fork-specific execution requests are populated.
 func (v *VersionedExecutionRequests) IsEmpty() bool {
-	return v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+	return v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil
 }
 
 // Deposits returns the deposit requests.
@@ -65,6 +67,12 @@ func (v *VersionedExecutionRequests) Deposits() ([]*electra.DepositRequest, erro
 		}
 
 		return v.Heze.Deposits, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.PQ.Deposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -99,6 +107,12 @@ func (v *VersionedExecutionRequests) Withdrawals() ([]*electra.WithdrawalRequest
 		}
 
 		return v.Heze.Withdrawals, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.PQ.Withdrawals, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -133,6 +147,12 @@ func (v *VersionedExecutionRequests) Consolidations() ([]*electra.ConsolidationR
 		}
 
 		return v.Heze.Consolidations, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.PQ.Consolidations, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -156,6 +176,12 @@ func (v *VersionedExecutionRequests) BuilderDeposits() ([]*gloas.BuilderDepositR
 		}
 
 		return v.Heze.BuilderDeposits, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.PQ.BuilderDeposits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -179,6 +205,12 @@ func (v *VersionedExecutionRequests) BuilderExits() ([]*gloas.BuilderExitRequest
 		}
 
 		return v.Heze.BuilderExits, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return nil, errors.New("no heze execution requests")
+		}
+
+		return v.PQ.BuilderExits, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -213,6 +245,12 @@ func (v *VersionedExecutionRequests) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

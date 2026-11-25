@@ -24,6 +24,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedBeaconBlock contains a versioned signed beacon block.
@@ -38,6 +39,7 @@ type VersionedSignedBeaconBlock struct {
 	Fulu      *electra.SignedBeaconBlock
 	Gloas     *gloas.SignedBeaconBlock
 	Heze      *heze.SignedBeaconBlock
+	PQ        *pq.SignedBeaconBlock
 }
 
 // Slot returns the slot of the signed beacon block.
@@ -97,6 +99,12 @@ func (v *VersionedSignedBeaconBlock) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Message.Slot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -159,6 +167,12 @@ func (v *VersionedSignedBeaconBlock) ProposerIndex() (phase0.ValidatorIndex, err
 		}
 
 		return v.Heze.Message.ProposerIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.ProposerIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -226,6 +240,16 @@ func (v *VersionedSignedBeaconBlock) ExecutionBlockHash() (phase0.Hash32, error)
 		}
 
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
+	case DataVersionPQ:
+		if v.PQ == nil ||
+			v.PQ.Message == nil ||
+			v.PQ.Message.Body == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid.Message == nil {
+			return phase0.Hash32{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.Body.SignedExecutionPayloadBid.Message.BlockHash, nil
 	default:
 		return phase0.Hash32{}, errors.New("unknown version")
 	}
@@ -277,6 +301,8 @@ func (v *VersionedSignedBeaconBlock) ExecutionBlockNumber() (uint64, error) {
 		return 0, errors.New("no execution block number for gloas block")
 	case DataVersionHeze:
 		return 0, errors.New("no execution block number for heze block")
+	case DataVersionPQ:
+		return 0, errors.New("no execution block number for pq block")
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -332,6 +358,8 @@ func (v *VersionedSignedBeaconBlock) ExecutionTransactions() ([]bellatrix.Transa
 		return nil, errors.New("no execution block transactions for gloas block")
 	case DataVersionHeze:
 		return nil, errors.New("no execution block transactions for heze block")
+	case DataVersionPQ:
+		return nil, errors.New("no execution block transactions for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -394,6 +422,12 @@ func (v *VersionedSignedBeaconBlock) Graffiti() ([32]byte, error) {
 		}
 
 		return v.Heze.Message.Body.Graffiti, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return [32]byte{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.Body.Graffiti, nil
 	default:
 		return [32]byte{}, errors.New("unknown version")
 	}
@@ -530,6 +564,20 @@ func (v *VersionedSignedBeaconBlock) Attestations() ([]*VersionedAttestation, er
 		}
 
 		return versionedAttestations, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		versionedAttestations := make([]*VersionedAttestation, len(v.PQ.Message.Body.Attestations))
+		for i, attestation := range v.PQ.Message.Body.Attestations {
+			versionedAttestations[i] = &VersionedAttestation{
+				Version: DataVersionPQ,
+				PQ:      attestation,
+			}
+		}
+
+		return versionedAttestations, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -592,6 +640,12 @@ func (v *VersionedSignedBeaconBlock) Root() (phase0.Root, error) {
 		}
 
 		return v.Heze.Message.HashTreeRoot()
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.HashTreeRoot()
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -654,6 +708,12 @@ func (v *VersionedSignedBeaconBlock) BodyRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.Message.Body.HashTreeRoot()
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return phase0.Root{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.Body.HashTreeRoot()
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -716,6 +776,12 @@ func (v *VersionedSignedBeaconBlock) ParentRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.Message.ParentRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.ParentRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -778,6 +844,12 @@ func (v *VersionedSignedBeaconBlock) StateRoot() (phase0.Root, error) {
 		}
 
 		return v.Heze.Message.StateRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.StateRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -840,6 +912,12 @@ func (v *VersionedSignedBeaconBlock) RandaoReveal() (phase0.BLSSignature, error)
 		}
 
 		return v.Heze.Message.Body.RANDAOReveal, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return phase0.BLSSignature{}, errors.New("no heze block")
+		}
+
+		return phase0.BLSSignature{}, errors.New("PQ blocks carry a VRF proof as RANDAO reveal")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -898,6 +976,8 @@ func (v *VersionedSignedBeaconBlock) ETH1Data() (*phase0.ETH1Data, error) {
 		return v.Gloas.Message.Body.ETH1Data, nil
 	case DataVersionHeze:
 		return nil, errors.New("no eth1 data in heze")
+	case DataVersionPQ:
+		return nil, errors.New("no eth1 data in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -956,6 +1036,8 @@ func (v *VersionedSignedBeaconBlock) Deposits() ([]*phase0.Deposit, error) {
 		return v.Gloas.Message.Body.Deposits, nil
 	case DataVersionHeze:
 		return nil, errors.New("no deposits in heze")
+	case DataVersionPQ:
+		return nil, errors.New("no deposits in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1018,6 +1100,12 @@ func (v *VersionedSignedBeaconBlock) VoluntaryExits() ([]*phase0.SignedVoluntary
 		}
 
 		return v.Heze.Message.Body.VoluntaryExits, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return []*phase0.SignedVoluntaryExit{}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1154,6 +1242,20 @@ func (v *VersionedSignedBeaconBlock) AttesterSlashings() ([]VersionedAttesterSla
 		}
 
 		return versionedAttesterSlashings, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		versionedAttesterSlashings := make([]VersionedAttesterSlashing, len(v.PQ.Message.Body.AttesterSlashings))
+		for i, attesterSlashing := range v.PQ.Message.Body.AttesterSlashings {
+			versionedAttesterSlashings[i] = VersionedAttesterSlashing{
+				Version: DataVersionPQ,
+				PQ:      attesterSlashing,
+			}
+		}
+
+		return versionedAttesterSlashings, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1216,6 +1318,12 @@ func (v *VersionedSignedBeaconBlock) ProposerSlashings() ([]*phase0.ProposerSlas
 		}
 
 		return v.Heze.Message.Body.ProposerSlashings, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return pq.LegacyProposerSlashings(v.PQ.Message.Body.XMSSProposerSlashings), nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1274,6 +1382,12 @@ func (v *VersionedSignedBeaconBlock) SyncAggregate() (*altair.SyncAggregate, err
 		}
 
 		return v.Heze.Message.Body.SyncAggregate, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return nil, errors.New("PQ blocks carry no sync aggregate")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1324,6 +1438,12 @@ func (v *VersionedSignedBeaconBlock) BLSToExecutionChanges() ([]*capella.SignedB
 		}
 
 		return v.Heze.Message.Body.BLSToExecutionChanges, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return []*capella.SignedBLSToExecutionChange{}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1372,6 +1492,8 @@ func (v *VersionedSignedBeaconBlock) Withdrawals() ([]*capella.Withdrawal, error
 		return nil, errors.New("no execution payload withdrawals for gloas block")
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload withdrawals for heze block")
+	case DataVersionPQ:
+		return nil, errors.New("no execution payload withdrawals for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1422,6 +1544,14 @@ func (v *VersionedSignedBeaconBlock) BlobKZGCommitments() ([]deneb.KZGCommitment
 		}
 
 		return v.Heze.Message.Body.SignedExecutionPayloadBid.Message.BlobKZGCommitments, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid == nil ||
+			v.PQ.Message.Body.SignedExecutionPayloadBid.Message == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return v.PQ.Message.Body.SignedExecutionPayloadBid.Message.BlobKZGCommitments, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1464,6 +1594,8 @@ func (v *VersionedSignedBeaconBlock) ExecutionRequests() (*VersionedExecutionReq
 		return nil, errors.New("no execution requests for gloas block")
 	case DataVersionHeze:
 		return nil, errors.New("no execution requests for heze block")
+	case DataVersionPQ:
+		return nil, errors.New("no execution requests for pq block")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1503,6 +1635,15 @@ func (v *VersionedSignedBeaconBlock) SignedExecutionPayloadBid() (*VersionedSign
 		return &VersionedSignedExecutionPayloadBid{
 			Version: DataVersionHeze,
 			Heze:    v.Heze.Message.Body.SignedExecutionPayloadBid,
+		}, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil || v.PQ.Message.Body == nil {
+			return nil, errors.New("no heze block")
+		}
+
+		return &VersionedSignedExecutionPayloadBid{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.Message.Body.SignedExecutionPayloadBid,
 		}, nil
 	default:
 		return nil, errors.New("unknown version")
@@ -1554,6 +1695,8 @@ func (v *VersionedSignedBeaconBlock) ExecutionPayload() (*VersionedExecutionPayl
 		return nil, errors.New("no execution payload in gloas")
 	case DataVersionHeze:
 		return nil, errors.New("no execution payload in heze")
+	case DataVersionPQ:
+		return nil, errors.New("no execution payload in pq")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -1618,6 +1761,12 @@ func (v *VersionedSignedBeaconBlock) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

@@ -32,6 +32,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	dynssz "github.com/pk910/dynamic-ssz"
 )
 
@@ -163,6 +164,9 @@ func (s *Service) beaconStateFromSSZ(ctx context.Context, res *httpResponse) (*a
 	case spec.DataVersionHeze:
 		response.Data.Heze = &heze.BeaconState{}
 		err = dynSSZ.UnmarshalSSZ(response.Data.Heze, res.body)
+	case spec.DataVersionPQ:
+		response.Data.PQ = &pq.BeaconState{}
+		err = dynSSZ.UnmarshalSSZ(response.Data.PQ, res.body)
 	default:
 		return nil, fmt.Errorf("unhandled state version %s", res.consensusVersion)
 	}
@@ -236,6 +240,8 @@ func (*Service) beaconStateFromJSON(res *httpResponse) (*api.Response[*spec.Vers
 		response.Data.Gloas, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &gloas.BeaconState{})
 	case spec.DataVersionHeze:
 		response.Data.Heze, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &heze.BeaconState{})
+	case spec.DataVersionPQ:
+		response.Data.PQ, response.Metadata, err = decodeJSONResponse(bytes.NewReader(res.body), &pq.BeaconState{})
 	default:
 		err = fmt.Errorf("unsupported version %s", res.consensusVersion)
 	}

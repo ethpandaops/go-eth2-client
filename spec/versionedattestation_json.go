@@ -18,12 +18,14 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/pkg/errors"
 )
 
 // attestationIdentificationJSON contains fields that allow us to identify the attestation variant.
 type attestationIdentificationJSON struct {
 	CommitteeBits *string `json:"committee_bits"`
+	Signature     *string `json:"signature"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -34,6 +36,12 @@ func (v *VersionedAttestation) UnmarshalJSON(input []byte) error {
 	}
 
 	switch {
+	case id.CommitteeBits != nil && id.Signature == nil:
+		// PQ attestations drop the signature: a separate STARK proof covers them.
+		v.Version = DataVersionPQ
+		v.PQ = &pq.Attestation{}
+
+		return v.PQ.UnmarshalJSON(input)
 	case id.CommitteeBits != nil:
 		v.Version = DataVersionElectra
 		v.Electra = &electra.Attestation{}

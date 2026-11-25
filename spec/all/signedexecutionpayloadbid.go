@@ -21,6 +21,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -28,9 +29,10 @@ import (
 
 // SignedExecutionPayloadBid is a fork-agnostic signed execution payload bid.
 type SignedExecutionPayloadBid struct {
-	Version   version.DataVersion
-	Message   *ExecutionPayloadBid
-	Signature phase0.BLSSignature
+	Version       version.DataVersion
+	Message       *ExecutionPayloadBid
+	Signature     phase0.BLSSignature
+	XMSSSignature pq.XMSSSignature
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -41,6 +43,8 @@ func (s *SignedExecutionPayloadBid) viewType() (any, error) {
 		return (*gloas.SignedExecutionPayloadBid)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.SignedExecutionPayloadBid)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.SignedExecutionPayloadBid)(nil), nil
 	default:
 		return nil, fmt.Errorf("SignedExecutionPayloadBid: unsupported version %d", s.Version)
 	}
@@ -155,6 +159,8 @@ func signedExecutionPayloadBidVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.SignedExecutionPayloadBid:
 		return version.DataVersionHeze, nil
+	case *pq.SignedExecutionPayloadBid:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("SignedExecutionPayloadBid: unsupported view type %T", view)
 	}

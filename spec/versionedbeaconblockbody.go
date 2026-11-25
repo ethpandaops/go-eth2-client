@@ -22,6 +22,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedBeaconBlockBody contains a versioned beacon block body.
@@ -36,6 +37,7 @@ type VersionedBeaconBlockBody struct {
 	Fulu      *electra.BeaconBlockBody
 	Gloas     *gloas.BeaconBlockBody
 	Heze      *heze.BeaconBlockBody
+	PQ        *pq.BeaconBlockBody
 }
 
 // String returns a string version of the structure.
@@ -95,6 +97,12 @@ func (v *VersionedBeaconBlockBody) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

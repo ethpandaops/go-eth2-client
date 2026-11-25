@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedExecutionPayloadEnvelope contains a versioned signed
@@ -27,11 +28,12 @@ import (
 type VersionedSignedExecutionPayloadEnvelope struct {
 	Version DataVersion
 	Gloas   *gloas.SignedExecutionPayloadEnvelope
+	PQ      *pq.SignedExecutionPayloadEnvelope
 }
 
 // IsEmpty returns true if no fork-specific envelope is populated.
 func (v *VersionedSignedExecutionPayloadEnvelope) IsEmpty() bool {
-	return v.Gloas == nil
+	return v.Gloas == nil && v.PQ == nil
 }
 
 // String returns a string version of the structure.
@@ -52,6 +54,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) String() string {
 		}
 
 		return v.Gloas.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}
@@ -86,6 +94,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Message() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message, nil
+	case DataVersionPQ:
+		return nil, errors.New("pq execution payload envelopes have their own message type")
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -120,6 +130,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Payload() (*gloas.ExecutionPay
 		}
 
 		return v.Gloas.Message.Payload, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return nil, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.Payload, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -160,6 +176,15 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ExecutionRequests() (*Versione
 			Version: DataVersionHeze,
 			Heze:    v.Gloas.Message.ExecutionRequests,
 		}, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return nil, errors.New("no pq signed execution payload envelope")
+		}
+
+		return &VersionedExecutionRequests{
+			Version: DataVersionPQ,
+			PQ:      v.PQ.Message.ExecutionRequests,
+		}, nil
 	default:
 		return nil, errors.New("unknown version")
 	}
@@ -194,6 +219,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BuilderIndex() (gloas.BuilderI
 		}
 
 		return v.Gloas.Message.BuilderIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return 0, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.BuilderIndex, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -228,6 +259,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) BeaconBlockRoot() (phase0.Root
 		}
 
 		return v.Gloas.Message.BeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.BeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -262,6 +299,12 @@ func (v *VersionedSignedExecutionPayloadEnvelope) ParentBeaconBlockRoot() (phase
 		}
 
 		return v.Gloas.Message.ParentBeaconBlockRoot, nil
+	case DataVersionPQ:
+		if v.PQ == nil || v.PQ.Message == nil {
+			return phase0.Root{}, errors.New("no pq signed execution payload envelope")
+		}
+
+		return v.PQ.Message.ParentBeaconBlockRoot, nil
 	default:
 		return phase0.Root{}, errors.New("unknown version")
 	}
@@ -296,6 +339,8 @@ func (v *VersionedSignedExecutionPayloadEnvelope) Signature() (phase0.BLSSignatu
 		}
 
 		return v.Gloas.Signature, nil
+	case DataVersionPQ:
+		return phase0.BLSSignature{}, errors.New("pq execution payload envelopes carry an XMSS signature")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}

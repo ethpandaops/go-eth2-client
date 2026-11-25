@@ -155,6 +155,23 @@ func (e *InclusionListEvent) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to marshal inclusion list message")
 		}
+	case spec.DataVersionPQ:
+		if e.Data.Message == nil {
+			return nil, errors.New("inclusion list message missing")
+		}
+		transactions := make([]string, len(e.Data.Message.Transactions))
+		for i := range e.Data.Message.Transactions {
+			transactions[i] = fmt.Sprintf("%#x", e.Data.Message.Transactions[i])
+		}
+		inclusionListMessage, err = json.Marshal(&inclusionListJSON{
+			Slot:           fmt.Sprintf("%d", e.Data.Message.Slot),
+			ValidatorIndex: fmt.Sprintf("%d", e.Data.Message.ValidatorIndex),
+			DependentRoot:  fmt.Sprintf("%#x", e.Data.Message.DependentRoot),
+			Transactions:   transactions,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal inclusion list message")
+		}
 	default:
 		return nil, errors.New("unsupported inclusion list version")
 	}
@@ -192,6 +209,12 @@ func (e *InclusionListEvent) UnmarshalJSON(input []byte) error {
 	}
 	switch event.Version {
 	case spec.DataVersionHeze:
+		var message InclusionList
+		if err := json.Unmarshal(event.Data.Message, &message); err != nil {
+			return err
+		}
+		e.Data.Message = &message
+	case spec.DataVersionPQ:
 		var message InclusionList
 		if err := json.Unmarshal(event.Data.Message, &message); err != nil {
 			return err

@@ -28,6 +28,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -86,6 +87,11 @@ type BeaconState struct {
 	LatestExecutionPayloadBid     *ExecutionPayloadBid
 	PayloadExpectedWithdrawals    []*capella.Withdrawal
 	PTCWindow                     [][]phase0.ValidatorIndex
+	XMSSValidators                []*pq.Validator
+	XMSSBuilders                  []*pq.Builder
+	ValidatorPreregistrations     []*pq.ValidatorPreregistration
+	BuilderPreregistrations       []*pq.BuilderPreregistration
+	AggregationCommitteeWindow    [][][]phase0.ValidatorIndex
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -110,6 +116,8 @@ func (b *BeaconState) viewType() (any, error) {
 		return (*gloas.BeaconState)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.BeaconState)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.BeaconState)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconState: unsupported version %d", b.Version)
 	}
@@ -180,6 +188,16 @@ func (b *BeaconState) UnmarshalSSZDyn(ds sszutils.DynamicSpecs, buf []byte) erro
 func (b *BeaconState) populateVersion(v version.DataVersion) {
 	b.Version = v
 
+	if v == version.DataVersionPQ {
+		if len(b.Validators) != len(b.XMSSValidators) {
+			b.Validators = pq.LegacyValidators(b.XMSSValidators)
+		}
+
+		if len(b.Builders) != len(b.XMSSBuilders) {
+			b.Builders = pq.LegacyBuilders(b.XMSSBuilders)
+		}
+	}
+
 	if b.LatestExecutionPayloadHeader != nil {
 		b.LatestExecutionPayloadHeader.populateVersion(v)
 	}
@@ -241,6 +259,8 @@ func beaconStateVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.BeaconState:
 		return version.DataVersionHeze, nil
+	case *pq.BeaconState:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconState: unsupported view type %T", view)
 	}

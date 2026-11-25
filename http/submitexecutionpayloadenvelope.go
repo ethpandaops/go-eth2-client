@@ -58,7 +58,7 @@ func (s *Service) SubmitExecutionPayloadEnvelope(ctx context.Context,
 
 	switch versioned.Version {
 	case spec.DataVersionGloas, spec.DataVersionHeze:
-		// All current envelope-bearing forks (Gloas, Heze) reuse the gloas schema.
+		// Gloas and Heze share the gloas schema.
 		if versioned.Gloas == nil {
 			return errors.Join(errors.New("no gloas envelope supplied"), client.ErrInvalidOptions)
 		}

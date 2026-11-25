@@ -18,6 +18,7 @@ import (
 
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 )
 
 // VersionedSignedAggregateAndProof contains a versioned signed aggregate and proof.
@@ -32,6 +33,7 @@ type VersionedSignedAggregateAndProof struct {
 	Fulu      *electra.SignedAggregateAndProof
 	Gloas     *electra.SignedAggregateAndProof
 	Heze      *electra.SignedAggregateAndProof
+	PQ        *pq.SignedAggregateAndProof
 }
 
 // AggregatorIndex returns the aggregator index of the aggregate.
@@ -91,6 +93,12 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 		}
 
 		return v.Heze.Message.AggregatorIndex, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no PQ signed aggregate and proof")
+		}
+
+		return v.PQ.Message.AggregatorIndex, nil
 	default:
 		return 0, errors.New("unknown version for signed aggregate and proof")
 	}
@@ -99,7 +107,7 @@ func (v *VersionedSignedAggregateAndProof) AggregatorIndex() (phase0.ValidatorIn
 // IsEmpty returns true if there is no aggregate and proof.
 func (v *VersionedSignedAggregateAndProof) IsEmpty() bool {
 	return v.Phase0 == nil && v.Altair == nil && v.Bellatrix == nil && v.Capella == nil && v.Deneb == nil &&
-		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil
+		v.Electra == nil && v.Fulu == nil && v.Gloas == nil && v.Heze == nil && v.PQ == nil
 }
 
 // SelectionProof returns the selection proof of the signed aggregate.
@@ -159,6 +167,12 @@ func (v *VersionedSignedAggregateAndProof) SelectionProof() (phase0.BLSSignature
 		}
 
 		return v.Heze.Message.SelectionProof, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
+		}
+
+		return phase0.BLSSignature{}, errors.New("PQ aggregates carry no selection proof")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -221,6 +235,12 @@ func (v *VersionedSignedAggregateAndProof) Signature() (phase0.BLSSignature, err
 		}
 
 		return v.Heze.Signature, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return phase0.BLSSignature{}, errors.New("no heze signed aggregate and proof")
+		}
+
+		return phase0.BLSSignature{}, errors.New("PQ aggregates carry no BLS signature")
 	default:
 		return phase0.BLSSignature{}, errors.New("unknown version")
 	}
@@ -283,6 +303,12 @@ func (v *VersionedSignedAggregateAndProof) Slot() (phase0.Slot, error) {
 		}
 
 		return v.Heze.Message.Aggregate.Data.Slot, nil
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return 0, errors.New("no heze signed aggregate and proof")
+		}
+
+		return v.PQ.Message.Aggregate.Data.Slot, nil
 	default:
 		return 0, errors.New("unknown version")
 	}
@@ -345,6 +371,12 @@ func (v *VersionedSignedAggregateAndProof) String() string {
 		}
 
 		return v.Heze.String()
+	case DataVersionPQ:
+		if v.PQ == nil {
+			return ""
+		}
+
+		return v.PQ.String()
 	default:
 		return "unknown version"
 	}

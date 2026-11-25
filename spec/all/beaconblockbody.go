@@ -26,6 +26,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/heze"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/ethpandaops/go-eth2-client/spec/version"
 	dynssz "github.com/pk910/dynamic-ssz"
 	"github.com/pk910/dynamic-ssz/sszutils"
@@ -52,6 +53,9 @@ type BeaconBlockBody struct {
 	SignedExecutionPayloadBid *SignedExecutionPayloadBid
 	PayloadAttestations       []*gloas.PayloadAttestation
 	ParentExecutionRequests   *ExecutionRequests
+	VRFReveal                 pq.VRFProof
+	XMSSProposerSlashings     []*pq.ProposerSlashing
+	AttestationProof          []byte
 }
 
 // viewType returns the fork-specific schema type pointer used as the view
@@ -76,6 +80,8 @@ func (b *BeaconBlockBody) viewType() (any, error) {
 		return (*gloas.BeaconBlockBody)(nil), nil
 	case version.DataVersionHeze:
 		return (*heze.BeaconBlockBody)(nil), nil
+	case version.DataVersionPQ:
+		return (*pq.BeaconBlockBody)(nil), nil
 	default:
 		return nil, fmt.Errorf("BeaconBlockBody: unsupported version %d", b.Version)
 	}
@@ -151,6 +157,10 @@ func (b *BeaconBlockBody) UnmarshalSSZDyn(ds sszutils.DynamicSpecs, buf []byte) 
 // children allocated by the SSZ unmarshal.
 func (b *BeaconBlockBody) populateVersion(v version.DataVersion) {
 	b.Version = v
+
+	if v == version.DataVersionPQ && len(b.ProposerSlashings) != len(b.XMSSProposerSlashings) {
+		b.ProposerSlashings = pq.LegacyProposerSlashings(b.XMSSProposerSlashings)
+	}
 
 	for _, as := range b.AttesterSlashings {
 		if as != nil {
@@ -230,6 +240,8 @@ func beaconBlockBodyVersion(view any) (version.DataVersion, error) {
 		return version.DataVersionGloas, nil
 	case *heze.BeaconBlockBody:
 		return version.DataVersionHeze, nil
+	case *pq.BeaconBlockBody:
+		return version.DataVersionPQ, nil
 	default:
 		return version.DataVersionUnknown, fmt.Errorf("BeaconBlockBody: unsupported view type %T", view)
 	}

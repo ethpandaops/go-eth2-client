@@ -14,6 +14,8 @@
 package spec_test
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -83,6 +85,53 @@ func TestVersionedAttestation_CommitteeIndex(t *testing.T) {
 			}
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.errorMsg)
+		})
+	}
+}
+
+func TestVersionedAttestation_UnmarshalJSON(t *testing.T) {
+	data := `{"slot":"4070","index":"1","beacon_block_root":"0x1111111111111111111111111111111111111111111111111111111111111111","source":{"epoch":"125","root":"0x2222222222222222222222222222222222222222222222222222222222222222"},"target":{"epoch":"127","root":"0x3333333333333333333333333333333333333333333333333333333333333333"}}`
+
+	tests := []struct {
+		name      string
+		input     string
+		version   spec.DataVersion
+		committee phase0.CommitteeIndex
+		bits      uint64
+	}{
+		{
+			name:      "PQAggregateWithoutSignature",
+			input:     `{"aggregation_bits":"0x0b","data":` + data + `,"committee_bits":"0x0200"}`,
+			version:   spec.DataVersionPQ,
+			committee: 1,
+			bits:      2,
+		},
+		{
+			name:      "ElectraAggregateWithSignature",
+			input:     `{"aggregation_bits":"0x0b","data":` + data + `,"signature":"0x` + strings.Repeat("00", 96) + `","committee_bits":"0x0400000000000000"}`,
+			version:   spec.DataVersionElectra,
+			committee: 2,
+			bits:      2,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var attestation spec.VersionedAttestation
+			require.NoError(t, json.Unmarshal([]byte(test.input), &attestation))
+			require.Equal(t, test.version, attestation.Version)
+
+			committee, err := attestation.CommitteeIndex()
+			require.NoError(t, err)
+			require.Equal(t, test.committee, committee)
+
+			bits, err := attestation.AggregationBits()
+			require.NoError(t, err)
+			require.Equal(t, test.bits, bits.Count())
+
+			attestationData, err := attestation.Data()
+			require.NoError(t, err)
+			require.Equal(t, phase0.Slot(4070), attestationData.Slot)
 		})
 	}
 }
