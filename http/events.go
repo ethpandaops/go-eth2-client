@@ -34,6 +34,7 @@ import (
 	"github.com/ethpandaops/go-eth2-client/spec/electra"
 	"github.com/ethpandaops/go-eth2-client/spec/gloas"
 	"github.com/ethpandaops/go-eth2-client/spec/phase0"
+	"github.com/ethpandaops/go-eth2-client/spec/pq"
 	"github.com/r3labs/sse/v2"
 	"github.com/rs/zerolog"
 )
@@ -670,9 +671,7 @@ func (*Service) handleSingleAttestationEvent(ctx context.Context,
 	opts *api.EventsOpts,
 ) {
 	log := zerolog.Ctx(ctx)
-	data := &electra.SingleAttestation{}
-
-	err := json.Unmarshal(msg.Data, data)
+	data, err := parseSingleAttestationEvent(msg.Data)
 	if err != nil {
 		log.Error().Err(err).RawJSON("data", msg.Data).Msg("Failed to parse single attestation")
 
@@ -690,6 +689,30 @@ func (*Service) handleSingleAttestationEvent(ctx context.Context,
 	default:
 		log.Debug().Msg("No specific or generic handler supplied; ignoring")
 	}
+}
+
+// parseSingleAttestationEvent decodes a single_attestation event payload. A PQ
+// payload carries an XMSS signature that does not fit the Electra container,
+// so it is returned as an Electra single attestation without its signature:
+// the event handlers are typed on the Electra container.
+func parseSingleAttestationEvent(input []byte) (*electra.SingleAttestation, error) {
+	data := &electra.SingleAttestation{}
+
+	err := json.Unmarshal(input, data)
+	if err == nil {
+		return data, nil
+	}
+
+	pqData := &pq.SingleAttestation{}
+	if pqErr := json.Unmarshal(input, pqData); pqErr != nil {
+		return nil, err
+	}
+
+	return &electra.SingleAttestation{
+		CommitteeIndex: pqData.CommitteeIndex,
+		AttesterIndex:  pqData.AttesterIndex,
+		Data:           pqData.Data,
+	}, nil
 }
 
 func (*Service) handleVoluntaryExitEvent(ctx context.Context,

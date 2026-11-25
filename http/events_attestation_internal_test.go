@@ -14,8 +14,10 @@
 package http
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/ethpandaops/go-eth2-client/spec/phase0"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,6 +57,42 @@ func TestIsSingleAttestationPayload(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Equal(t, tt.want, isSingleAttestationPayload([]byte(tt.data)))
+		})
+	}
+}
+
+func TestParseSingleAttestationEvent(t *testing.T) {
+	data := `"data":{"slot":"4070","index":"0","beacon_block_root":"0x1111111111111111111111111111111111111111111111111111111111111111","source":{"epoch":"125","root":"0x2222222222222222222222222222222222222222222222222222222222222222"},"target":{"epoch":"127","root":"0x3333333333333333333333333333333333333333333333333333333333333333"}}`
+	single := func(signatureBytes int) string {
+		return `{"committee_index":"3","attester_index":"8123",` + data + `,"signature":"0x` + strings.Repeat("ab", signatureBytes) + `"}`
+	}
+
+	tests := []struct {
+		name          string
+		input         string
+		err           bool
+		signatureKept bool
+	}{
+		{name: "Electra", input: single(96), signatureKept: true},
+		{name: "PQ", input: single(2404)},
+		{name: "WrongSignatureLength", input: single(100), err: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			attestation, err := parseSingleAttestationEvent([]byte(tt.input))
+			if tt.err {
+				require.Error(t, err)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, phase0.CommitteeIndex(3), attestation.CommitteeIndex)
+			require.Equal(t, phase0.ValidatorIndex(8123), attestation.AttesterIndex)
+			require.Equal(t, phase0.Slot(4070), attestation.Data.Slot)
+			require.Equal(t, phase0.Epoch(127), attestation.Data.Target.Epoch)
+			require.Equal(t, tt.signatureKept, attestation.Signature != phase0.BLSSignature{})
 		})
 	}
 }
